@@ -17,6 +17,17 @@ public sealed class Room : Entity
     public string Code { get; set; } = "";
     public string RoomType { get; set; } = "";
     public string Zone { get; set; } = "";
+    // phase 1 (tracker v19 ROOMS)
+    public int Plot { get; set; }
+    public int Floor { get; set; }
+    public string Unit { get; set; } = "";
+    public string DwgUnitType { get; set; } = "";
+    /// <summary>Plan sheet code (L00, L01, BS1, RF ...).</summary>
+    public string Plan { get; set; } = "";
+    /// <summary>APARTMENT / BOH / FOH / BALCONY / FACADE / PARKING / PLANT - drives the lighting BOQ row; editable.</summary>
+    public string AreaType { get; set; } = "";
+    /// <summary>Confirmed high area (>4.5 m) note, to speed up later claims.</summary>
+    public string HighAreaNote { get; set; } = "";
 }
 
 /// <summary>
@@ -165,10 +176,19 @@ public sealed class BoqItem : Entity
     public double BoqQty { get; set; }
     public double? ProjectQty { get; set; }
     public double Rate { get; set; }
+    // E-Promise budget list (owner BOQ)
+    public string Job { get; set; } = "";
+    public string Wbs { get; set; } = "";
+    public string CostCode { get; set; } = "";
+    public string BudgetResourceCode { get; set; } = "";
+    public string BudgetResource { get; set; } = "";
 }
 
 public sealed class Contract : Entity
 {
+    public string Building { get; set; } = "";
+    public string VendorNo { get; set; } = "";
+    public string SourceFile { get; set; } = "";
     public string Subcontractor { get; set; } = "";
     public string ContractNo { get; set; } = "";
     public string Scope { get; set; } = "";

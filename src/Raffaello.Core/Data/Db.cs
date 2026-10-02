@@ -30,6 +30,9 @@ public sealed class Db : IProjectStore
         typeof(Room), typeof(QtyLine), typeof(Subcontractor), typeof(Allocation), typeof(Wir), typeof(WirLine),
         typeof(Invoice), typeof(InvoiceLine), typeof(PurchaseOrder), typeof(PoLine), typeof(DeliveryNote), typeof(DnLine),
         typeof(BoqItem), typeof(Contract), typeof(AconexDoc), typeof(ImportBatch),
+        // phase 1: real workflow
+        typeof(RoomQty), typeof(ClaimLine), typeof(ContractItem), typeof(ContractItemBoq), typeof(MappingRule),
+        typeof(SubInvoice), typeof(SubInvoiceLine), typeof(InvoiceTemplateRow), typeof(SiteStatement), typeof(PlanImage), typeof(RoomShape),
     };
 
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropCache = new();
@@ -106,6 +109,7 @@ public sealed class Db : IProjectStore
         t = Nullable.GetUnderlyingType(t) ?? t;
         if (t == typeof(long) || t == typeof(int) || t == typeof(bool)) return "INTEGER";
         if (t == typeof(double) || t == typeof(float) || t == typeof(decimal)) return "REAL";
+        if (t == typeof(byte[])) return "BLOB";
         return "TEXT";
     }
 
@@ -410,6 +414,7 @@ public sealed class Db : IProjectStore
         if (v is DBNull) return null;
         var t = Nullable.GetUnderlyingType(target) ?? target;
         if (t == typeof(string)) return Convert.ToString(v, CultureInfo.InvariantCulture);
+        if (t == typeof(byte[])) return v as byte[];
         if (t == typeof(DateTime)) return v is string s ? DateTime.Parse(s, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind) : Convert.ToDateTime(v, CultureInfo.InvariantCulture);
         if (t == typeof(bool)) return Convert.ToInt64(v, CultureInfo.InvariantCulture) != 0;
         if (t.IsEnum) return Enum.ToObject(t, Convert.ToInt64(v, CultureInfo.InvariantCulture));
