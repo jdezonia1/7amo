@@ -53,9 +53,16 @@
                     <TextBlock Text="INVOICE NO" Style="{StaticResource Label}"/>
                     <TextBox Text="{Binding InvoiceNo, UpdateSourceTrigger=PropertyChanged}" Width="70"/>
                 </StackPanel>
-                <Button Grid.Column="3" Style="{StaticResource BtnPrimary}" Content="BUILD FROM LEDGER" Command="{Binding BuildCommand}" VerticalAlignment="Bottom" Margin="10,0,0,0"/>
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Style="{StaticResource BtnPrimary}" Content="BUILD FROM LEDGER" Command="{Binding BuildCommand}" Margin="10,0,0,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="PAST INVOICE FILES" Command="{Binding ImportPastInvoicesCommand}" Margin="6,0,0,0"
+                            ToolTip="Import the subcontractor's earlier invoice files (template layout): splits a cumulative ledger block into INV 1..N and stores them as approved invoices"/>
+                </StackPanel>
             </Grid>
             <StackPanel Grid.Row="1" Margin="0,0,0,8">
+                <Border Background="{DynamicResource YellowBrush}" CornerRadius="4" Padding="10,6" Margin="0,0,0,8" Visibility="{Binding Banner, Converter={StaticResource NullToVis}}">
+                    <TextBlock Text="{Binding Banner}" Foreground="{DynamicResource OnYellowBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                </Border>
                 <TextBlock Text="{Binding Heading}" Style="{StaticResource PanelTitle}"/>
                 <TextBlock Text="{Binding StatusText}" Style="{StaticResource Label}" Foreground="{DynamicResource AccentBrush}" TextTrimming="CharacterEllipsis"/>
                 <TextBlock Text="{Binding MappingText}" Style="{StaticResource Small}" TextTrimming="CharacterEllipsis"/>

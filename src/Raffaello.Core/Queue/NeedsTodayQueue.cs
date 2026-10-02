@@ -99,6 +99,9 @@ public static class NeedsTodayQueue
                 q.Add(new(Verdict.Over, "LEDGER", $"{overCap.Count} room / stage / item keys claimed above PROJECT QTY",
                     $"Worst: {overCap[0].Room} {overCap[0].Stage} {overCap[0].Item} claimed {overCap[0].Claimed:N1} of {overCap[0].ProjectQty:N1}.", new("Ledger", Key: overCap[0].Room), 3.5e8 + overCap.Count));
         }
+        foreach (var blk in Ledger.CumulativeSplit.Pending(s.Claims))
+            q.Add(new(Verdict.Due, "CUMULATIVE", $"{blk.Sub} INV 1-{blk.InvoiceNo} cumulative - awaiting invoice files to split",
+                $"{blk.Lines:N0} ledger lines count once as INV {blk.InvoiceNo}. Import his INV 1..{blk.InvoiceNo} files on the Invoices page to split them.", new("Invoices", Key: $"{blk.Sub}|{blk.InvoiceNo}"), 3e8));
         foreach (var inv in s.SubInvoices.Where(i => i.Status == SubInvoiceStatus.Rejected
                      && !s.SubInvoices.Any(n => n.ContractNo == i.ContractNo && n.Subcontractor == i.Subcontractor && n.InvoiceNo == i.InvoiceNo && n.Revision > i.Revision)))
             q.Add(new(Verdict.Check, "INVOICE", $"{inv.Title} rejected - prepare Rev {inv.Revision + 1}", inv.RejectionReason, new("Invoices", Key: $"{inv.ContractNo}|{inv.Subcontractor}|{inv.InvoiceNo}"), 4.5e8));

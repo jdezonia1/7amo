@@ -96,6 +96,12 @@ public sealed class DialogService
         return d.ShowDialog() == true ? d.FileName : null;
     }
 
+    public string[]? OpenFiles(string title, string filter = ExcelFilter)
+    {
+        var d = new OpenFileDialog { Title = title, Filter = filter, CheckFileExists = true, Multiselect = true };
+        return d.ShowDialog() == true ? d.FileNames : null;
+    }
+
     public string? SaveFile(string title, string defaultName, string filter = "Excel workbook|*.xlsx")
     {
         var d = new SaveFileDialog { Title = title, FileName = defaultName, Filter = filter, AddExtension = true };

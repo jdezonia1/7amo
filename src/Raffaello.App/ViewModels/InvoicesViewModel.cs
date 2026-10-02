@@ -99,6 +99,7 @@ public sealed partial class InvoicesViewModel : PageViewModel
     [ObservableProperty] private InvoiceTotals? _totals;
     [ObservableProperty] private bool _hasBuild;
     [ObservableProperty] private bool _isLocked;
+    [ObservableProperty] private string _banner = "";
 
     private InvoiceBuild? _build;
     private bool _buildIsStored;
@@ -135,6 +136,7 @@ public sealed partial class InvoicesViewModel : PageViewModel
             var lines = s.SubInvoiceLines.Where(l => l.SubInvoiceId == inv.Id);
             Stored.Add(new StoredInvoiceRow { Invoice = inv, CurrGross = InvoiceTotals.Of(inv, lines).CurrGross });
         }
+        Banner = Project.Workflow.CumulativeBanner();
         FillItemChoices();
         if (_buildIsStored && keep is { } id)
         {
@@ -337,6 +339,31 @@ public sealed partial class InvoicesViewModel : PageViewModel
             DialogService.OpenWithShell(path);
         }
         catch (Exception ex) { Ctx.Toasts.Show("PDF FAILED", ex.Message, ToastKind.Error); }
+    }
+
+    /// <summary>Past invoice files of the subcontractor: split his cumulative ledger block into INV 1..N and store the files as approved invoices.</summary>
+    [RelayCommand]
+    private async Task ImportPastInvoices()
+    {
+        if (ContractNo.Length == 0 || Sub.Length == 0) { Ctx.Toasts.Show("CONTRACT AND SUBCONTRACTOR NEEDED", kind: ToastKind.Warn); return; }
+        var files = Ctx.Dialogs.OpenFiles($"{Sub}: past invoice files (INV 1..N, template layout)");
+        if (files is null || files.Length == 0) return;
+        var (c, sub) = (ContractNo, Sub);
+        try
+        {
+            var read = await Task.Run(() => files.Select(f => Project.Workflow.PreviewPastInvoice(f, c)).ToList());
+            var bad = read.Where(f => f.InvoiceNo <= 0).Select(f => Path.GetFileName(f.FileName)).ToList();
+            if (bad.Count > 0) { Ctx.Toasts.Show("INVOICE NUMBER NOT FOUND", string.Join(", ", bad), ToastKind.Error, 8); return; }
+            var split = await Task.Run(() => Project.Workflow.PreviewSplit(c, sub, read));
+            var issues = string.Join("\n", split.Issues.Take(10).Select(i => "- " + i.Message));
+            var rows = string.Join("\n", split.Rows.Take(8).Select(r => $"  {r.RowKey}: ledger {r.LedgerInvoiceQty:0.##} vs file {r.FileCum:0.##} [{r.Status}]"));
+            if (!Ctx.Dialogs.Confirm("Split cumulative invoice",
+                    $"{string.Join("\n", read.OrderBy(f => f.InvoiceNo).Select(f => f.Summary))}\n\n{split.Summary}\n{rows}\n\n{issues}\n\nPost the split lines and store the files as approved invoices?")) return;
+            string msg = "";
+            await Ctx.Data.WriteAsync(p => msg = p.Workflow.CommitSplit(split, c, read), Ctx.Toasts);
+            if (msg.Length > 0) Ctx.Toasts.Show("CUMULATIVE INVOICE SPLIT", msg, ToastKind.Good, 10);
+        }
+        catch (Exception ex) { Ctx.Toasts.Show("CANNOT SPLIT", ex.Message, ToastKind.Error); }
     }
 
     private static string Safe(string s) => string.Concat(s.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '_' : ch));

@@ -29,7 +29,7 @@ namespace Raffaello.Cli;
 public static class Program
 {
     private static MappingOptions MapOptions = MappingOptions.Default;
-    private static readonly HashSet<string> Commands = new() { "import-tracker", "import-contract", "import-epromise", "import-template", "map", "build-invoice", "export", "statement", "report", "approve" };
+    private static readonly HashSet<string> Commands = new() { "import-tracker", "import-contract", "import-epromise", "import-template", "map", "build-invoice", "export", "statement", "report", "approve", "analyze-sub", "split" };
 
     public static int Main(string[] args)
     {
@@ -58,6 +58,8 @@ public static class Program
                 case "export": Export(store, Req(opts, "contract"), Req(opts, "sub"), int.Parse(Req(opts, "invoice")), Req(opts, "out")); break;
                 case "statement": Statement(store, Req(opts, "sub"), Req(opts, "no"), Req(opts, "out")); break;
                 case "report": Report(store); break;
+                case "analyze-sub": AnalyzeSub(store, Req(opts, "sub"), Req(opts, "contract")); break;
+                case "split": SplitCumulative(store, Req(opts, "contract"), Req(opts, "sub"), positional, opts.ContainsKey("commit")); break;
                 case "approve": Approve(store, Req(opts, "contract"), Req(opts, "sub"), int.Parse(Req(opts, "invoice")), opts.GetValueOrDefault("aconex", "")); break;
                 default: Console.Error.WriteLine($"Unknown command {args[0]}"); Help(); return 2;
             }
@@ -200,6 +202,70 @@ public static class Program
         if (inv.Status == SubInvoiceStatus.Draft) InvoiceWorkflow.Submit(store, inv, aconex);
         InvoiceWorkflow.Approve(store, inv);
         Console.WriteLine($"{inv.Title} approved and locked");
+    }
+
+    /// <summary>One subcontractor's ledger: totals, keys shared with others, over-cap keys, BOQ codes cited in the notes vs the mapping.</summary>
+    private static void AnalyzeSub(IProjectStore store, string sub, string contract)
+    {
+        var s = Snap(store);
+        var mine = s.Claims.Where(c => c.Subcontractor.Equals(sub, StringComparison.OrdinalIgnoreCase)).ToList();
+        Console.WriteLine($"{sub}: {mine.Count} ledger lines, invoices {string.Join(",", mine.Select(c => CumulativeSplit.InvoiceLabel(c)).Distinct())}, cumulative lines {mine.Count(c => c.IsCumulative)}");
+        Console.WriteLine("  qty by stage | item (plan qty / after site % x WIR %):");
+        foreach (var g in mine.GroupBy(c => (c.Stage, c.Item)).OrderBy(g => g.Key.Stage).ThenBy(g => g.Key.Item))
+            Console.WriteLine($"    {g.Key.Stage,-13} {g.Key.Item,-18} {g.Count(),5} lines  {g.Sum(c => c.Qty),10:N2}  {g.Sum(c => c.QtyAfterWir),10:N2}");
+        Console.WriteLine($"  floors: {string.Join(", ", mine.GroupBy(c => c.Floor).Select(g => $"{g.Key} {g.Count()}"))}");
+        Console.WriteLine($"  site %: {string.Join(", ", mine.GroupBy(c => c.SitePct).OrderByDescending(g => g.Count()).Select(g => $"{g.Key:0.##} x{g.Count()}"))}");
+
+        var bal = LedgerRules.Balances(s.RoomQtys, s.Claims);
+        var myKeys = mine.Select(c => c.Key).ToHashSet();
+        var shared = bal.Values.Where(b => myKeys.Contains(LedgerKeys.Key(b.Room, b.Stage, b.Item)) && b.BySubcontractor.Keys.Any(k => !k.Equals(sub, StringComparison.OrdinalIgnoreCase))).ToList();
+        Console.WriteLine($"  keys: {myKeys.Count} room|stage|item keys, {shared.Count} shared with other subcontractors " +
+                          $"({string.Join(", ", shared.SelectMany(b => b.BySubcontractor.Keys).Where(k => !k.Equals(sub, StringComparison.OrdinalIgnoreCase)).GroupBy(k => k).Select(g => $"{g.Key} {g.Count()}"))})");
+        var over = shared.Where(b => b.HasCap && b.IsOver).OrderByDescending(b => b.Claimed - b.ProjectQty).ToList();
+        var ownOver = bal.Values.Where(b => myKeys.Contains(LedgerKeys.Key(b.Room, b.Stage, b.Item)) && b.HasCap && b.IsOver).ToList();
+        Console.WriteLine($"  shared keys now OVER the cap: {over.Count} (all keys with {sub} over the cap: {ownOver.Count}; no PROJECT QTY: {bal.Values.Count(b => myKeys.Contains(LedgerKeys.Key(b.Room, b.Stage, b.Item)) && !b.HasCap)})");
+        foreach (var b in over.Take(15))
+        {
+            var me = b.BySubcontractor.Where(kv => kv.Key.Equals(sub, StringComparison.OrdinalIgnoreCase)).Sum(kv => kv.Value);
+            Console.WriteLine($"    {b.Room,-14} {b.Stage,-11} {b.Item,-16} cap {b.ProjectQty,8:N1}  others {b.Claimed - me,8:N1}  {sub} {me,8:N1}  excess {b.Claimed - b.ProjectQty,8:N1}  [{string.Join(" ", b.BySubcontractor.Select(kv => $"{kv.Key} {kv.Value:0.#}"))}]");
+        }
+
+        // BOQ codes cited in the notes ("BILL-6 r303 6-26-AL-3") vs the mapping engine
+        var ctx = new MappingContext(contract, s.ContractItems, s.ItemBoqs, s.BoqItems, s.MappingRules) { Options = MapOptions };
+        var areas = s.Rooms.GroupBy(r => r.Code, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().AreaType, StringComparer.OrdinalIgnoreCase);
+        var engine = new MappingEngine();
+        var cited = new System.Text.RegularExpressions.Regex(@"\b\d+-\d+-[A-Z]{1,3}-\d+\b");
+        var agree = new Dictionary<(string, string), (int Agree, int Disagree, int NoCite, HashSet<string> Cited, HashSet<string> Picked)>();
+        foreach (var c in mine)
+        {
+            var probe = LedgerRules.Copy(c); probe.IsCumulative = false;
+            var part = engine.Map(new[] { probe }, ctx, areas).Parts.OrderByDescending(p => Math.Abs(p.Qty)).FirstOrDefault();
+            var codes = cited.Matches(c.Notes).Select(m => m.Value).ToList();
+            var k = (c.Stage, c.Item);
+            var v = agree.TryGetValue(k, out var got) ? got : (Agree: 0, Disagree: 0, NoCite: 0, Cited: new HashSet<string>(), Picked: new HashSet<string>());
+            foreach (var x in codes) v.Cited.Add(x);
+            if (part?.BoqCode is { Length: > 0 } pc) v.Picked.Add($"{part.Item?.ItemNo}:{pc}");
+            if (codes.Count == 0) v.NoCite++;
+            else if (part != null && codes.Any(x => part.BoqCode.EndsWith(x, StringComparison.OrdinalIgnoreCase))) v.Agree++;
+            else v.Disagree++;
+            agree[k] = v;
+        }
+        Console.WriteLine("  BOQ codes cited in the notes vs mapping (lines agree / disagree / no citation):");
+        foreach (var ((stage, item), v) in agree.OrderBy(kv => kv.Key.Item1).ThenBy(kv => kv.Key.Item2))
+            Console.WriteLine($"    {stage,-13} {item,-18} {v.Agree,4} / {v.Disagree,4} / {v.NoCite,4}   cited [{string.Join(" ", v.Cited)}]   picked [{string.Join(" ", v.Picked)}]");
+    }
+
+    private static void SplitCumulative(IProjectStore store, string contract, string sub, List<string> files, bool commit)
+    {
+        var p = new ProjectService(new Raffaello.Core.Settings.AppSettings { SeedDemoData = false }, _ => store);
+        p.Initialize();
+        var read = files.Select(f => PastInvoiceImporter.Read(f, contract)).ToList();
+        foreach (var f in read) Console.WriteLine($"  {f.Summary}");
+        var r = p.Workflow.PreviewSplit(contract, sub, read);
+        Console.WriteLine(r.Summary);
+        foreach (var row in r.Rows) Console.WriteLine($"    {row.RowKey,-30} lines {row.Lines,4}  ledger {row.LedgerInvoiceQty,10:N2}  file {row.FileCum,10:N2}  {row.Status}  {string.Join(" ", row.PlanQtyByInvoice.OrderBy(kv => kv.Key).Select(kv => $"INV{kv.Key}={kv.Value:0.##}"))}");
+        foreach (var i in r.Issues.Take(30)) Console.WriteLine($"  {i.LevelText} {i.Message}");
+        if (commit) Console.WriteLine("  " + p.Workflow.CommitSplit(r, contract, read));
     }
 
     private static void Report(IProjectStore store)

@@ -43,6 +43,7 @@ public sealed class ClaimRow
 {
     public required ClaimLine Line { get; init; }
     public string Status => Line.IsOver ? "OVER" : HeightCheck.IsPending(Line) || LengthCheck.IsPending(Line) ? "DUE" : Line.Qty < 0 ? "REJECTED" : "OK";
+    public string InvoiceLabel => Raffaello.Core.Ledger.CumulativeSplit.InvoiceLabel(Line);
     public string Checks => (Line.QtyAbove45 != 0 ? $">4.5m {Line.QtyAbove45:0.#} {Line.HeightStatus} " : "") + (Line.LengthApplies ? $"15m {Line.LengthClaimedQty:0.#} {Line.LengthStatus}" : "");
 }
 
@@ -83,6 +84,7 @@ public sealed partial class LedgerViewModel : PageViewModel
     [ObservableProperty] private ClaimRow? _selectedLine;
     [ObservableProperty] private BalanceRow? _selectedBalance;
     [ObservableProperty] private string _summary = "";
+    [ObservableProperty] private string _banner = "";
 
     // entry
     [ObservableProperty] private string _sub = "";
@@ -129,6 +131,7 @@ public sealed partial class LedgerViewModel : PageViewModel
         Sync(StageOptions, s.RoomQtys.Select(q => q.Stage).Concat(s.Claims.Select(c => c.Stage)).Where(x => x.Length > 0).Distinct().OrderBy(StageRank));
         Sync(ItemOptions, s.RoomQtys.Select(q => q.Item).Concat(s.Claims.Select(c => c.Item)).Where(x => x.Length > 0).Distinct().OrderBy(x => x));
         var claims = s.Claims;
+        Banner = Raffaello.Core.Ledger.CumulativeSplit.Banner(claims);
         Summary = s.RoomQtys.Count == 0
             ? "No tracker imported yet - IMPORT TRACKER reads ROOMS, PROJECT QTY, LEDGER and the PLANS shapes."
             : $"{s.Rooms.Count(r => r.Plan.Length > 0 || r.Plot > 0)} ROOMS  |  {s.RoomQtys.Count:N0} PROJECT QTY  |  {claims.Count:N0} CLAIM LINES  |  {claims.Select(c => c.Subcontractor).Distinct().Count()} SUBCONTRACTORS  |  " +
