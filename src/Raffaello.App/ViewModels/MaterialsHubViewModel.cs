@@ -148,7 +148,11 @@ public sealed partial class MaterialsHubViewModel : PageViewModel
     [ObservableProperty] private string _manualCost = "";
     [ObservableProperty] private string _manualResource = "";
 
-    partial void OnSelectedPoChanged(PoListRow? value) => FillPoLines();
+    partial void OnSelectedPoChanged(PoListRow? value)
+    {
+        FillPoLines();
+        PublishSelection(value is null ? "" : Raffaello.Core.Wiring.SelectedRecords.Po(value.Po.PoNo, value.Po.Supplier));
+    }
     partial void OnSelectedPoLineChanged(PoLineRowP3? value) => FillSuggestions();
 
     private void FillPos()
@@ -252,7 +256,11 @@ public sealed partial class MaterialsHubViewModel : PageViewModel
     [ObservableProperty] private MatchRow? _selectedDnLine;
     [ObservableProperty] private MatPoLine? _pinTarget;
 
-    partial void OnSelectedDnChanged(DnListRow? value) => FillDnLines();
+    partial void OnSelectedDnChanged(DnListRow? value)
+    {
+        FillDnLines();
+        PublishSelection(value is null ? "" : Raffaello.Core.Wiring.SelectedRecords.Dn(value.Dn.DnNo, value.Dn.Supplier, value.Dn.PoNo));
+    }
     partial void OnSelectedDnLineChanged(MatchRow? value) => PinTarget = value?.PoLine is { } pl ? PinChoices.FirstOrDefault(p => p.Id == pl.Id) : null;
 
     private void FillDns()

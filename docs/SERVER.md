@@ -149,6 +149,18 @@ the environment variable `Kestrel__Certificates__Default__Password`.
 the implementation per call (`MaterialsStoreSelector`). `ModuleEntities.RegisterAll()` makes the migration and the offline
 cache include these tables; a data reset clears them on both sides.
 
+### Data reset (Settings > START EMPTY / RESET DEMO, `POST /api/v1/admin/clear-all`)
+
+Clears every project table and every module table, locally (`Db.ClearAll`) and on the server (`PgStore.ClearAll`):
+Insight*, Asm* (the default templates are seeded again on next use), Dwg*, Cable*, Doc* (+ the SQLite FTS index `DocSearch`),
+Assistant* (conversations, reminders, rules, briefs), Mat*, Aconex*, Variation*, and the portal's submissions and messages.
+**Kept** (`ModuleEntities.ResetKept`): signing keys and record signatures (`UserSigningKeys`, `RecordSignatures` - evidence must
+outlive the data), the portal company settings, and the server's own tables (users, portal accounts / sessions, audit log - the
+audit hash chain continues from its head). Record ids are **not** restarted (SQLite keeps `sqlite_sequence`, PostgreSQL
+`TRUNCATE ... CONTINUE IDENTITY`), so a kept signature can never point at a new record with an old id. `ModuleEntities.All`
+(migration, offline cache) now also lists the Insights, Assemblies and Trust tables; signing keys already on the server never
+block a migration.
+
 <!-- [cables] begin -->
 ## Cables module
 

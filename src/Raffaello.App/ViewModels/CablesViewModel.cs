@@ -125,6 +125,24 @@ public sealed partial class ReadRunRow : ObservableObject
     }
 }
 
+/// <summary>A measured-length proposal from the drawings, ticked by the user before it is applied.</summary>
+public sealed partial class MeasuredLengthRow : ObservableObject
+{
+    public MeasuredLengthRow(Raffaello.Core.Wiring.MeasuredLengthProposal p) => P = p;
+    public Raffaello.Core.Wiring.MeasuredLengthProposal P { get; }
+    [ObservableProperty] private bool _apply;
+    public string Ref => P.Run.Ref;
+    public string Route => $"{P.Run.FromName} -> {P.Run.ToName}";
+    public string Size => P.Run.SizeKey;
+    public double? Design => P.Design;
+    public double? Current => P.Current;
+    public double MeasuredM => P.MeasuredM;
+    public string VsDesign => P.VsDesign is double d ? d.ToString("+0%;-0%;0%", CultureInfo.InvariantCulture) : "";
+    public string Sheet => P.Sheet;
+    public string Tag => P.Confidence >= 0.9 ? "OK" : P.Confidence >= 0.8 ? "CHECK" : "OPEN";
+    public string How => P.How;
+}
+
 public sealed partial class CablesViewModel : PageViewModel
 {
     private readonly ICableStore _store;
@@ -148,8 +166,44 @@ public sealed partial class CablesViewModel : PageViewModel
 
     private CableService Svc => new(_store);
 
-    public string[] Tabs { get; } = { "REGISTER", "PANELS", "CLAIMS & FLAGS", "UNKNOWN RUNS", "READ SLD / SCHEDULE" };
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsRegister), nameof(IsPanels), nameof(IsFlags), nameof(IsUnknown), nameof(IsRead))] private string _tab = "REGISTER";
+    public string[] Tabs { get; } = { "REGISTER", "PANELS", "CLAIMS & FLAGS", "UNKNOWN RUNS", "READ SLD / SCHEDULE", "MEASURED FROM DRAWINGS" };
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsRegister), nameof(IsPanels), nameof(IsFlags), nameof(IsUnknown), nameof(IsRead), nameof(IsMeasured))] private string _tab = "REGISTER";
+    public bool IsMeasured => Tab == Tabs[5];
+
+    // ---- measured lengths from the Drawings linear takeoff (proposals; the user ticks and applies)
+    public ObservableCollection<MeasuredLengthRow> Measured { get; } = new();
+    [ObservableProperty] private string _measuredText = "Matches traced routes on the drawing sheets (latest takeoff) to register runs by the panel names at both ends or in the circuit text. Nothing is saved until you apply the ticked rows.";
+
+    [RelayCommand]
+    private async Task FindMeasured()
+    {
+        var drawings = _services.GetService(typeof(Raffaello.Core.Drawings.IDrawingStore)) as Raffaello.Core.Drawings.IDrawingStore;
+        if (drawings is null) { Ctx.Toasts.Show("DRAWINGS NOT AVAILABLE", kind: ToastKind.Warn); return; }
+        Busy = true;
+        try
+        {
+            var snap = _snap;
+            var list = await Task.Run(() => Raffaello.Core.Wiring.CableMeasuredLengths.Propose(snap, Raffaello.Core.Wiring.CableMeasuredLengths.Load(drawings)));
+            Measured.Clear();
+            foreach (var p in list.Where(p => InBuilding(p.Run.Building))) Measured.Add(new MeasuredLengthRow(p) { Apply = p.Changes && p.Confidence >= 0.85 });
+            MeasuredText = list.Count == 0
+                ? "No traced route matched a register run. Trace the routes on the Drawings page (linear classes) and make sure the panel names are written next to the route ends or in the run's circuit text."
+                : $"{list.Count} run(s) matched, {list.Count(p => p.Changes)} would change. Tick the rows to apply (audited).";
+        }
+        catch (Exception ex) { Ctx.Toasts.Show("COULD NOT READ THE DRAWINGS", ex.Message, ToastKind.Error, 8); }
+        finally { Busy = false; }
+    }
+
+    [RelayCommand]
+    private Task ApplyMeasured()
+    {
+        var rows = Measured.Where(r => r.Apply).Select(r => r.P).ToList();
+        if (rows.Count == 0) { Ctx.Toasts.Show("TICK THE ROWS TO APPLY", kind: ToastKind.Warn); return Task.CompletedTask; }
+        if (!Ctx.Dialogs.Confirm("Measured lengths", $"Write the measured length of {rows.Count} cable run(s) from the drawings?\n\nThe flags (over length, cumulative) will use the measured length.")) return Task.CompletedTask;
+        var user = Project.CurrentUser.Length > 0 ? Project.CurrentUser : Project.Settings.EffectiveUserName;
+        Measured.Clear();
+        return Write(s => $"{Raffaello.Core.Wiring.CableMeasuredLengths.Apply(s, rows, user)} run(s) updated", "MEASURED LENGTHS SAVED");
+    }
     public bool IsRegister => Tab == Tabs[0];
     public bool IsPanels => Tab == Tabs[1];
     public bool IsFlags => Tab == Tabs[2];
@@ -187,7 +241,11 @@ public sealed partial class CablesViewModel : PageViewModel
     partial void OnSubFilterChanged(string value) => FillRuns();
     partial void OnStatusFilterChanged(string value) => FillRuns();
     partial void OnSearchChanged(string value) => FillRuns();
-    partial void OnSelectedRunChanged(CableRunRow? value) => ShowRun(value);
+    partial void OnSelectedRunChanged(CableRunRow? value)
+    {
+        ShowRun(value);
+        PublishSelection(value is null ? "" : Raffaello.Core.Wiring.SelectedRecords.CableRun(value.Run));
+    }
 
     // ---- panels
     public ObservableCollection<CablePanelNode> Tree { get; } = new();
@@ -459,7 +517,7 @@ public sealed partial class CablesViewModel : PageViewModel
                 var ocr = _services.GetService<ILayoutOcrEngine>() ?? _services.GetServices<IOcrEngine>().OfType<ILayoutOcrEngine>().FirstOrDefault();
                 if (raster is null || ocr is null || !ocr.IsAvailable)
                 {
-                    Ctx.Toasts.Show("OCR NOT AVAILABLE", "Scanned SLDs need the document reader's layout OCR engine and page rasterizer (not installed in this build). Vector PDFs and DWG / DXF work without it.", ToastKind.Warn, 10);
+                    Ctx.Toasts.Show("OCR NOT AVAILABLE", "Scanned SLDs use the document reader's page rasterizer (PDFium) and layout OCR (PaddleOCR, then Windows OCR) - none is available on this PC (Paddle native DLLs next to Raffaello.exe, or the Windows OCR language pack). Vector PDFs and DWG / DXF work without it.", ToastKind.Warn, 10);
                     return;
                 }
                 _read = await CableReaders.ReadScanAsync(path, raster, ocr, o);

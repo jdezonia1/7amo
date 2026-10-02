@@ -17,9 +17,19 @@ public sealed class InsightsHub
     private readonly ProjectService _project;
     private readonly IMaterialsStore _materials;
 
-    public InsightsHub(ProjectService project, IInsightsStore store, IMaterialsStore materials)
+    private readonly Raffaello.Core.Assemblies.AssemblyService? _assemblies;
+
+    public InsightsHub(ProjectService project, IInsightsStore store, IMaterialsStore materials, Raffaello.Core.Assemblies.AssemblyService? assemblies = null)
     {
-        _project = project; Store = store; _materials = materials;
+        _project = project; Store = store; _materials = materials; _assemblies = assemblies;
+    }
+
+    /// <summary>Theoretical consumption from the Assemblies templates (replaces the default norms when templates exist).</summary>
+    public IReadOnlyList<ConsumptionLine> Consumption(ProjectService p, MaterialsSnapshot? mats, string? building)
+    {
+        if (_assemblies is null) return Array.Empty<ConsumptionLine>();
+        try { return Raffaello.Core.Wiring.AssemblyConsumption.Build(_assemblies, p.Snapshot, mats, building); }
+        catch (Exception) { return Array.Empty<ConsumptionLine>(); }   // assemblies not available: the norms decide
     }
 
     public IInsightsStore Store { get; }
@@ -42,7 +52,7 @@ public sealed class InsightsHub
         mats ??= LoadMaterials();
         var docs = InsightsEngine.CollectDocuments(p.Snapshot);
         var hashes = hashNewFiles ? InsightsEngine.HashDocuments(Store, data, docs, DecodeImage, DateTime.Now) : data.FileHashes;
-        recon = MaterialReconciliation.Build(p.Snapshot, mats, data.Norms, building);
+        recon = MaterialReconciliation.Build(p.Snapshot, mats, data.Norms, building, Consumption(p, mats, building));
         ev = EarnedValue.Build(new EvInputs { Project = p.Snapshot, Data = data, Today = p.Options.Today, ProjectStart = p.ProjectStart, PlannedFinish = p.PlannedFinish, Building = building });
         return InsightsEngine.All(new AnomalyInputs { Project = p.Snapshot, Data = data, Materials = mats, Documents = docs, Hashes = hashes, Building = building, Today = p.Options.Today }, recon, ev);
     }

@@ -21,6 +21,8 @@ public static class StoreBriefData
         project.QueueSources.Add(p => ModuleQueue.Materials(new StoreMaterials(store).Load(), new MaterialsSettings(), today));
         project.QueueSources.Add(p => ModuleQueue.Aconex(StatusBoard.Build(p.Snapshot.SubInvoices, Safe(() => store.All<AconexWorkflowLink>()), LatestChecks(store), today, false)));
         project.QueueSources.Add(p => ModuleQueue.Variations(Safe(() => store.All<Variation>()), today));
+        // contract obligations (handover, warranty end, retention release, penalties) from the signed contracts' terms and rules
+        project.QueueSources.Add(p => Wiring.ContractObligations.Queue(Wiring.ContractObligations.Build(store, p.Snapshot), today));
         project.Reload();
         return (project, project.Queue);
     }

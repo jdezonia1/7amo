@@ -30,13 +30,38 @@ public static class ModuleEntities
     public static readonly Type[] Drawings = Raffaello.Core.Drawings.DrawingEntities.All;
     // [drawings] end
 
+    /// <summary>Insights: dismissals (with reasons), thresholds, consumption norms, programme, payment terms, invoice periods, file hashes.</summary>
+    public static readonly Type[] Insights = Raffaello.Core.Insights.InsightsEntities.All;
+    /// <summary>Assemblies: templates, parameters, components, prices, edited item specs, settings.</summary>
+    public static readonly Type[] Assemblies = Raffaello.Core.Assemblies.AssemblyEntities.All;
+    /// <summary>Trust: signing keys and record signatures (kept by a data reset).</summary>
+    public static readonly Type[] Trust = Raffaello.Core.Trust.TrustEntities.All;
+    /// <summary>Subcontractor portal: company settings (kept by a reset), submissions and messages. Server-only tables (the portal runs on
+    /// the server): not in <see cref="All"/> (nothing to migrate from a data file); the server reset clears submissions and messages.</summary>
+    public static readonly Type[] Portal = Raffaello.Core.Portal.PortalEntities.All;
+
+    /// <summary>Every module table of a data file: registered for the remote store / offline cache, copied by the migration, cleared by a
+    /// reset (except <see cref="ResetKept"/>).</summary>
     public static IReadOnlyList<Type> All => MaterialsStoreBase.EntityTypes.Concat(Aconex).Concat(Variations).Concat(Documents)
         .Concat(Cables.CableStore.EntityTypes)   // [cables]
         // [assistant] begin: conversations, proposed actions, reminders, notification rules / log, brief snapshots
         .Concat(Raffaello.Core.Assistant.AssistantEntityTypes.All)
         // [assistant] end
         .Concat(Drawings)   // [drawings]
+        .Concat(Insights).Concat(Assemblies).Concat(Trust)
         .ToList();
+
+    /// <summary>
+    /// Tables a data reset KEEPS: signing keys and record signatures (evidence that must outlive the data - the audit hash chain
+    /// continues too) and the portal company settings (configuration, like the app's user accounts which are not project data either).
+    /// Portal accounts / sessions are server tables outside the entity list and are kept as well.
+    /// </summary>
+    public static readonly Type[] ResetKept = Trust.Append(typeof(Raffaello.Core.Portal.PortalCompanySetting)).ToArray();
+
+    public static bool KeptByReset(Type t) => ResetKept.Contains(t);
+
+    /// <summary>Module tables a data reset clears (locally and on the server): everything in <see cref="All"/> except <see cref="ResetKept"/>.</summary>
+    public static IReadOnlyList<Type> Resettable => All.Where(t => !KeptByReset(t)).ToList();
 
     private static bool _registered;
     public static void RegisterAll()

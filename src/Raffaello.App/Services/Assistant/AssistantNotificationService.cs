@@ -25,7 +25,7 @@ public sealed class AssistantNotificationService
     {
         _host = host; _data = data; _toasts = toasts;
         _since = data.Project.Settings.LastSeenAt ?? DateTime.Now.AddDays(-1);
-        Hub = new NotificationHub(host.Store, Channels);
+        Hub = new NotificationHub(host.Store, Channels) { Obligations = host.Obligations };
         _timer.Tick += async (_, _) => await TickAsync();
     }
 

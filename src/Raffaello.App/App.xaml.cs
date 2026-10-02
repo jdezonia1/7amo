@@ -130,6 +130,9 @@ public partial class App : Application
                 s.AddSingleton<Raffaello.Core.Documents.IPageRenderer>(sp => sp.GetRequiredService<SmartReading>().Rasterizer);
                 s.AddSingleton<Raffaello.Core.Documents.IDocumentStore>(sp => new Raffaello.Core.Remote.DocumentStoreSelector(() => sp.GetRequiredService<ProjectService>().Store));
                 s.AddSingleton<SmartReading>();
+                // the document reader's rasterizer + layout OCR for other modules (Cables > READ SCANNED SLD)
+                s.AddSingleton<Raffaello.Core.Documents.Ocr.IPageRasterizer>(sp => sp.GetRequiredService<SmartReading>().Rasterizer);
+                s.AddSingleton<Raffaello.Core.Documents.Ocr.ILayoutOcrEngine>(sp => new Raffaello.Core.Documents.Ocr.FirstAvailableLayoutOcr(() => sp.GetRequiredService<SmartReading>().Engines));
                 s.AddSingleton<MaterialsViewModel>();
                 s.AddSingleton<PageViewModel, MaterialsHubViewModel>();
                 s.AddSingleton<PageViewModel, OwnerMosViewModel>();
@@ -153,7 +156,12 @@ public partial class App : Application
                 s.AddSingleton<Raffaello.Core.Assemblies.IAssemblyStore>(sp => new Raffaello.Core.Assemblies.AssemblyStoreSelector(
                     () => sp.GetRequiredService<ProjectService>().Store, () => sp.GetRequiredService<ProjectService>().DataLocation, () => settings.EffectiveUserName));
                 s.AddSingleton(sp => new Raffaello.Core.Assemblies.AssemblyService(sp.GetRequiredService<Raffaello.Core.Assemblies.IAssemblyStore>(),
-                    () => sp.GetRequiredService<ProjectService>().Snapshot, () => sp.GetRequiredService<Raffaello.Core.Materials.IMaterialsStore>().Load()));
+                    () => sp.GetRequiredService<ProjectService>().Snapshot, () => sp.GetRequiredService<Raffaello.Core.Materials.IMaterialsStore>().Load())
+                {
+                    // route_len per point from the Drawings takeoffs (per item type / room type / system); template default when none
+                    RouteLengthFor = Raffaello.Core.Wiring.DrawingRouteLengths.Hook(() => sp.GetRequiredService<Raffaello.Core.Drawings.IDrawingStore>(),
+                        () => sp.GetRequiredService<ProjectService>().Snapshot),
+                });
                 s.AddSingleton<PageViewModel, AssembliesViewModel>();
                 // [assemblies] end
                 // [drawings] begin - takeoff / statement check / revision compare (store follows the data source)
@@ -251,14 +259,8 @@ public partial class App : Application
     }
 
     /// <summary>Obligations (handover, warranty end, retention release, penalty start / cap) due within 30 days.</summary>
-    private static IEnumerable<Raffaello.Core.Queue.QueueItem> ContractIntelligenceQueue(ProjectService p, Raffaello.Core.Documents.IDocumentStore docs)
-    {
-        var terms = docs.All<Raffaello.Core.Documents.ContractTerms>();
-        if (terms.Count == 0) return Array.Empty<Raffaello.Core.Queue.QueueItem>();
-        var values = p.Snapshot.ContractItems.GroupBy(i => i.ContractNo).ToDictionary(g => g.Key, g => g.Sum(i => i.Qty * i.Rate));
-        var ob = Raffaello.Core.Contracts.Rules.ObligationsCalendar.Build(terms, docs.All<Raffaello.Core.Contracts.Rules.ContractRule>(), values);
-        return Raffaello.Core.Contracts.Rules.ObligationsCalendar.Queue(ob, DateTime.Today).ToList();
-    }
+    private static IEnumerable<Raffaello.Core.Queue.QueueItem> ContractIntelligenceQueue(ProjectService p, Raffaello.Core.Documents.IDocumentStore docs) =>
+        Raffaello.Core.Wiring.ContractObligations.Queue(Raffaello.Core.Wiring.ContractObligations.Build(docs, p.Snapshot), DateTime.Today).ToList();
 
     protected override void OnExit(ExitEventArgs e)
     {

@@ -68,7 +68,11 @@ public sealed partial class MaterialsViewModel : PageViewModel
 
     private string? _pendingPo;
 
-    partial void OnSelectedPoChanged(PoProgress? value) => LoadPo();
+    partial void OnSelectedPoChanged(PoProgress? value)
+    {
+        LoadPo();
+        PublishSelection(value is null ? "" : Raffaello.Core.Wiring.SelectedRecords.Po(value.Po.PoNo, value.Po.Supplier));
+    }
 
     protected override void Refresh()
     {

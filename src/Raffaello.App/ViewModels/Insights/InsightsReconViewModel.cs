@@ -52,7 +52,7 @@ public sealed partial class InsightsReconViewModel : PageViewModel
             var data = await Task.Run(() => _hub.LoadData());
             var mats = await Task.Run(() => _hub.LoadMaterials());
             var norms = reloadNorms ? data.Norms : Norms.Where(n => n.Material.Trim().Length > 0).ToList();
-            var r = await Task.Run(() => MaterialReconciliation.Build(p.Snapshot, mats, norms, building));
+            var r = await Task.Run(() => MaterialReconciliation.Build(p.Snapshot, mats, norms, building, _hub.Consumption(p, mats, building)));
             if (run != _run) return;
             _last = r;
             if (reloadNorms) { Norms.Clear(); foreach (var n in data.Norms) Norms.Add(n); }
@@ -65,7 +65,7 @@ public sealed partial class InsightsReconViewModel : PageViewModel
             OverDelivered = r.Rows.Count(x => x.Status == "OVER-DELIVERED");
             Selected = Rows.FirstOrDefault();
             BuildChart(r);
-            StatusText = $"{r.Rows.Count} materials  |  {(r.UsingDefaultNorms ? "DEFAULT norms" : $"{data.Norms.Count} norms")}  |  {building ?? "ALL BUILDINGS"}";
+            StatusText = $"{r.Rows.Count} materials  |  {(r.UsingDefaultNorms ? "DEFAULT norms" : $"{data.Norms.Count} norms")}{(r.UsingAssemblies ? " + ASSEMBLY templates" : "")}  |  {building ?? "ALL BUILDINGS"}";
         }
         catch (Exception ex) { StatusText = "Reconciliation failed: " + ex.Message; }
     }

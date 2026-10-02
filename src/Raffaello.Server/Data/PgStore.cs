@@ -391,8 +391,11 @@ public sealed class PgStore : IProjectStore
         using var c = _ds.OpenConnection();
         using var tx = c.BeginTransaction();
         var p = new PgTx(c, tx);
-        var tables = EntityRegistry.All.Select(EntityRegistry.TableOf).ToList();
-        p.Exec($"TRUNCATE {string.Join(", ", tables.Select(Q))} RESTART IDENTITY");
+        // every table except signing keys / record signatures and portal settings (ModuleEntities.ResetKept); portal accounts and
+        // sessions, users, the audit log and its hash chain are server tables outside the entity list and are kept too.
+        // Identities continue (no RESTART): kept signatures name (table, id) and must never match a new record.
+        var tables = EntityRegistry.All.Where(t => !ModuleEntities.KeptByReset(t)).Select(EntityRegistry.TableOf).ToList();
+        p.Exec($"TRUNCATE {string.Join(", ", tables.Select(Q))} CONTINUE IDENTITY");
         p.Exec("""DELETE FROM "ApprovalStamps" """);
         foreach (var t in tables) BumpVersion(p, t);
         Audit(p, "", 0, "RESET", "All project data cleared (audit history kept)", "", null, null);

@@ -71,6 +71,7 @@ public abstract partial class PageViewModel : ObservableObject
     public void Activate(NavTarget? target)
     {
         IsActive = true;
+        Ctx.Selection.SelectedRecord = _selectedRecord;   // the assistant sees this page's selection again
         if (_dirty) SafeRefresh();
         if (target != null) NavigateTo(target);
     }
@@ -95,4 +96,16 @@ public abstract partial class PageViewModel : ObservableObject
     public virtual IEnumerable<ExportSheet> ExportCurrentView() => Array.Empty<ExportSheet>();
 
     protected void SelectLine(ChainRow? row) => Ctx.Selection.SelectedLine = row;
+
+    private string _selectedRecord = "";
+
+    /// <summary>
+    /// Tells the assistant what is selected on this page (ledger line, invoice, PO / DN, variation, room, cable run, drawing takeoff);
+    /// the text comes from <see cref="Raffaello.Core.Wiring.SelectedRecords"/>. Kept per page and restored when the page is shown again.
+    /// </summary>
+    protected void PublishSelection(string? record)
+    {
+        _selectedRecord = record ?? "";
+        Ctx.Selection.SelectedRecord = _selectedRecord;
+    }
 }

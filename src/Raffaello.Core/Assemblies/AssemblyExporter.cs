@@ -49,6 +49,7 @@ public static class AssemblyExporter
             yield return R($"{b.ReferenceLabel} RATE", r);
             yield return R("MARGIN (reference - built-up)", b.Margin, b.Verdict);
         }
+        if (b.RouteLengthSource.Length > 0) yield return R("ROUTE", null, b.RouteLengthSource);
         foreach (var f in b.Flags) yield return R("NOTE", null, f);
         foreach (var n in b.Spec.Notes) yield return R("PARSE", null, n);
     }
@@ -178,6 +179,7 @@ public static class AssemblyExporter
                         {
                             rw.RelativeItem().Column(notes =>
                             {
+                                if (b.RouteLengthSource.Length > 0) notes.Item().Text("• " + b.RouteLengthSource);
                                 foreach (var f in b.Flags) notes.Item().Text("• " + f).FontColor("#8B0000");
                                 foreach (var n in b.Spec.Notes) notes.Item().Text("• " + n).Italic();
                                 if (b.FreeIssueMaterial > 0) notes.Item().Text($"• Free-issue material (not in the rate): {b.FreeIssueMaterial:N2} {info.Currency} per {b.Unit}");

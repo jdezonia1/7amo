@@ -20,7 +20,11 @@ public sealed class StatementImportResult
     public List<(ClaimLine Line, ClaimCheck Check)> Checks { get; } = new();
     // [cables] begin: CABLES sheet rows (FROM / TO / size / qty / stage) read with the statement
     public List<Cables.CableClaim> CableClaims { get; } = new();
+    /// <summary>Cable flags of the CABLES rows against the register (warnings; bypassed in the preview or on the Cables page).</summary>
+    public List<Cables.CableFlag> CableFlags { get; } = new();
     // [cables] end
+    /// <summary>Contract-rule warnings of the claim lines (height bands, 15 m rule) - bypass with a reason in the preview.</summary>
+    public List<Contracts.Rules.RuleWarning> RuleWarnings { get; } = new();
     public bool IsDuplicate { get; set; }
     public int Blocked => Checks.Count(c => !c.Check.CanPost);
     public string Summary => $"{Subcontractor} statement {StatementNo}: {Claims.Count} claim lines, {Blocked} over remaining" + (IsDuplicate ? " - DUPLICATE" : "");

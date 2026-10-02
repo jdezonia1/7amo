@@ -292,5 +292,37 @@
                 <TextBlock Text="Same route + size updates the run; runs created from statements are confirmed in place (their claims stay linked)." Style="{StaticResource Small}" VerticalAlignment="Center" Margin="12,0,0,0"/>
             </StackPanel>
         </Grid>
+
+        <!-- ============================================================ MEASURED FROM DRAWINGS (Drawings linear takeoff -> CableRun.MeasuredLength) -->
+        <Grid Grid.Row="2" Visibility="{Binding IsMeasured, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="{StaticResource RadiusCard}" Padding="12,8" Margin="0,0,0,8">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource BtnPrimary}" Content="FIND IN DRAWINGS" Command="{Binding FindMeasuredCommand}" Margin="8,0,0,0"/>
+                    <TextBlock Text="{Binding MeasuredText}" Style="{StaticResource Small}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
+            <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding Measured}" IsReadOnly="False" CanUserAddRows="False" VirtualizingPanel.IsVirtualizing="True">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="APPLY" Binding="{Binding Apply, UpdateSourceTrigger=PropertyChanged}" Width="48"/>
+                    <DataGridTemplateColumn Header="" Width="64" SortMemberPath="Tag" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="RUN" Binding="{Binding Ref}" Width="70" IsReadOnly="True" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="FROM -> TO" Binding="{Binding Route}" Width="*" MinWidth="220" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="SIZE" Binding="{Binding Size}" Width="70" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="DESIGN M" Binding="{Binding Design, StringFormat=N1, TargetNullValue=''}" Width="70" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="MEASURED NOW" Binding="{Binding Current, StringFormat=N1, TargetNullValue=''}" Width="90" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="FROM DRAWING" Binding="{Binding MeasuredM, StringFormat=N1}" Width="90" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="VS DESIGN" Binding="{Binding VsDesign}" Width="64" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="SHEET" Binding="{Binding Sheet}" Width="110" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="HOW" Binding="{Binding How}" Width="260" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+                <Button Style="{StaticResource BtnPrimary}" Content="APPLY TICKED MEASURED LENGTHS" Command="{Binding ApplyMeasuredCommand}"/>
+                <TextBlock Text="Horizontal route as traced on the sheet - check rises / drops before applying. Each change is audited." Style="{StaticResource Small}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

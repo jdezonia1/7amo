@@ -77,6 +77,9 @@ public sealed class AssemblyService
 
     /// <summary>Average route length per point for an item type (hook for the Drawings module). Null = template default.</summary>
     public Func<string, double?>? RouteLength { get; set; }
+    /// <summary>Route length per point for a spec with its source (Drawings takeoff averages per item type / room type / system, see
+    /// <see cref="Wiring.DrawingRouteLengths"/>). Null or no hit = template default.</summary>
+    public Func<ItemSpec, RouteLengthHit?>? RouteLengthFor { get; set; }
 
     public void Reload()
     {
@@ -178,7 +181,7 @@ public sealed class AssemblyService
         var ctx = new CalcContext
         {
             Globals = Library.Globals, Prices = Prices, LabourRates = Labour, Settings = Settings, Source = src.ParseKind,
-            Overrides = overrides ?? OverridesFor(src), RouteLength = RouteLength, ReferenceRate = src.Rate > 0 ? src.Rate : null, ReferenceLabel = src.RateLabel,
+            Overrides = overrides ?? OverridesFor(src), RouteLength = RouteLength, RouteLengthFor = RouteLengthFor, ReferenceRate = src.Rate > 0 ? src.Rate : null, ReferenceLabel = src.RateLabel,
         };
         return AssemblyCalculator.Calculate(spec, template, ctx);
     }

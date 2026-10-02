@@ -117,7 +117,7 @@ public sealed class AssistantTools
                 "The 'Needs you today' queue (over-cap claims, holds, pending checks, invoices rejected / in Aconex, Aconex overdue steps, DNs without MIR, VOs ageing) plus reminders that are due. Call it for 'what should I do today' style questions.",
                 new JsonObject { ["category"] = Str("Only items of this category, e.g. OVER, CERTIFY, MATERIAL, ACONEX, INVOICE, VO, CHECK."), ["limit"] = Int("Maximum items (default 20).") }),
             Tool(GetContractTerms,
-                "A subcontract: value, retention, advance, signed date, status, its schedule items (rates, units, stage %, conduit, wall / ceiling, height band) and the items matching a description. Call it for contract, rate or payment-term questions.",
+                "A subcontract: value, retention, advance, signed date, status, its schedule items (rates, units, stage %, conduit, wall / ceiling, height band), the items matching a description, the terms read from the signed contract and its obligations calendar (handover, warranty end, retention release, delay penalty start / cap, with days left). Call it for contract, rate, payment-term or deadline questions.",
                 new JsonObject
                 {
                     ["contract_no"] = Str("Contract no."),
@@ -133,7 +133,7 @@ public sealed class AssistantTools
                     ["supplier"] = Str("Supplier (part of the name)."),
                 }),
             Tool(ListAnomalies,
-                "Unusual claims: statements copied from an earlier one, keys over PROJECT QTY, the same room / stage / item claimed by two subcontractors, sudden jumps against the previous invoice, checks pending for long. Call it when the user asks what looks wrong or suspicious.",
+                "Unusual claims and documents from the insights engine (invoice jumps, quantity outliers, re-claimed keys, shared keys, 15 m / 4.5 m checks, WIR problems, duplicate files / reused photos, copied invoices, round numbers, rates, materials), each with severity, explanation, suggested action and evidence records. Call it when the user asks what looks wrong or suspicious.",
                 new JsonObject { ["limit"] = Int("Maximum items (default 25).") }),
             Tool(GetReport,
                 "Rows of one of the management reports: WEEKLY (progress), SCORECARDS (subcontractors), CASHFLOW (claimed vs certified), MATERIALS (PO delivered, DNs without MIR), VO (variation register), INVOICES (invoice / Aconex status board).",
@@ -536,7 +536,12 @@ public sealed class AssistantTools
         var contracts = s.Contracts.Where(c => Like(c.ContractNo, contractNo) && Like(c.Subcontractor, sub)).ToList();
         var itemContracts = s.ContractItems.Select(i => i.ContractNo).Distinct(StringComparer.OrdinalIgnoreCase)
             .Where(no => Like(no, contractNo) && (sub is null || s.SubInvoices.Any(i => i.ContractNo == no && Like(i.Subcontractor, sub)) || contracts.Any(c => c.ContractNo == no))).ToList();
-        if (contracts.Count == 0 && itemContracts.Count == 0)
+        // contract intelligence read from the signed contracts (terms, rules, obligations calendar)
+        var docs = _d.TryContractDocs();
+        List<Raffaello.Core.Documents.ContractTerms> terms = new();
+        try { if (docs != null) terms = docs.All<Raffaello.Core.Documents.ContractTerms>().Where(t => Like(t.ContractNo, contractNo) && (sub is null || Like(t.Subcontractor, sub) || contracts.Any(c => c.ContractNo == t.ContractNo))).ToList(); }
+        catch (Exception) { docs = null; }
+        if (contracts.Count == 0 && itemContracts.Count == 0 && terms.Count == 0)
             return Error($"No contract found for {contractNo ?? sub ?? "the request"}. Contracts on file: {string.Join(", ", s.Contracts.Select(c => c.ContractNo).Concat(s.ContractItems.Select(i => i.ContractNo)).Distinct().Take(20))}.");
         var cites = new List<Citation>();
         var res = new JsonObject();
@@ -575,6 +580,30 @@ public sealed class AssistantTools
             schedules.Add(o);
         }
         res["schedules"] = schedules;
+        if (docs != null)
+        {
+            var nos = contracts.Select(c => c.ContractNo).Concat(itemContracts).Concat(terms.Select(t => t.ContractNo)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var today = _d.Clock().Date;
+            var cal = Wiring.ContractObligations.Build(docs, s).Where(o => nos.Contains(o.ContractNo)).ToList();
+            res["obligations"] = new JsonArray(cal.Take(30).Select(o =>
+            {
+                cites.Add(Citation.Contract(o.ContractNo));
+                var d = o.DaysLeft(today);
+                return (JsonNode)new JsonObject
+                {
+                    ["date"] = o.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), ["kind"] = o.Kind, ["contract_no"] = o.ContractNo, ["subcontractor"] = o.Subcontractor,
+                    ["text"] = o.Text, ["days_left"] = d, ["status"] = d < 0 ? "OVERDUE" : d <= 30 ? "DUE SOON" : "LATER", ["cite"] = Citation.Contract(o.ContractNo).Token,
+                };
+            }).ToArray());
+            res["signed_contract_terms"] = new JsonArray(terms.Take(10).Select(t => (JsonNode)new JsonObject
+            {
+                ["contract_no"] = t.ContractNo, ["subcontractor"] = t.Subcontractor, ["payment_terms"] = t.PaymentTerms, ["retention_pct"] = t.RetentionPct is double r ? R2(r * 100) : null,
+                ["advance_pct"] = t.AdvancePct is double a ? R2(a * 100) : null, ["delay_penalty_per_week_sar"] = t.DelayPenaltyPerWeek, ["penalty_cap_pct"] = t.DelayPenaltyCapPct is double pc ? R2(pc * 100) : null,
+                ["warranty_months"] = t.WarrantyMonths, ["completion"] = t.CompletionDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                ["handover"] = t.HandoverDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), ["vat"] = t.VatTreatment, ["labour_only"] = t.LabourOnly,
+            }).ToArray());
+            if (cal.Count == 0) res["obligations_note"] = "No dated obligations: the signed contract has no completion / handover date or warranty yet (Contracts & BOQ > contract intelligence).";
+        }
         return Ok(res, cites.Distinct().ToList());
     }
 
@@ -620,12 +649,33 @@ public sealed class AssistantTools
 
     private ToolOutcome Anomalies(int limit)
     {
-        var items = (_d.Anomalies?.Invoke() ?? BuiltInAnomalies()).Take(Math.Clamp(limit, 1, 100)).ToList();
-        var cites = items.Where(i => i.Source != null).Select(i => i.Source!).Distinct().ToList();
+        // the Insights engine (severity, explanation, evidence) when the app provides it; the built-in checks only as a fallback
+        List<AnomalyItem>? fromModule = null;
+        var source = "built-in checks";
+        if (_d.Anomalies != null)
+        {
+            try { fromModule = _d.Anomalies().ToList(); source = "insights engine"; }
+            catch (Exception ex) { source = $"built-in checks (insights engine not available: {ex.Message})"; }
+        }
+        var all = fromModule ?? BuiltInAnomalies().ToList();
+        var items = all.Take(Math.Clamp(limit, 1, 100)).ToList();
+        var cites = items.Where(i => i.Source != null).Select(i => i.Source!).Concat(items.SelectMany(i => i.Evidence.Take(6))).Distinct().ToList();
         return Ok(new JsonObject
         {
-            ["source"] = _d.Anomalies is null ? "built-in checks" : "anomaly module",
-            ["items"] = new JsonArray(items.Select(i => (JsonNode)new JsonObject { ["severity"] = i.Severity, ["kind"] = i.Kind, ["title"] = i.Title, ["detail"] = i.Detail, ["cite"] = i.Source?.Token }).ToArray()),
+            ["source"] = source,
+            ["count_total"] = all.Count,
+            ["note"] = fromModule is null ? "Basic checks only (copies, over-cap, shared keys, jumps, old checks)." : "Warnings only - nothing here blocks a claim or an invoice. Dismissed warnings are left out.",
+            ["items"] = new JsonArray(items.Select(i =>
+            {
+                var o = new JsonObject { ["severity"] = i.Severity, ["kind"] = i.Kind, ["title"] = i.Title, ["detail"] = i.Detail, ["cite"] = i.Source?.Token };
+                if (i.Explanation.Length > 0) o["explanation"] = i.Explanation;
+                if (i.SuggestedAction.Length > 0) o["suggested_action"] = i.SuggestedAction;
+                if (i.Subcontractor.Length > 0) o["subcontractor"] = i.Subcontractor;
+                if (i.InvoiceNo > 0) o["invoice_no"] = i.InvoiceNo;
+                if (i.Evidence.Count > 0)
+                    o["evidence"] = new JsonArray(i.Evidence.Take(6).Select(e => (JsonNode)new JsonObject { ["label"] = e.Label, ["cite"] = e.Token }).ToArray());
+                return (JsonNode)o;
+            }).ToArray()),
         }, cites);
     }
 
@@ -735,25 +785,34 @@ public sealed class AssistantTools
         }
         hits.AddRange(RecordSearch.Search(_d, query, limit));
         var list = hits.GroupBy(h => (h.Kind, h.Id)).Select(g => g.First()).Take(limit).ToList();
-        var cites = list.Select(h => h.Kind switch
+        var cites = new List<Citation>();
+        var arr = new JsonArray();
+        foreach (var h in list)
         {
-            "room" => Citation.Room(h.Id),
-            "invoice" => new Citation("invoice", h.Id, h.Title, "Invoices", h.Id),
-            "dn" => Citation.Dn("", h.Id),
-            "po" => Citation.Po(h.Id),
-            "variation" => Citation.Variation(h.Id),
-            "contract" => Citation.Contract(h.Id),
-            "wir" => Citation.Wir(h.Id),
-            _ => Citation.Document(h.Id, h.Title, h.Path, h.Page),
-        }).ToList();
-        return Ok(new JsonObject
-        {
-            ["searched"] = source,
-            ["hits"] = new JsonArray(list.Select((h, i) => (JsonNode)new JsonObject
+            var c = h.Kind switch
             {
-                ["kind"] = h.Kind, ["title"] = h.Title, ["page"] = h.Page > 0 ? h.Page : null, ["snippet"] = h.Snippet, ["cite"] = cites[i].Token,
-            }).ToArray()),
-        }, cites);
+                "room" => Citation.Room(h.Id),
+                "invoice" => new Citation("invoice", h.Id, h.Title, "Invoices", h.Id),
+                "dn" => Citation.Dn("", h.Id),
+                "po" => Citation.Po(h.Id),
+                "variation" => Citation.Variation(h.Id),
+                "contract" => Citation.Contract(h.Id),
+                "wir" => Citation.Wir(h.Id),
+                _ => Citation.Document(h.Id, h.Title, h.Path, h.Page),
+            };
+            cites.Add(c);
+            var o = new JsonObject { ["kind"] = h.Kind, ["title"] = h.Title, ["page"] = h.Page > 0 ? h.Page : null, ["snippet"] = h.Snippet, ["cite"] = c.Token };
+            if (h.DocType.Length > 0) o["doc_type"] = h.DocType;
+            // archive hits: the record the document fed (contract, DN, statement ...) is cited next to the page
+            if (Wiring.ArchiveDocumentSearch.LinkedCitation(h.LinkedTable, h.LinkedKey) is { } rec)
+            {
+                cites.Add(rec);
+                o["record"] = rec.Label;
+                o["record_cite"] = rec.Token;
+            }
+            arr.Add(o);
+        }
+        return Ok(new JsonObject { ["searched"] = source, ["hits"] = arr }, cites.Distinct().ToList());
     }
 }
 

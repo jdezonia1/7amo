@@ -12,7 +12,8 @@ field (id, time to the millisecond, user, machine, table, row id, action, summar
 - **Desktop data file (SQLite)**: the row is sealed inside the same write transaction (`SqliteAuditChain.Seal`, called from
   `Db.Audit` / `SideStore.Audit`). Columns `ChainSeq`, `PrevHash`, `Hash` are added to AuditLog; table `AuditChainHead` keeps the
   sealed end. Rows written by an older version are sealed by the next write. A data reset (Settings) continues the chain from
-  the old head (`BaseSeq`) and records when.
+  the old head (`BaseSeq`) and records when. Signing keys and record signatures survive a reset and record ids are not restarted
+  (see SERVER.md "Data reset").
 - **Server (PostgreSQL)**: computed authoritatively by the server. Writers only insert audit rows; the sealer (every 3 s and before
   each verification) seals committed rows in id order under one advisory lock - no global lock inside write transactions, so no
   deadlock with the ledger-key locks. The chain order is `ChainSeq`. The head is appended hourly (and on shutdown / on demand) to

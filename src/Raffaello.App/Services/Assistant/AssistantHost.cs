@@ -22,12 +22,18 @@ public sealed class AssistantHost
     private readonly ProjectService _project;
     private readonly IMaterialsStore _materials;
     private readonly AconexAutomationService _aconex;
+    private readonly Raffaello.Core.Documents.IDocumentStore _documents;
 
-    public AssistantHost(ProjectService project, IMaterialsStore materials, AconexAutomationService aconex)
+    /// <summary>Obligations calendar of the signed contracts (morning brief "obligations due").</summary>
+    public IReadOnlyList<Raffaello.Core.Contracts.Rules.Obligation> Obligations() => Raffaello.Core.Wiring.ContractObligations.Build(_documents, _project.Snapshot);
+
+    public AssistantHost(ProjectService project, IMaterialsStore materials, AconexAutomationService aconex,
+        Raffaello.App.ViewModels.Insights.InsightsHub insights, Raffaello.Core.Documents.IDocumentStore documents)
     {
         _project = project;
         _materials = materials;
         _aconex = aconex;
+        _documents = documents;
         Settings = AssistantSettings.Load();
         Vault = new DpapiSecretVault();
         ApiKeys.UseVaultForSettings(Vault);
@@ -39,6 +45,11 @@ public sealed class AssistantHost
             Materials = () => _materials.Load(),
             Aconex = () => _aconex.Store,
             Variations = () => _aconex.Variations,
+            // cross-module wiring: Insights engine for list_anomalies (built-in checks stay the fallback), the Documents FTS archive for
+            // search_documents, contract intelligence for the obligations calendar in get_contract_terms
+            Anomalies = () => Raffaello.Core.Wiring.InsightsAnomalies.ToItems(insights.Compute(project, null, false, out _, out _)),
+            Documents = new Raffaello.Core.Wiring.ArchiveDocumentSearch(() => _documents),
+            ContractDocs = () => _documents,
         };
         Session = new AssistantSession(Data) { ApiKey = () => Key };
         ApplyModel();

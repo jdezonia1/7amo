@@ -57,7 +57,10 @@ public sealed class AssistantServerModule : IServerModule
         {
             var store = f.For(ctx);
             var (project, queue) = StoreBriefData.Load(store, DateTime.Today);
-            var hub = new NotificationHub(new ProjectStoreAssistantStore(store), () => Array.Empty<INotificationChannel>());
+            var hub = new NotificationHub(new ProjectStoreAssistantStore(store), () => Array.Empty<INotificationChannel>())
+            {
+                Obligations = () => Raffaello.Core.Wiring.ContractObligations.Build(store, project.Snapshot),
+            };
             var brief = hub.BuildBrief(ctx.Identity().User, project.Snapshot, queue, lang ?? "en");
             return Results.Text(brief.ToText(), "text/plain; charset=utf-8");
         });

@@ -58,7 +58,7 @@ public sealed partial class InsightsReportsPanel : ObservableObject
                 }
                 if (key is "RECON" or "ALL")
                 {
-                    recon ??= MaterialReconciliation.Build(p.Snapshot, mats, data.Norms, building);
+                    recon ??= MaterialReconciliation.Build(p.Snapshot, mats, data.Norms, building, _hub.Consumption(p, mats, building));
                     list.Add(InsightsEngine.ReconSheet(recon, scope));
                     list.Add(InsightsEngine.MosSheet(recon, scope));
                 }

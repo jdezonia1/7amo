@@ -188,6 +188,9 @@ and reports. F1 lists every shortcut; Ctrl+K jumps anywhere.
 - [ ] Invoice package: open each file in the ZIP; build twice -> same SHA-256.
 - [ ] Windows OCR / PDF rendering in the Materials REVIEW window (scanned DN / MIR).
 - [ ] Aconex: real login (persistent profile), workflow lookup selectors in aconex.config.json, approval / rejection prompt.
+- [ ] Cross-module wiring: CABLES > MEASURED FROM DRAWINGS (tick + apply), Site statements WARNINGS panel (bypass with reason),
+      Assemblies breakdown "route length ... drawings takeoff" line, Ask Raffaello knows the selected record on each page,
+      READ SCANNED SLD (OCR) finds PaddleOCR / Windows OCR.
 - [ ] Server: SETUP_SERVER.bat on the office PC, Windows sign-in, Materials / Aconex / Variations in server mode,
       sign-in lockout after 5 wrong passwords, optional HTTPS (docs/SERVER.md), LOCAL -> SERVER migration incl. module tables.
 - [ ] Printing (Reports > PRINTABLE SUMMARY) and the shell opening exported files.
@@ -297,13 +300,18 @@ Arabic. Claude Messages API over HttpClient (`Core/Assistant/ClaudeTurnClient`, 
 streaming, manual tool loop, adaptive thinking, explicit effort, server-side refusal fallbacks (`fallbacks: "default"`), prompt
 caching (tool definitions + frozen system prompt + automatic caching of the conversation), eager input streaming with client-side
 schema validation, refusal / max_tokens handling (tools never run on such a turn). Default model `claude-opus-5-5` (Settings).
-- Read tools: search_documents, query_ledger, get_room, get_invoice (revisions + Aconex), list_needs_today, get_contract_terms,
-  find_dn, list_anomalies (built-in checks unless a module provides `AssistantData.Anomalies`), get_report, explain_rule.
+- Read tools: search_documents (Documents FTS archive - SQLite FTS5 / server full text - with page + linked-record citations, plus
+  the records), query_ledger, get_room, get_invoice (revisions + Aconex), list_needs_today, get_contract_terms (+ terms read from
+  the signed contract and its obligations calendar), find_dn, list_anomalies (Insights engine: severity, explanation, suggested
+  action, evidence citations; the built-in checks only when Insights cannot be read), get_report, explain_rule.
+  Wiring adapters live in `Core/Wiring` (`InsightsAnomalies`, `ArchiveDocumentSearch`, `ContractObligations`, `SelectedRecords`).
 - Action tools (draft only): draft_ledger_claim, draft_invoice_revision, draft_rejection_reply_email (.eml draft, nothing sent),
   draft_variation, create_reminder. Each shows a card; it runs only on CONFIRM, is re-checked then, and is audited
   (AssistantActions table + AuditLog). The outcome is told to Claude with the next question.
 - Answers cite records as chips (`[[room:P2-106]]` ...) that navigate (Ledger, Invoices, Materials, Aconex, Variations, WIR, files).
-- The current screen, filter, selected line / record travel in each question (`<app_context>`), never in the system prompt; the
+- The current screen, filter, selected line / record travel in each question (`<app_context>`), never in the system prompt (pages set
+  `SelectionService.SelectedRecord` through `PageViewModel.PublishSelection`: ledger line / room, invoice, PO / DN, variation, plan
+  room, cable run, drawing takeoff - text + citation token from `Wiring.SelectedRecords`); the
   history is stored append-only per user (AssistantConversations / AssistantMessages, data file or server).
 - Attach PDF / image / Excel / CSV: text layers and tables are read locally; scans / images go to Claude only with
   Settings > "Cloud document reading" (off by default), otherwise Windows OCR. The privacy line under the input says what is sent.

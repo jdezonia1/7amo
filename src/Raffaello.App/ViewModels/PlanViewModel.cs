@@ -88,7 +88,12 @@ public sealed partial class PlanViewModel : PageViewModel
     partial void OnItemChanged(string value) => Recompute();
     partial void OnSubChanged(string value) => Recompute();
     partial void OnInvoiceChanged(string value) => Recompute();
-    partial void OnSelectedRoomChanged(string value) { LoadRoom(); Draw(); }
+    partial void OnSelectedRoomChanged(string value)
+    {
+        LoadRoom(); Draw();
+        var room = Project.Snapshot.Rooms.FirstOrDefault(r => string.Equals(r.Code, value, StringComparison.OrdinalIgnoreCase));
+        PublishSelection(string.IsNullOrWhiteSpace(value) ? "" : Raffaello.Core.Wiring.SelectedRecords.Room(value, room?.Building ?? "", room?.RoomType ?? ""));
+    }
 
     protected override void Refresh()
     {

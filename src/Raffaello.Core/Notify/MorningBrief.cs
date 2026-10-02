@@ -97,6 +97,9 @@ public sealed class BriefInputs
     public string Language { get; init; } = Loc.English;
     public DateTime Now { get; init; } = DateTime.Now;
     public int WirDueDays { get; init; } = 14;
+    /// <summary>Obligations calendar of the signed contracts (handover, warranty end, retention release, penalties). Null = take the
+    /// "CONTRACT" items of the queue instead.</summary>
+    public IReadOnlyList<Contracts.Rules.Obligation>? Obligations { get; init; }
 }
 
 /// <summary>
@@ -175,8 +178,18 @@ public static class MorningBriefBuilder
         // 8. obligations: reminders due by tonight, cumulative blocks waiting, open WIRs over the limit
         var due = i.Reminders.Where(r => !r.Done && r.Due <= i.Now.Date.AddDays(1)).OrderBy(r => r.Due).ToList();
         var obligations = due.Select(r => new BriefItem(r.Due < i.Now ? "DUE" : "OPEN", r.Text, r.Due.ToString("dd MMM HH:mm", c), r.TargetModule, r.TargetKey, r.CreatedAt > since)).ToList();
+        // contract obligations (contract-rules calendar): due within 30 days or overdue, the most urgent first
+        var contractKeys = new List<string>();
+        var contractItems = i.Obligations != null
+            ? Contracts.Rules.ObligationsCalendar.Queue(i.Obligations, i.Now.Date).ToList()
+            : i.Queue.Where(q => q.Category == "CONTRACT").ToList();
+        foreach (var q in contractItems.OrderByDescending(q => q.Score))
+        {
+            contractKeys.Add(q.Title);
+            obligations.Add(new BriefItem(q.Tag, q.Title, q.Detail, q.Target.Module, q.Target.Key ?? "", IsNew("OBLIGATIONS", q.Title)));
+        }
         obligations.AddRange(i.Queue.Where(q => q.Category is "CUMULATIVE" or "WIR").Select(q => new BriefItem(q.Tag, q.Title, q.Detail, q.Target.Module, q.Target.Key ?? "")));
-        Add("OBLIGATIONS", "Brief_Obligations", obligations);
+        Add("OBLIGATIONS", "Brief_Obligations", obligations, contractKeys);
 
         return new Brief
         {

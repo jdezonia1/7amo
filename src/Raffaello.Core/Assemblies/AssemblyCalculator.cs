@@ -94,6 +94,8 @@ public sealed class Breakdown
     public double FreeIssueMaterial { get; init; }
     public List<string> Flags { get; init; } = new();
     public List<string> Warnings { get; init; } = new();
+    /// <summary>Where route_len came from (drawings takeoff average, item text, override, template default); "" when the template has none.</summary>
+    public string RouteLengthSource { get; init; } = "";
     public int UnknownPrices => Lines.Count(l => l.Included && l.Flag == BreakdownFlags.Unknown);
     public int DefaultPrices => Lines.Count(l => l.Included && l.Flag == BreakdownFlags.Default);
 
@@ -112,6 +114,9 @@ public static class BreakdownFlags
     public const string Excluded = "NOT IN SCOPE";
 }
 
+/// <summary>A route length per point (m) and where it came from ("drawings: average of 23 LIGHT points on 2 sheets").</summary>
+public sealed record RouteLengthHit(double Metres, string Source);
+
 /// <summary>Everything the calculator needs besides the spec and the template.</summary>
 public sealed class CalcContext
 {
@@ -124,6 +129,9 @@ public sealed class CalcContext
     public IReadOnlyDictionary<string, double>? Overrides { get; init; }
     /// <summary>Average route length per point for the item type (e.g. from the Drawings module) - replaces route_len unless overridden.</summary>
     public Func<string, double?>? RouteLength { get; init; }
+    /// <summary>Route length per point for a spec with its source (Drawings takeoff averages per item type / room type / system).
+    /// Wins over <see cref="RouteLength"/>; null or 0 = the template default stays.</summary>
+    public Func<ItemSpec, RouteLengthHit?>? RouteLengthFor { get; init; }
     public double? ReferenceRate { get; init; }
     public string ReferenceLabel { get; init; } = "";
 }
@@ -222,6 +230,7 @@ public static class AssemblyCalculator
             OverheadPct = ctx.Settings.OverheadPct, ProfitPct = ctx.Settings.ProfitPct, Rate = rate,
             ReferenceRate = ctx.ReferenceRate is > 0 ? ctx.ReferenceRate : null, ReferenceLabel = ctx.ReferenceLabel,
             FreeIssueMaterial = Math.Round(freeIssue, 2), Flags = flags, Warnings = warnings,
+            RouteLengthSource = RouteSource(spec, template, ctx, vars),
         };
         if (b.Verdict == "CONTRACT RATE BELOW COST") flags.Insert(0, $"{(ctx.ReferenceLabel.Length > 0 ? ctx.ReferenceLabel : "reference")} rate {b.ReferenceRate:N2} is below the direct cost {b.Direct:N2}");
         else if (b.Verdict == "BELOW BUILT-UP RATE") flags.Insert(0, $"{(ctx.ReferenceLabel.Length > 0 ? ctx.ReferenceLabel : "reference")} rate {b.ReferenceRate:N2} is below the built-up rate {b.Rate:N2}");
@@ -241,7 +250,11 @@ public static class AssemblyCalculator
         foreach (var p in ctx.Globals) v[p.Name] = p.Value;
         foreach (var p in template.Params) v[p.Name] = p.Value;
 
-        if (ctx.RouteLength?.Invoke(spec.ItemType) is double rl && rl > 0 && template.Params.Any(p => p.Name == "route_len")) v["route_len"] = rl;
+        if (template.Params.Any(p => p.Name == "route_len"))
+        {
+            if (Hook(spec, ctx) is { } hit) v["route_len"] = hit.Metres;
+            else if (ctx.RouteLength?.Invoke(spec.ItemType) is double rl && rl > 0) v["route_len"] = rl;
+        }
         if (spec.RouteLengthM > 0) v["route_len"] = spec.RouteLengthM;
 
         var conduit = spec.Conduit.Length > 0 ? spec.Conduit : Conduits.Pvc;
@@ -281,6 +294,30 @@ public static class AssemblyCalculator
             foreach (var (k, val) in ctx.Overrides) v[k] = val;
         if (template.ItemType == ItemTypes.CableRun && v["cable_size"] <= 0) warnings?.Add("cable size unknown - set it in the spec");
         return v;
+    }
+
+    private static RouteLengthHit? Hook(ItemSpec spec, CalcContext ctx)
+    {
+        if (ctx.RouteLengthFor is null) return null;
+        try { return ctx.RouteLengthFor(spec) is { Metres: > 0 } h ? h : null; }
+        catch (Exception) { return null; }   // the drawings module is optional: the template default stays
+    }
+
+    /// <summary>Text for the breakdown: where route_len came from (override, item text, drawings takeoff, template / global default).</summary>
+    public static string RouteSource(ItemSpec spec, AssemblyTemplate template, CalcContext ctx, IReadOnlyDictionary<string, double> vars)
+    {
+        var usesRoute = template.Params.Any(p => p.Name == "route_len") || template.Components.Any(c => (c.QtyFormula ?? "").Contains("route_len", StringComparison.OrdinalIgnoreCase));
+        if (!usesRoute || !vars.TryGetValue("route_len", out var len)) return "";
+        var m = len.ToString("0.##", CultureInfo.InvariantCulture) + " m";
+        if (ctx.Overrides?.ContainsKey("route_len") == true) return $"route length {m} per point: item override";
+        if (spec.RouteLengthM > 0) return $"route length {m} per point: stated in the item text";
+        if (template.Params.Any(p => p.Name == "route_len"))
+        {
+            if (Hook(spec, ctx) is { } hit) return $"route length {m} per point: {hit.Source}";
+            if (ctx.RouteLength?.Invoke(spec.ItemType) is double rl && rl > 0) return $"route length {m} per point: drawings average for {spec.ItemType}";
+            return $"route length {m} per point: template default (no drawing takeoff for this item yet)";
+        }
+        return ctx.Globals.Any(g => g.Name == "route_len") ? $"route length {m} per point: global default" : $"route length {m} per point: built-in default";
     }
 
     /// <summary>Protective conductor size for a phase size (BS 7671 table 54.7: S &lt;= 16 -> S, 16 &lt; S &lt;= 35 -> 16, S &gt; 35 -> S / 2 rounded to a standard size).</summary>

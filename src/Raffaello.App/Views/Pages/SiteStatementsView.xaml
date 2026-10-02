@@ -55,7 +55,7 @@
         </Grid>
 
         <Grid Grid.Column="2">
-            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <StackPanel>
@@ -87,7 +87,31 @@
                     <DataGridTextColumn Header="MESSAGE" Binding="{Binding Check.Message}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellText}"/>
                 </DataGrid.Columns>
             </DataGrid>
-            <Border Grid.Row="2" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0" Visibility="{Binding HasPreview, Converter={StaticResource BoolToVis}}">
+            <!-- cable flags + contract-rule warnings of the preview: never blocking, BYPASS WITH REASON here (audited like the Cables page / invoice WARNINGS tab) -->
+            <Border Grid.Row="2" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0" Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVis}}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding WarningsText}" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                    <Grid DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding BypassReason, UpdateSourceTrigger=PropertyChanged}" ToolTip="Reason (required, recorded with your name) - e.g. re-pulled after damage, agreed with the engineer"/>
+                        <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="BYPASS WITH REASON" Command="{Binding BypassWarningCommand}" Margin="8,0,0,0"/>
+                        <Button Grid.Column="2" Style="{StaticResource BtnGhost}" Content="BYPASS ALL OPEN" Command="{Binding BypassAllWarningsCommand}" Margin="6,0,0,0"/>
+                    </Grid>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Warnings}" SelectedItem="{Binding SelectedWarning, Mode=TwoWay}" IsReadOnly="True" MaxHeight="170">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" Width="72" SortMemberPath="Tag">
+                                <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="CODE" Binding="{Binding Code}" Width="140" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="LINE" Binding="{Binding Subject}" Width="220" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="WARNING" Binding="{Binding Message}" Width="*" MinWidth="200" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="DECISION" Binding="{Binding Decision}" Width="180" ElementStyle="{StaticResource CellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+            <Border Grid.Row="3" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0" Visibility="{Binding HasPreview, Converter={StaticResource BoolToVis}}">
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="300"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Issues}" MaxHeight="110">

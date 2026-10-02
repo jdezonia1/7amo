@@ -131,7 +131,15 @@ public sealed partial class LedgerViewModel : PageViewModel
     private string? _pendingRoom;
 
     partial void OnSearchChanged(string value) => FillRooms();
-    partial void OnSelectedRoomChanged(LedgerRoomRow? value) => LoadRoom();
+    partial void OnSelectedRoomChanged(LedgerRoomRow? value)
+    {
+        LoadRoom();
+        PublishSelection(value is null ? "" : Raffaello.Core.Wiring.SelectedRecords.Room(value.Room.Code, value.Room.Building, value.Room.RoomType));
+    }
+
+    partial void OnSelectedLineChanged(ClaimRow? value) =>
+        PublishSelection(value is not null ? Raffaello.Core.Wiring.SelectedRecords.LedgerLine(value.Line)
+            : SelectedRoom is { } r ? Raffaello.Core.Wiring.SelectedRecords.Room(r.Room.Code, r.Room.Building, r.Room.RoomType) : "");
     partial void OnSelectedBalanceChanged(BalanceRow? value) { if (value != null) { Stage = value.Stage; Item = value.Item; } }
     partial void OnStageChanged(string value) => UpdateEntryCheck();
     partial void OnItemChanged(string value) => UpdateEntryCheck();

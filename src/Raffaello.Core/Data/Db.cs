@@ -313,9 +313,13 @@ public sealed class Db : IProjectStore
         // [phase6] module tables (materials, MOS, BOQ, coding memory, Aconex, variations) live in the same file
         var existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         using (var cmd = c.CreateCommand()) { cmd.Transaction = tx; cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table'"; using var r = cmd.ExecuteReader(); while (r.Read()) existing.Add(r.GetString(0)); }
-        foreach (var t in Remote.ModuleEntities.All.Where(t => existing.Contains(TableOf(t)))) Exec(c, tx, $"DELETE FROM [{TableOf(t)}];");
+        // every module table (Insight*, Asm*, Dwg*, Cable*, Doc*, Assistant*, Mat*, Aconex*, Variation* ...) except the kept ones
+        // (signing keys, record signatures, portal settings - see ModuleEntities.ResetKept)
+        foreach (var t in Remote.ModuleEntities.Resettable.Where(t => existing.Contains(TableOf(t)))) Exec(c, tx, $"DELETE FROM [{TableOf(t)}];");
+        if (existing.Contains("DocSearch")) Exec(c, tx, "DELETE FROM DocSearch;");   // FTS index of the document pages
         Exec(c, tx, "DELETE FROM AuditLog;");
-        Exec(c, tx, "DELETE FROM sqlite_sequence;");
+        // record ids are NOT restarted: kept signatures name (table, id) and must never point at a new record with an old id
+        Exec(c, tx, "DELETE FROM sqlite_sequence WHERE name = 'AuditLog';");
         Trust.SqliteAuditChain.OnReset(c, tx);   // [trust] the chain continues after a sanctioned reset
         tx.Commit();
     }

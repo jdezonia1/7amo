@@ -77,7 +77,7 @@ public static class LocalToServerMigrator
     {
         if (!server.CheckNow()) throw new ServerUnavailableException($"The server {server.Location} is not reachable - the migration needs a connection.");
         local.EnsureSchema();
-        ModuleEntities.RegisterAll();   // [phase6] materials / Aconex / variation tables are copied too
+        ModuleEntities.RegisterAll();   // [phase6] module tables (materials, Aconex, variations, documents, cables, assistant, drawings, insights, assemblies, trust) are copied too
         // [assemblies] begin
         Assemblies.AssemblyEntities.Register();
         // [assemblies] end
@@ -112,7 +112,9 @@ public static class LocalToServerMigrator
             plans.Add((t, plan, copy));
         }
 
-        var serverRows = report.Tables.Sum(t => t.OnServer);
+        // signing keys / signatures may be registered on the server before the migration: they never block it
+        var kept = ModuleEntities.ResetKept.Select(EntityMeta.TableOf).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var serverRows = report.Tables.Where(t => !kept.Contains(t.Table)).Sum(t => t.OnServer);
         if (serverRows > 0 && serverSource != key)
         {
             report.Warnings.Add(serverSource is null

@@ -164,7 +164,11 @@ public sealed partial class DrawingsViewModel : PageViewModel
         return Affine2D.ScaleOnly(_k, _k).After(t);
     }
 
-    partial void OnTakeoffChanged(DwgTakeoff? value) => OnPropertyChanged(nameof(TakeoffCaption));
+    partial void OnTakeoffChanged(DwgTakeoff? value)
+    {
+        OnPropertyChanged(nameof(TakeoffCaption));
+        PublishSelection(value is not null && SelectedSheet is { } s ? Raffaello.Core.Wiring.SelectedRecords.Takeoff(s, value) : "");
+    }
     partial void OnConfidenceMinChanged(double value) { foreach (var m in Markers) m.Visible = m.Hit.Score >= value || m.Hit.Origin != DwgOrigins.Template; RebuildTotals(); }
 
     private static BitmapSource ToBitmap(ColorImage img)

@@ -234,6 +234,7 @@ public sealed partial class AssembliesViewModel : PageViewModel
             Lines.Clear();
             foreach (var l in b.Lines) Lines.Add(l);
             Flags.Clear();
+            if (b.RouteLengthSource.Length > 0) Flags.Add(b.RouteLengthSource.ToUpperInvariant()[..1] + b.RouteLengthSource[1..]);   // drawings average / template default
             foreach (var f in b.Flags.Concat(b.Warnings).Concat(b.Spec.Notes)) Flags.Add(f);
             StagesText = Spec.StagesText;
             var c = _svc.Settings.Currency;

@@ -14,6 +14,8 @@ public sealed class NotificationHub
     private readonly IAssistantStore _store;
     private readonly Func<IReadOnlyList<INotificationChannel>> _channels;
     public Func<DateTime> Clock { get; init; } = () => DateTime.Now;
+    /// <summary>Obligations calendar of the signed contracts for the brief's "obligations due" (null = the CONTRACT queue items).</summary>
+    public Func<IReadOnlyList<Contracts.Rules.Obligation>>? Obligations { get; init; }
 
     public NotificationHub(IAssistantStore store, Func<IReadOnlyList<INotificationChannel>> channels)
     {
@@ -41,8 +43,14 @@ public sealed class NotificationHub
         return MorningBriefBuilder.Build(new BriefInputs
         {
             Snapshot = snapshot, Queue = queue, Reminders = _store.Reminders(owner), Previous = _store.LastBrief(owner, now), Owner = owner,
-            Language = lang, Now = now, WirDueDays = wirDueDays,
+            Language = lang, Now = now, WirDueDays = wirDueDays, Obligations = SafeObligations(),
         });
+    }
+
+    private IReadOnlyList<Contracts.Rules.Obligation>? SafeObligations()
+    {
+        if (Obligations is null) return null;
+        try { return Obligations(); } catch (Exception) { return null; }
     }
 
     /// <summary>Notification events since <paramref name="since"/>, routed by the owner's rules (each event once per channel).</summary>

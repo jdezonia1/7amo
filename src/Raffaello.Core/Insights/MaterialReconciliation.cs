@@ -39,6 +39,20 @@ public sealed class ReconRow
     public List<Evidence> Evidence { get; init; } = new();
 }
 
+/// <summary>
+/// Theoretical consumption of one material from the Assemblies templates (see <c>Wiring.AssemblyConsumption</c>): installed points x the
+/// template's quantity per point, the whole project's need, and the delivered quantity matched to the PO lines (in the same unit).
+/// </summary>
+public sealed record ConsumptionLine(string Material, string Unit, double Theoretical, double TheoreticalTotal, double Delivered, string Source)
+{
+    /// <summary>Items / systems that use the material ("LIGHT 1ST FIX", "POWER 2ND FIX").</summary>
+    public List<string> Uses { get; init; } = new();
+    public double InstalledPoints { get; init; }
+    public double PlannedPoints { get; init; }
+    /// <summary>PO lines the delivered quantity came from.</summary>
+    public List<string> PoRefs { get; init; } = new();
+}
+
 /// <summary>MOS line whose material is (theoretically) installed but still valued as on site: release candidate.</summary>
 public sealed record MosReleaseCandidate(string BoqCode, string Description, string Material, double Delivered, double InstalledRecorded, double InstalledTheoretical, double ReleaseQty, double BoqRate, double MosPct)
 {
@@ -53,6 +67,8 @@ public sealed class ReconResult
     public List<(string Description, double Qty, string Unit)> Unmatched { get; } = new();
     public List<string> Notes { get; } = new();
     public bool UsingDefaultNorms { get; init; }
+    /// <summary>Some rows use the theoretical consumption of the Assemblies templates.</summary>
+    public bool UsingAssemblies { get; init; }
 }
 
 /// <summary>
@@ -96,13 +112,25 @@ public static class MaterialReconciliation
         return U(a) == U(b) || string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b);
     }
 
-    public static ReconResult Build(ProjectSnapshot s, MaterialsSnapshot? m, IReadOnlyList<InsightNorm> norms, string? building = null)
+    /// <summary>
+    /// Reconciliation. <paramref name="consumption"/> = theoretical use from the Assemblies templates: when it is given it replaces the
+    /// DEFAULT norms (no norms entered); norms the user entered win for their materials and the assemblies cover the rest.
+    /// </summary>
+    public static ReconResult Build(ProjectSnapshot s, MaterialsSnapshot? m, IReadOnlyList<InsightNorm> norms, string? building = null, IReadOnlyList<ConsumptionLine>? consumption = null)
     {
         bool In(string? b) => building is null || string.IsNullOrEmpty(b) || string.Equals(b, building, StringComparison.OrdinalIgnoreCase);
-        var useDefaults = norms.Count == 0;
-        var list = useDefaults ? DefaultNorms() : norms.Where(n => n.PerPoint > 0 && n.Material.Trim().Length > 0).ToList();
-        var res = new ReconResult { UsingDefaultNorms = useDefaults };
+        var userNorms = norms.Where(n => n.PerPoint > 0 && n.Material.Trim().Length > 0).ToList();
+        var asm = (consumption ?? Array.Empty<ConsumptionLine>()).Where(c => c.Theoretical > 1e-9 || c.TheoreticalTotal > 1e-9 || c.Delivered > 1e-9).ToList();
+        // assemblies lines whose material a user norm already covers are left to the norm
+        if (userNorms.Count > 0) asm = asm.Where(c => !userNorms.Any(n => Matches(n.Material, c.Material))).ToList();
+        var useDefaults = norms.Count == 0 && asm.Count == 0;
+        var list = useDefaults ? DefaultNorms() : userNorms;
+        var res = new ReconResult { UsingDefaultNorms = useDefaults, UsingAssemblies = asm.Count > 0 };
         if (useDefaults) res.Notes.Add("No consumption norms entered yet - DEFAULT assumptions are used. Edit the norms table (metres per point) for real numbers.");
+        if (asm.Count > 0)
+            res.Notes.Add(userNorms.Count > 0
+                ? $"{asm.Count} materials without a norm use the theoretical consumption of the Assemblies templates (quantity per point x installed points)."
+                : $"Theoretical use from the Assemblies templates ({asm.Count} materials: quantity per point x installed points) - no norms entered.");
 
         var rooms = s.Rooms.GroupBy(r => r.Code.Trim().ToUpperInvariant()).ToDictionary(g => g.Key, g => g.First());
         bool RoomOk(InsightNorm n, string room)
@@ -176,6 +204,32 @@ public static class MaterialReconciliation
                 InstalledPoints = installed, PlannedPoints = planned, Theoretical = theo, TheoreticalTotal = theoTotal, Allowance = allowance,
                 Delivered = row0.Delivered, Invoiced = invoiced, Paid = paid, DeliveredValue = unitOk.Sum(d => d.Qty * d.Rate), DnLines = unitOk.Count,
                 Status = status, Explanation = why,
+                Evidence = unitOk.Take(40).Select(d => new Evidence(EvidenceKinds.Dn, Math.Abs(d.Id), $"{d.Ref}: {d.Qty:N0} {d.Unit}")).ToList(),
+            });
+        }
+        // materials from the Assemblies templates (theoretical consumption of the installed / planned points, delivered via the PO lines)
+        foreach (var c in asm)
+        {
+            var mine = deliveries.Where(d => Fingerprints.Compare(c.Material, d.Desc) >= 0.75).ToList();
+            var unitOk = mine.Where(d => SameUnit(d.Unit, c.Unit)).ToList();
+            foreach (var d in mine) used.Add(d.Id);
+            var delivered = c.Delivered > 1e-9 ? c.Delivered : unitOk.Sum(d => d.Qty);
+            var invoiced = unitOk.Where(d => d.LockInvoice.HasValue).Sum(d => d.Qty);
+            var paid = unitOk.Where(d => d.LockInvoice is long id && approved.Contains(id)).Sum(d => d.Qty);
+            const double allowance = 0.05;
+            string status, why;
+            if (delivered <= 1e-9 && c.Theoretical <= 1e-9) { status = "NO DATA"; why = "Nothing delivered and nothing installed yet for this material."; }
+            else if (delivered <= 1e-9) { status = "NO DELIVERY"; why = $"Installed points need {c.Theoretical:N0} {c.Unit} (assemblies) but no PO / DN line matches '{c.Material}'."; }
+            else if (c.TheoreticalTotal > 1e-9 && delivered > c.TheoreticalTotal * (1 + allowance)) { status = "OVER-DELIVERED"; why = $"Delivered {delivered:N0} {c.Unit} is more than the whole project needs ({c.TheoreticalTotal:N0} + {allowance:P0} allowance, assemblies)."; }
+            else if (delivered < c.Theoretical * 0.98) { status = "INSTALLED > DELIVERED"; why = $"Installed points need {c.Theoretical:N0} {c.Unit} (assemblies) but only {delivered:N0} were delivered: the template quantity is too high, DNs are missing, or material came from another PO."; }
+            else { status = "OK"; why = $"{delivered - c.Theoretical:N0} {c.Unit} should be on site or wasted ({(c.Theoretical > 0 ? (delivered - c.Theoretical) / c.Theoretical : 0):P0} of the theoretical use)."; }
+            if (invoiced > delivered + 1e-6) { status = "INVOICED > DELIVERED"; why = $"Invoiced {invoiced:N0} {c.Unit} is more than delivered {delivered:N0}."; }
+            res.Rows.Add(new ReconRow
+            {
+                Material = c.Material, Unit = c.Unit, NormSource = c.Source, Scope = "ASSEMBLIES: " + string.Join("; ", c.Uses.Take(6)),
+                InstalledPoints = c.InstalledPoints, PlannedPoints = c.PlannedPoints, Theoretical = c.Theoretical, TheoreticalTotal = c.TheoreticalTotal, Allowance = allowance,
+                Delivered = delivered, Invoiced = invoiced, Paid = paid, DeliveredValue = unitOk.Sum(d => d.Qty * d.Rate), DnLines = unitOk.Count,
+                Status = status, Explanation = why + (c.PoRefs.Count > 0 ? $" PO lines: {string.Join(", ", c.PoRefs.Take(4))}." : ""),
                 Evidence = unitOk.Take(40).Select(d => new Evidence(EvidenceKinds.Dn, Math.Abs(d.Id), $"{d.Ref}: {d.Qty:N0} {d.Unit}")).ToList(),
             });
         }

@@ -89,6 +89,8 @@ public static class CableHooks
             var plan = svc.Prepare(copies);
             foreach (var f in plan.Flags.Where(f => !f.IsBypassed))
                 res.Issues.Add(new(0, IssueLevel.Warning, $"CABLE {f.Code}: {f.ClaimText} - {f.Message}"));
+            res.CableFlags.Clear();
+            res.CableFlags.AddRange(plan.Flags);
             return plan.Flags;
         }
         catch (Exception ex) { res.Issues.Add(new(0, IssueLevel.Warning, "Cable checks not available: " + ex.Message)); return new(); }
@@ -108,6 +110,16 @@ public static class CableHooks
         svc.Commit(plan, $"Site statement {res.StatementNo} ({res.Subcontractor}) cables: {plan.Summary}");
         var existing = store.All<ClaimLine>().Select(l => l.SourceKey).ToHashSet();
         return ledger.Where(l => !existing.Contains(l.SourceKey)).ToList();
+    }
+
+    /// <summary>Cable flags of a statement preview again (after a bypass), without adding issues.</summary>
+    public static List<CableFlag> StatementFlags(StatementImportResult res, IProjectStore store)
+    {
+        if (res.CableClaims.Count == 0) return new();
+        var plan = new CableService(CableStore.For(store)).Prepare(res.CableClaims.Select(Copy).ToList());
+        res.CableFlags.Clear();
+        res.CableFlags.AddRange(plan.Flags);
+        return plan.Flags;
     }
 
     private static CableClaim Copy(CableClaim c) => new()

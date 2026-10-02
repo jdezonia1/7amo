@@ -310,7 +310,15 @@ public sealed class WorkflowService
     {
         var r = SiteStatementService.Read(path, _p.Snapshot, invoiceNo, building);
         Cables.CableHooks.AnnotateStatement(r, _p.Store);   // [cables] duplicate FROM-TO / unknown run ... as warnings in the preview
+        // contract-rule warnings (height bands, 15 m rule) of the claim lines, bypassable in the preview
+        Wiring.StatementPreviewChecks.RuleWarnings(r, _p.Snapshot, StatementDocs());
         return r;
     }
+    /// <summary>Contract intelligence of the current data source (null when it cannot be opened).</summary>
+    public Documents.IDocumentStore? StatementDocs()
+    {
+        try { return new Remote.DocumentStoreSelector(() => _p.Store); } catch (Exception) { return null; }
+    }
+
     public int CommitStatement(StatementImportResult r, string path, string? overReason) { var n = SiteStatementService.Commit(r, _p.Store, path, overReason); _p.Reload(); return n; }
 }

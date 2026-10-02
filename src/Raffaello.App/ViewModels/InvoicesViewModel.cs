@@ -156,7 +156,11 @@ public sealed partial class InvoicesViewModel : PageViewModel
     partial void OnTabChanged(string value) { OnPropertyChanged(nameof(IsLines)); OnPropertyChanged(nameof(IsConfirm)); OnPropertyChanged(nameof(IsWarnings)); OnPropertyChanged(nameof(IsDiff)); }
     partial void OnOnlyMovedChanged(bool value) => FillLines();
     partial void OnContractNoChanged(string value) => FillItemChoices();
-    partial void OnSelectedStoredChanged(StoredInvoiceRow? value) { if (value != null) ShowStored(value.Invoice); }
+    partial void OnSelectedStoredChanged(StoredInvoiceRow? value)
+    {
+        if (value != null) ShowStored(value.Invoice);
+        PublishSelection(value is null ? "" : Raffaello.Core.Wiring.SelectedRecords.Invoice(value.Invoice));
+    }
     partial void OnSelectedConfirmChanged(ConfirmRow? value) => LearnItem = value?.First.Item is { } it ? ItemChoices.FirstOrDefault(i => i.ItemNo == it.ItemNo) : null;
     partial void OnLearnItemChanged(ContractItem? value)
     {

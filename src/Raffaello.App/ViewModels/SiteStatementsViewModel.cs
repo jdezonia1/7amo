@@ -24,6 +24,20 @@ public sealed class StatementPreviewRow
     public string Checks => (Line.QtyAbove45 != 0 ? $">4.5m {Line.QtyAbove45:0.#}  " : "") + (Line.LengthApplies ? $"15m {Line.LengthClaimedQty:0.#}" : "");
 }
 
+/// <summary>A cable flag or a contract-rule warning of the statement preview (bypassable with a reason).</summary>
+public sealed class PreviewWarningRow
+{
+    public Raffaello.Core.Cables.CableFlag? Cable { get; init; }
+    public Raffaello.Core.Contracts.Rules.RuleWarning? Rule { get; init; }
+    public bool IsBypassed => Cable?.IsBypassed ?? Rule?.IsBypassed ?? false;
+    public string Tag => IsBypassed ? "BYPASSED" : Cable != null ? Cable.Tag : "CHECK";
+    public string Source => Cable != null ? "CABLE" : "CONTRACT";
+    public string Code => Cable?.Code ?? Rule?.Code ?? "";
+    public string Subject => Cable?.ClaimText ?? Rule?.ContextKey ?? "";
+    public string Message => Cable?.Message ?? (Rule is { } r ? $"{r.Message} [{r.Source}]" : "");
+    public string Decision => Cable?.Decision is { } d ? $"{d.By} {d.At:dd-MMM-yy}: {d.Reason}" : Rule?.Bypass is { } b ? $"{b.BypassedBy} {b.BypassedAt:dd-MMM-yy}: {b.Reason}" : "";
+}
+
 /// <summary>Site statements: generate the per-room sheet for a subcontractor, read it back with duplicate detection and remaining checks.</summary>
 public sealed partial class SiteStatementsViewModel : PageViewModel
 {
@@ -73,6 +87,8 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
             Issues.Clear();
             foreach (var i in draft.Issues) Issues.Add($"{i.Level.ToString().ToUpperInvariant()}  {i.Message}");
             foreach (var i in res.Issues) Issues.Add($"{i.Level.ToString().ToUpperInvariant()}  {i.Message}");
+            Raffaello.Core.Wiring.StatementPreviewChecks.RuleWarnings(res, Project.Snapshot, _reading.Documents);
+            FillWarnings();
             foreach (var r in draft.Rows) Issues.Add($"ROW {r.No}: {r.Stage} {r.UnitType} {string.Join("+", r.Systems)} {(r.Pct is double pc ? pc.ToString("P0") : "")} rooms {string.Join(", ", r.Rooms)}  <- \"{r.Raw}\" (conf {r.Confidence:0.00})");
             Raffaello.Core.Documents.DocArchive.Save(_reading.Documents, doc.ToDocText(), path, "SITE STATEMENT", nameof(Raffaello.Core.Domain.SiteStatement), no);
         }
@@ -102,6 +118,66 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
     [ObservableProperty] private SiteStatement? _selectedHistory;
 
     private StatementImportResult? _preview;
+
+    // ---- warnings of the preview (cable flags + contract rules), bypassed with a reason right here
+    public ObservableCollection<PreviewWarningRow> Warnings { get; } = new();
+    [ObservableProperty] private PreviewWarningRow? _selectedWarning;
+    [ObservableProperty] private string _bypassReason = "";
+    [ObservableProperty] private bool _hasWarnings;
+    [ObservableProperty] private string _warningsText = "";
+
+    private void FillWarnings()
+    {
+        Warnings.Clear();
+        if (_preview != null)
+        {
+            foreach (var f in _preview.CableFlags) Warnings.Add(new PreviewWarningRow { Cable = f });
+            foreach (var w in _preview.RuleWarnings) Warnings.Add(new PreviewWarningRow { Rule = w });
+        }
+        HasWarnings = Warnings.Count > 0;
+        var open = Warnings.Count(w => !w.IsBypassed);
+        WarningsText = $"WARNINGS  {open} open, {Warnings.Count - open} bypassed  -  cable flags and contract rules never block; bypass them with a reason (recorded with your name)";
+    }
+
+    private async Task BypassRows(List<PreviewWarningRow> rows)
+    {
+        if (_preview is null || rows.Count == 0) return;
+        var reason = BypassReason.Trim();
+        if (reason.Length < 3) { Ctx.Toasts.Show("REASON NEEDED", "Type a short reason for the bypass (who agreed, why).", ToastKind.Warn); return; }
+        var res = _preview;
+        var docs = _reading.Documents;
+        try
+        {
+            var n = await Task.Run(() =>
+            {
+                var c = Raffaello.Core.Wiring.StatementPreviewChecks.BypassCableFlags(Project.Store, rows.Where(r => r.Cable != null).Select(r => r.Cable!), reason);
+                c += Raffaello.Core.Wiring.StatementPreviewChecks.BypassRuleWarnings(docs, rows.Where(r => r.Rule != null).Select(r => r.Rule!), reason, DateTime.Now);
+                Raffaello.Core.Wiring.StatementPreviewChecks.Refresh(res, Project.Store, Project.Snapshot, docs);
+                return c;
+            });
+            BypassReason = "";
+            FillWarnings();
+            Ctx.Toasts.Show("BYPASS RECORDED", $"{n} warning(s): {reason}", ToastKind.Good);
+        }
+        catch (Exception ex) { Ctx.Toasts.Show("BYPASS NOT SAVED", ex.Message, ToastKind.Error); }
+    }
+
+    [RelayCommand]
+    private Task BypassWarning()
+    {
+        if (SelectedWarning is not { } w) { Ctx.Toasts.Show("PICK A WARNING FIRST", kind: ToastKind.Warn); return Task.CompletedTask; }
+        if (w.IsBypassed) { Ctx.Toasts.Show("ALREADY BYPASSED", w.Decision); return Task.CompletedTask; }
+        return BypassRows(new List<PreviewWarningRow> { w });
+    }
+
+    [RelayCommand]
+    private Task BypassAllWarnings()
+    {
+        var open = Warnings.Where(w => !w.IsBypassed).ToList();
+        if (open.Count == 0) return Task.CompletedTask;
+        if (BypassReason.Trim().Length >= 3 && !Ctx.Dialogs.Confirm("Bypass warnings", $"Let {open.Count} warning(s) through with the reason:\n\n{BypassReason.Trim()}")) return Task.CompletedTask;
+        return BypassRows(open);
+    }
 
     protected override void Refresh()
     {
@@ -159,6 +235,7 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
             foreach (var (line, check) in res.Checks) Preview.Add(new StatementPreviewRow { Line = line, Check = check });
             Issues.Clear();
             foreach (var i in res.Issues) Issues.Add($"{i.Level.ToString().ToUpperInvariant()}  row {i.Row}: {i.Message}");
+            FillWarnings();
             if (res.IsDuplicate) Ctx.Toasts.Show("DUPLICATE STATEMENT", "This statement was already imported - it will not be posted again.", ToastKind.Warn, 8);
         }
         catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ STATEMENT", ex.Message, ToastKind.Error); }
@@ -178,6 +255,7 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
         {
             Ctx.Toasts.Show("STATEMENT POSTED", $"{posted} claim lines into the ledger", ToastKind.Good);
             _preview = null; HasPreview = false; Preview.Clear(); Issues.Clear(); PreviewText = "No statement opened"; OverReason = "";
+            FillWarnings();
         }
     }
 

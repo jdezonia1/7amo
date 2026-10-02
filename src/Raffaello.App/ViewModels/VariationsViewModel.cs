@@ -148,7 +148,11 @@ public sealed partial class VariationsViewModel : PageViewModel
     partial void OnStatusFilterChanged(string value) => LoadList();
     partial void OnSearchChanged(string value) => LoadList();
     private bool _listLoading;
-    partial void OnSelectedChanged(VariationListRow? value) { if (value != null && !_listLoading) Load(value.V.Id); }
+    partial void OnSelectedChanged(VariationListRow? value)
+    {
+        if (value != null && !_listLoading) Load(value.V.Id);
+        PublishSelection(value is null ? "" : Raffaello.Core.Wiring.SelectedRecords.Variation(value.V.Number, value.V.Title, value.V.Status));
+    }
 
     private IVariationStore Store => _svc.Variations;
 

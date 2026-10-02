@@ -16,8 +16,12 @@ public sealed class AssistantData
     public Func<IVariationStore?>? Variations { get; init; }
     /// <summary>Full-text document archive, when the documents module provides one; records are searched either way.</summary>
     public IDocumentSearch? Documents { get; init; }
-    /// <summary>Claim anomaly detection, when a module provides it; otherwise the built-in checks run.</summary>
+    /// <summary>Claim anomaly detection, when a module provides it (the Insights engine, see <see cref="Wiring.InsightsAnomalies"/>);
+    /// when it is missing or fails, the built-in checks run.</summary>
     public Func<IEnumerable<AnomalyItem>>? Anomalies { get; init; }
+    /// <summary>Contract intelligence (terms, rules, bypasses read from the signed contracts) - feeds the obligations calendar in
+    /// get_contract_terms. Null = not available (the contract tables are read from the project data only).</summary>
+    public Func<Raffaello.Core.Documents.IDocumentStore?>? ContractDocs { get; init; }
     /// <summary>Folder for drafts the assistant writes (e-mails). Empty = Documents\Raffaello\Assistant.</summary>
     public string DraftFolder { get; init; } = "";
     public Func<DateTime> Clock { get; init; } = () => DateTime.Now;
@@ -28,6 +32,7 @@ public sealed class AssistantData
     public MaterialsSnapshot? TryMaterials() { try { return Materials?.Invoke(); } catch (Exception) { return null; } }
     public IAconexStore? TryAconex() { try { return Aconex?.Invoke(); } catch (Exception) { return null; } }
     public IVariationStore? TryVariations() { try { return Variations?.Invoke(); } catch (Exception) { return null; } }
+    public Raffaello.Core.Documents.IDocumentStore? TryContractDocs() { try { return ContractDocs?.Invoke(); } catch (Exception) { return null; } }
 
     public string DraftsPath()
     {
@@ -52,7 +57,13 @@ public sealed record ScreenContext(string Screen = "", string Filter = "", strin
     }
 }
 
-public sealed record DocumentHit(string Id, string Title, string Path, int Page, string Snippet, string Kind);
+public sealed record DocumentHit(string Id, string Title, string Path, int Page, string Snippet, string Kind)
+{
+    /// <summary>The record the document fed (archive hits): table / key as stored on the evidence index (e.g. "Contract" + contract no).</summary>
+    public string LinkedTable { get; init; } = "";
+    public string LinkedKey { get; init; } = "";
+    public string DocType { get; init; } = "";
+}
 
 /// <summary>Full-text search over stored documents (the documents module can provide a real archive).</summary>
 public interface IDocumentSearch
@@ -61,4 +72,13 @@ public interface IDocumentSearch
     IReadOnlyList<DocumentHit> Search(string query, int limit);
 }
 
-public sealed record AnomalyItem(string Severity, string Kind, string Title, string Detail, Citation? Source);
+public sealed record AnomalyItem(string Severity, string Kind, string Title, string Detail, Citation? Source)
+{
+    /// <summary>Plain-English explanation (Insights engine).</summary>
+    public string Explanation { get; init; } = "";
+    public string SuggestedAction { get; init; } = "";
+    /// <summary>The records that show the anomaly (ledger lines, invoices, WIRs, documents ...), as citations.</summary>
+    public List<Citation> Evidence { get; init; } = new();
+    public string Subcontractor { get; init; } = "";
+    public int InvoiceNo { get; init; }
+}
