@@ -85,14 +85,14 @@ public class HouseRulesTests
     }
 
     [Fact]
-    public void Pipes_PcsToM_Default6m_AndConfigurable()
+    public void Pipes_PcsToM_Default3m_AndConfigurable()
     {
-        Assert.Equal(60, UnitConverter.PcsToM(10));
-        Assert.Equal(30, UnitConverter.PcsToM(10, 3));
-        Assert.Equal(10, UnitConverter.MToPcs(60));
-        Assert.Equal(60, UnitConverter.PcsToM(10, 0)); // 0 = default
-        Assert.Equal(600, UnitConverter.ToPoUnit(100, "PCS", "M"));
-        Assert.Equal(5, UnitConverter.ToPoUnit(30, "M", "PCS"));
+        Assert.Equal(30, UnitConverter.PcsToM(10));
+        Assert.Equal(60, UnitConverter.PcsToM(10, 6));
+        Assert.Equal(20, UnitConverter.MToPcs(60));
+        Assert.Equal(30, UnitConverter.PcsToM(10, 0)); // 0 = default
+        Assert.Equal(300, UnitConverter.ToPoUnit(100, "PCS", "M"));
+        Assert.Equal(10, UnitConverter.ToPoUnit(30, "M", "PCS"));
         Assert.Equal(42, UnitConverter.ToPoUnit(42, "NO", "NO"));
     }
 

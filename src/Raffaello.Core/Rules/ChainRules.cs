@@ -13,7 +13,7 @@ public sealed class RuleOptions
     /// <summary>Allowed gap between SITE % and WIR % before it is flagged.</summary>
     public double SiteTolerance { get; set; } = 0.15;
     /// <summary>Default metres per piece for pipes / conduits delivered in PCS.</summary>
-    public double PipeLengthM { get; set; } = 6.0;
+    public double PipeLengthM { get; set; } = 3.0;
     public double Epsilon { get; set; } = 0.0001;
     public DateTime Today { get; set; } = DateTime.Today;
 }

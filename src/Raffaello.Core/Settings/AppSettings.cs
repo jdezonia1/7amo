@@ -16,7 +16,7 @@ public sealed class AppSettings
     // rules
     public int WirDueDays { get; set; } = 14;
     public double SiteTolerance { get; set; } = 0.15;
-    public double PipeLengthM { get; set; } = 6.0;
+    public double PipeLengthM { get; set; } = 3.0;
 
     // assistant
     // [assistant] begin: the API key lives in the Windows DPAPI vault once the app registers it (ProtectedApiKey); settings.json keeps a

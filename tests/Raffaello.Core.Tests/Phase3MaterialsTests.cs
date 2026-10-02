@@ -115,8 +115,8 @@ public class Phase3MaterialsTests
         env.Service.CommitDn(dn);
         var row = env.Service.LastMatch.Rows.Single();
         Assert.Equal(3, row.PoLine!.LineNo);
-        Assert.Equal(300, row.Qty, 6);
-        Assert.Contains("x 6 M", row.ConversionNote);
+        Assert.Equal(150, row.Qty, 6);
+        Assert.Contains("x 3 M", row.ConversionNote);
     }
 
     [Fact]
