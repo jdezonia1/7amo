@@ -48,6 +48,9 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 // [phase3] begin
                 Item("Boq", "BOQ", "IconDatabase", ""),
                 // [phase3] end
+                // [assemblies] begin
+                Item("Assemblies", "BOQ BREAKDOWN", "IconQuantities", ""),
+                // [assemblies] end
             }),
             new NavGroup("OUTPUT", new[] { Item("Invoices", "INVOICES", "IconInvoices", "Ctrl+8"), Item("Reports", "REPORTS", "IconReports", "Ctrl+0"),
                 // [phase3] begin
@@ -146,6 +149,9 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         new PaletteEntry("ACTION", "Aconex: where is each invoice", "Invoice status board (workflow step, who, due)", "", () => Go("Aconex")),
         new PaletteEntry("ACTION", "Variations / EI", "Register, suggestions, submission export", "", () => Go("Variations")),
         // [phase4] end
+        // [assemblies] begin
+        new PaletteEntry("ACTION", "BOQ item breakdown", "Components, quantities, prices and built-up rate of a BOQ / contract item", "", () => Go("Assemblies")),
+        // [assemblies] end
     };
 
     [RelayCommand] private void Navigate(string key) => Go(key);

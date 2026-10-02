@@ -304,4 +304,13 @@ public sealed partial class ContractsViewModel : PageViewModel
             Rows = Contracts.Select(c => new object?[] { c.Contract.ContractNo, c.Contract.Subcontractor, c.Contract.Scope, c.Contract.Value, c.Claimed, c.Certified, c.CertifiedPct, c.Retention }).ToList(),
         };
     }
+
+    // [assemblies] begin
+    [RelayCommand]
+    private void BreakdownItem()
+    {
+        if (SelectedItem is not { } r) { Ctx.Toasts.Show("PICK A CONTRACT ITEM", kind: ToastKind.Warn); return; }
+        Ctx.Nav.Go("Assemblies", new Raffaello.Core.Queue.NavTarget("Assemblies", r.Item.Id, Raffaello.Core.Assemblies.SourceKinds.Contract));
+    }
+    // [assemblies] end
 }

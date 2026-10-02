@@ -122,6 +122,13 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, OwnerMosViewModel>();
                 s.AddSingleton<PageViewModel, BoqViewModel>();
                 // [phase3] end
+                // [assemblies] begin - BOQ item breakdown (SQLite data file or the server, chosen per call)
+                s.AddSingleton<Raffaello.Core.Assemblies.IAssemblyStore>(sp => new Raffaello.Core.Assemblies.AssemblyStoreSelector(
+                    () => sp.GetRequiredService<ProjectService>().Store, () => sp.GetRequiredService<ProjectService>().DataLocation, () => settings.EffectiveUserName));
+                s.AddSingleton(sp => new Raffaello.Core.Assemblies.AssemblyService(sp.GetRequiredService<Raffaello.Core.Assemblies.IAssemblyStore>(),
+                    () => sp.GetRequiredService<ProjectService>().Snapshot, () => sp.GetRequiredService<Raffaello.Core.Materials.IMaterialsStore>().Load()));
+                s.AddSingleton<PageViewModel, AssembliesViewModel>();
+                // [assemblies] end
                 s.AddSingleton<PageViewModel, WirViewModel>();
                 s.AddSingleton<PageViewModel, ContractsViewModel>();
                 s.AddSingleton<PageViewModel, InvoicesViewModel>();
