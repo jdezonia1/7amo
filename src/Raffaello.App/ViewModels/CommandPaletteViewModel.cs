@@ -56,6 +56,7 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
             new("INSIGHTS", "Cash-flow forecast", "Monthly payables vs owner receipts, delay scenario", "", () => nav.Go("CashFlow")),
             new("INSIGHTS", "Earned value & productivity", "Planned vs actual, points per week, forecast finish per area, early warnings", "", () => nav.Go("EarnedValue")),
             // [insights] end
+            new("GO TO", "Cables", "Panel & cable register, claims per stage, duplicate FROM-TO flags", "", () => nav.Go("Cables")),   // [cables]
             new("FILTER", "Clear filters", "Show all buildings and stages", "", () => _filter.Clear()),
             new("FILTER", "Hotel only", "", "", () => _filter.Set(building: "HOTEL")),
             new("FILTER", "Branded only", "", "", () => _filter.Set(building: "BRANDED")),

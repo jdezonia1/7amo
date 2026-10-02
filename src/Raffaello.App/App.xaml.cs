@@ -132,6 +132,10 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, ViewModels.Insights.InsightsCashFlowViewModel>();
                 s.AddSingleton<PageViewModel, ViewModels.Insights.InsightsEarnedValueViewModel>();
                 // [insights] end
+                // [cables] begin - panel & cable register (SQLite data file or server, chosen per call)
+                s.AddSingleton<Raffaello.Core.Cables.ICableStore>(sp => new Raffaello.Core.Cables.CableStoreSelector(() => sp.GetRequiredService<ProjectService>().Store));
+                s.AddSingleton<PageViewModel, CablesViewModel>();
+                // [cables] end
                 s.AddSingleton<PageViewModel, WirViewModel>();
                 s.AddSingleton<PageViewModel, ContractsViewModel>();
                 s.AddSingleton<PageViewModel, InvoicesViewModel>();
@@ -161,6 +165,9 @@ public partial class App : Application
             project.QueueSources.Add(p => insights.QueueItems(p));
             Raffaello.Core.Packaging.InvoicePackageBuilder.GlobalSections.Add(Raffaello.Core.Insights.InsightsPackage.Section(insights.LoadData));
             // [insights] end
+            // [cables] duplicate FROM-TO, over-length, stage order, unknown runs, alias suggestions
+            var cables = sp.GetRequiredService<Raffaello.Core.Cables.ICableStore>();
+            project.QueueSources.Add(p => Raffaello.Core.Cables.CableHooks.Queue(cables));
             try { project.Reload(); } catch (Exception ex) { Log(ex); }
         }
         var main = sp.GetRequiredService<MainViewModel>();

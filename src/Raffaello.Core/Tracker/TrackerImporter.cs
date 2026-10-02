@@ -17,6 +17,10 @@ public sealed class TrackerImportResult
     public List<PlanImage> Plans { get; } = new();
     public List<RoomShape> Shapes { get; } = new();
     public List<ImportIssue> Issues { get; } = new();
+    // [cables] begin: 'CABLES BRANDED' / 'CABLES HOTEL' sheets (cable claims per invoice)
+    public List<Cables.CableClaim> CableClaims { get; } = new();
+    public string CableSummary { get; set; } = "";
+    // [cables] end
     public int Subcontractors => Claims.Select(c => c.Subcontractor).Distinct().Count();
     public int Invoices => Claims.Select(c => (c.Subcontractor, c.InvoiceNo)).Distinct().Count();
 
@@ -39,6 +43,7 @@ public static class TrackerImporter
         if (x.HasSheet("PROJECT QTY")) ReadProjectQty(x, result); else result.Issues.Add(new(0, IssueLevel.Error, "Sheet PROJECT QTY not found."));
         if (x.HasSheet("LEDGER")) ReadLedger(x, result); else result.Issues.Add(new(0, IssueLevel.Warning, "Sheet LEDGER not found."));
         if (includePlans && x.HasSheet("PLANS")) ReadPlans(x, result);
+        result.CableClaims.AddRange(Cables.CableHooks.ReadTracker(x, path, result.Issues));   // [cables]
         return result;
     }
 
@@ -236,6 +241,7 @@ public static class TrackerImporter
             w.InsertMany(res.Shapes);
             w.InsertMany(res.Plans);
         }, $"Tracker import {Path.GetFileName(res.FileName)}: {rooms} rooms, {res.Quantities.Count} PROJECT QTY, {claims} new ledger lines ({skipped} already imported)");
+        res.CableSummary = Cables.CableHooks.CommitTracker(res.CableClaims, store, res.FileName);   // [cables]
         return (rooms, res.Quantities.Count, claims, skipped);
     }
 }

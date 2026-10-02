@@ -266,6 +266,12 @@ public sealed partial class LedgerViewModel : PageViewModel
         if (!ok || result is null) return;
         if (!result.CanPost) { Ctx.Toasts.Show("CLAIM BLOCKED", result.Message, ToastKind.Warn, 8); return; }
         Ctx.Toasts.Show(result.IsOver ? "POSTED - OVER" : "CLAIM POSTED", result.Message, result.IsOver ? ToastKind.Warn : ToastKind.Good);
+        // [cables] a CABLE PULLING line (LOCATION = FROM panel, NOTES = TO) goes into the cable register and is checked for duplicate FROM-TO
+        if (Raffaello.Core.Cables.CableStages.IsLedgerCableStage(line.Stage))
+        {
+            var cable = await Task.Run(() => Raffaello.Core.Cables.CableHooks.LedgerPosted(Project.Store, line));
+            if (cable.Length > 0) Ctx.Toasts.Show("CABLE FLAGS", cable, ToastKind.Warn, 10);
+        }
         _pendingRoom = SelectedRoom.Code;
         Qty = ""; QtyAbove45 = ""; LengthClaimed = ""; OverReason = ""; Notes = "";
     }

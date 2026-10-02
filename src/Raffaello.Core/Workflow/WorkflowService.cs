@@ -114,7 +114,8 @@ public sealed class WorkflowService
     {
         var (rooms, qty, claims, skipped) = TrackerImporter.Commit(r, _p.Store);
         _p.Reload();
-        return $"{rooms} rooms, {qty} PROJECT QTY, {claims} new ledger lines ({skipped} already imported)";
+        return $"{rooms} rooms, {qty} PROJECT QTY, {claims} new ledger lines ({skipped} already imported)"
+               + (r.CableSummary.Length > 0 ? "; cables: " + r.CableSummary : "");   // [cables]
     }
 
     /// <summary>[phase6] Room list of a building (e.g. HOTEL) by header text.</summary>
@@ -139,7 +140,12 @@ public sealed class WorkflowService
 
     public string CumulativeBanner() => CumulativeSplit.Banner(_p.Snapshot.Claims);
 
-    public InvoiceBuild BuildInvoice(string contractNo, string sub, int invoiceNo, int revision) => InvoiceBuilder.Build(_p.Snapshot, contractNo, sub, invoiceNo, revision: revision, options: MappingOptions());
+    public InvoiceBuild BuildInvoice(string contractNo, string sub, int invoiceNo, int revision)
+    {
+        var build = InvoiceBuilder.Build(_p.Snapshot, contractNo, sub, invoiceNo, revision: revision, options: MappingOptions());
+        Cables.CableHooks.AnnotateInvoice(build, _p.Store, _p.Snapshot, MappingOptions());   // [cables] cable flags + termination / handover stages
+        return build;
+    }
 
     /// <summary>Mapping defaults from Settings (DATA / GRMS 1st fix wall or ceiling).</summary>
     public MappingOptions MappingOptions() => new()
@@ -280,6 +286,7 @@ public sealed class WorkflowService
         {
             Snapshot = _p.Snapshot, Plans = _p.LoadPlans(), Build = Stored(inv), Info = HeaderInfo(), OutputFolder = PackageFolder(),
             WirFolder = Folders().Wir, NamePattern = _p.Settings.PackageNamePattern, Final = final, RegisteredDocuments = RegisteredDocuments(),
+            ExtraFiles = Cables.CableHooks.PackageFiles(_p.Store, inv, Path.Combine(Path.GetTempPath(), "raffaello-cables")),   // [cables] 09_Cable_checks.pdf
         });
         inv.PackageFile = res.ZipPath; inv.PackageSha256 = res.Sha256; inv.PackageKind = res.Kind; inv.PackageBuiltAt = DateTime.Now; inv.PackageMissingWirs = res.MissingWirs.Count;
         _p.Store.Update(inv, $"{inv.Title} {res.Kind} package built: {Path.GetFileName(res.ZipPath)} SHA-256 {res.Sha256}");
@@ -292,13 +299,18 @@ public sealed class WorkflowService
     public int GenerateStatement(string path, string sub, string statementNo, string building, IEnumerable<string>? stages = null, IEnumerable<string>? systems = null)
     {
         var rooms = SiteStatementService.ScopeRooms(_p.Snapshot, sub, building);
-        SiteStatementService.Generate(path, sub, statementNo, rooms, stages, systems, Balances());
+        SiteStatementService.Generate(path, sub, statementNo, rooms, stages, systems, Balances(), Cables.CableHooks.RunsFor(_p.Store));   // [cables] CABLES sheet + runs list
         _p.Store.Insert(new SiteStatement { Subcontractor = sub, StatementNo = statementNo, Direction = "OUT", FileName = Path.GetFileName(path), Lines = rooms.Count, At = DateTime.Now },
             $"Site statement {statementNo} issued to {sub} ({rooms.Count} rooms)");
         _p.Reload();
         return rooms.Count;
     }
 
-    public StatementImportResult PreviewStatement(string path, int invoiceNo, string building) => SiteStatementService.Read(path, _p.Snapshot, invoiceNo, building);
+    public StatementImportResult PreviewStatement(string path, int invoiceNo, string building)
+    {
+        var r = SiteStatementService.Read(path, _p.Snapshot, invoiceNo, building);
+        Cables.CableHooks.AnnotateStatement(r, _p.Store);   // [cables] duplicate FROM-TO / unknown run ... as warnings in the preview
+        return r;
+    }
     public int CommitStatement(StatementImportResult r, string path, string? overReason) { var n = SiteStatementService.Commit(r, _p.Store, path, overReason); _p.Reload(); return n; }
 }

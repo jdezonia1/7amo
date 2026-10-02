@@ -39,7 +39,11 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         Groups = new[]
         {
             new NavGroup("TRACK", new[] { Item("Dashboard", "DASHBOARD", "IconDashboard", "Ctrl+1"), Item("Ledger", "ROOMS & LEDGER", "IconLedger", "Ctrl+2"), Item("Quantities", "QUANTITIES", "IconQuantities", "Ctrl+4"), Item("Plan", "PLAN VIEW", "IconPlan", ""),
-                Item("Checks", "CHECKS", "IconChecks", "Ctrl+3"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+5"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+6") }),
+                Item("Checks", "CHECKS", "IconChecks", "Ctrl+3"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+5"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+6"),
+                // [cables] begin
+                Item("Cables", "CABLES", "IconLink", ""),
+                // [cables] end
+            }),
             new NavGroup("DOCUMENTS", new[] { Item("Aconex", "ACONEX", "IconAconex", ""), Item("Wir", "WIR / MIR", "IconWir", ""), Item("Contracts", "CONTRACTS & BOQ", "IconContracts", "Ctrl+7"),
                 Item("SiteStatements", "SITE STATEMENTS", "IconSend", "Ctrl+9"),
                 // [phase4] begin
@@ -132,6 +136,7 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 "Invoices" => B(s.SubInvoices.Count(x => x.Status is SubInvoiceStatus.Rejected or SubInvoiceStatus.Submitted)),
                 "Checks" => B(s.Claims.Count(c => Raffaello.Core.Ledger.HeightCheck.IsPending(c) || Raffaello.Core.Ledger.LengthCheck.IsPending(c))),
                 "Anomalies" => B(p.Queue.Count(q => q.Category == "INSIGHT" && q.Severity >= Verdict.Check)),   // [insights]
+                "Cables" => B(p.Queue.Where(q => q.Category == "CABLES" && q.Severity >= Verdict.Check).Sum(q => int.TryParse(q.Title.Split(' ')[0], out var n) ? n : 1)),   // [cables]
                 _ => "",
             };
         }
@@ -151,6 +156,10 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         new PaletteEntry("ACTION", "Aconex: where is each invoice", "Invoice status board (workflow step, who, due)", "", () => Go("Aconex")),
         new PaletteEntry("ACTION", "Variations / EI", "Register, suggestions, submission export", "", () => Go("Variations")),
         // [phase4] end
+        // [cables] begin
+        new PaletteEntry("ACTION", "Cables: duplicate FROM-TO claims", "Cable claims that repeat a route already claimed", "", () => Go("Cables", new NavTarget("Cables", Key: "FLAGS|" + Raffaello.Core.Cables.CableFlagCodes.Duplicate))),
+        new PaletteEntry("ACTION", "Cables: read SLD / cable schedule", "Panels and FROM -> TO runs from PDF, DWG / DXF, Excel", "", () => Go("Cables")),
+        // [cables] end
     };
 
     [RelayCommand] private void Navigate(string key) => Go(key);
