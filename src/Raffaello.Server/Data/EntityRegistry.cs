@@ -73,5 +73,8 @@ public static class ServerModules
         new Modules.MaterialsServerModule(),     // [phase6]
         new Modules.AconexServerModule(),        // [phase6]
         new Modules.VariationsServerModule(),    // [phase6]
+        // [assemblies] begin
+        new Modules.AssembliesServerModule(),
+        // [assemblies] end
     };
 }
