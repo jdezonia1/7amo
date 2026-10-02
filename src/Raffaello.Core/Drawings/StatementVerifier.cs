@@ -222,7 +222,7 @@ public static class StatementVerifier
         return new TakeoffPage
         {
             Title = title, Subtitle = fileName,
-            Notes = new()
+            Notes = new List<string>
             {
                 "Dark red / amber circle = highlighted symbol counted  |  grey circle = symbol on the drawing, not highlighted  |  blue ? = highlight without a library symbol",
                 "Magenta = highlighted run (route length for the 15 m check)",

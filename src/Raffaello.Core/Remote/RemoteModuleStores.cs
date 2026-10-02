@@ -23,7 +23,11 @@ public static class ModuleEntities
 
     public static readonly Type[] Variations = { typeof(Variation), typeof(VariationLine), typeof(VariationDoc), typeof(VariationStatusChange) };
 
-    public static IReadOnlyList<Type> All => MaterialsStoreBase.EntityTypes.Concat(Aconex).Concat(Variations).ToList();
+    // [drawings] begin
+    public static readonly Type[] Drawings = Raffaello.Core.Drawings.DrawingEntities.All;
+    // [drawings] end
+
+    public static IReadOnlyList<Type> All => MaterialsStoreBase.EntityTypes.Concat(Aconex).Concat(Variations).Concat(Drawings /* [drawings] */).ToList();
 
     private static bool _registered;
     public static void RegisterAll()
