@@ -79,6 +79,9 @@ The app must be multi-user (several people editing at once).
     Excel invoices (current = cum(n) − cum(n−1), allocated to rooms by PROJECT QTY share). Open: 2nd-fix GRMS (81) has
     no ROOTS contract item.
 
+15. **Takeoff columns** (confirmed 02-Oct): DALI column = 2ND FIX|DALI quantity (default kept). Pending: conduit stick length
+    3 m (assemblies) vs 6 m (materials setting); BOQ breakdown defaults (route lengths, drops, waste, man-hour rate).
+
 ## Findings from the sample files
 - **Subcontractor contract (Excel)** `contract_excel.xlsx`: Arabic labour-only rate schedule, one sheet,
   ~323 items in 23 sections (Lighting & Power, Façade, LED strip, Cable tray, Terminations, Cable pulling,
