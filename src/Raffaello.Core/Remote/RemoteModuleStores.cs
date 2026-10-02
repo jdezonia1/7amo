@@ -26,11 +26,16 @@ public static class ModuleEntities
     /// <summary>Read documents (evidence index, page text, fields, templates) and contract intelligence (terms, clauses, rules, bypasses).</summary>
     public static readonly Type[] Documents = Raffaello.Core.Documents.DocumentEntities.All;
 
+    // [drawings] begin
+    public static readonly Type[] Drawings = Raffaello.Core.Drawings.DrawingEntities.All;
+    // [drawings] end
+
     public static IReadOnlyList<Type> All => MaterialsStoreBase.EntityTypes.Concat(Aconex).Concat(Variations).Concat(Documents)
         .Concat(Cables.CableStore.EntityTypes)   // [cables]
         // [assistant] begin: conversations, proposed actions, reminders, notification rules / log, brief snapshots
         .Concat(Raffaello.Core.Assistant.AssistantEntityTypes.All)
         // [assistant] end
+        .Concat(Drawings)   // [drawings]
         .ToList();
 
     private static bool _registered;

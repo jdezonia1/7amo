@@ -24,6 +24,9 @@
     <!-- [assistant] end -->
     <!-- [trust] CMS (PAdES-style) PDF signatures; DPAPI package already referenced above -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
+    <!-- [drawings] begin: PDF rasteriser for drawing takeoff (PDFium, MIT/BSD; no SkiaSharp) and DWG/DXF reader (MIT) -->
+    <PackageReference Include="Docnet.Core" Version="2.6.0" />
+    <!-- [drawings] end -->
   </ItemGroup>
   <!-- [assistant] begin: interface strings. Both tables are embedded in Raffaello.Core.dll (no satellite assembly, so the
        single-file publish always carries Arabic). -->

@@ -1,0 +1,241 @@
+<UserControl x:Class="Raffaello.App.Views.Pages.DrawingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- [drawings] takeoff review, statement verification, revision compare -->
+    <TabControl Margin="24,0,24,20" Background="Transparent" BorderThickness="0">
+        <TabItem Header="TAKEOFF">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="380"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- left: sheets + library -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="SHEETS" Style="{StaticResource PanelTitle}"/>
+                                <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Sheets}" SelectedItem="{Binding SelectedSheet, Mode=TwoWay}" DisplayMemberPath="Label" Height="150" Margin="0,6,0,6"/>
+                                <UniformGrid Columns="2">
+                                    <StackPanel Margin="0,0,4,0"><TextBlock Text="LEVEL" Style="{StaticResource Label}"/><TextBox Text="{Binding NewLevel}"/></StackPanel>
+                                    <StackPanel Margin="4,0,0,0"><TextBlock Text="SHEET NO" Style="{StaticResource Label}"/><TextBox Text="{Binding NewSheetNo}"/></StackPanel>
+                                    <StackPanel Margin="0,4,4,0"><TextBlock Text="REVISION" Style="{StaticResource Label}"/><TextBox Text="{Binding NewRevision}"/></StackPanel>
+                                    <StackPanel Margin="4,4,0,0"><TextBlock Text="PDF PAGE" Style="{StaticResource Label}"/><TextBox Text="{Binding NewPage}"/></StackPanel>
+                                </UniformGrid>
+                                <TextBlock Text="UNIT / ROOM TYPE (title)" Style="{StaticResource Label}" Margin="0,4,0,0"/>
+                                <TextBox Text="{Binding NewTitle}"/>
+                                <UniformGrid Columns="2" Margin="0,8,0,0">
+                                    <Button Style="{StaticResource BtnPrimary}" Content="IMPORT" Command="{Binding ImportSheetCommand}" Margin="0,0,4,0"/>
+                                    <Button Style="{StaticResource BtnGhost}" Content="DELETE" Command="{Binding DeleteSheetCommand}" Margin="4,0,0,0"/>
+                                </UniformGrid>
+                                <TextBlock Text="{Binding ScaleCaption}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="SYMBOL LIBRARY" Style="{StaticResource PanelTitle}"/>
+                                <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Symbols}" SelectedItem="{Binding SelectedSymbol, Mode=TwoWay}" Height="160" Margin="0,6,0,6">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="12" Height="12" Margin="0,0,6,0" BorderBrush="Black" BorderThickness="1" Background="{Binding ColourHex}"/>
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding System, StringFormat='  {0}'}"/>
+                                                <TextBlock Text="{Binding Mount, StringFormat='  {0}'}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <TextBlock Text="NEW SYMBOL: name, system, wall / ceiling, then mode DEFINE SYMBOL and drag a box around one example" Style="{StaticResource Small}" TextWrapping="Wrap"/>
+                                <TextBox Text="{Binding SymbolName}" Margin="0,4,0,0" ToolTip="SOCKET, TWIN SOCKET, DOWNLIGHT, DATA, CP-4 ..."/>
+                                <UniformGrid Columns="2" Margin="0,4,0,0">
+                                    <ComboBox ItemsSource="{Binding SystemOptions}" SelectedItem="{Binding SymbolSystem}" Margin="0,0,4,0"/>
+                                    <ComboBox ItemsSource="{Binding MountOptions}" SelectedItem="{Binding SymbolMount}" Margin="4,0,0,0" ToolTip="W = wall item (1st fix), C = ceiling item (flexible)"/>
+                                </UniformGrid>
+                                <TextBlock Text="ITEM / TAG" Style="{StaticResource Label}" Margin="0,4,0,0"/>
+                                <TextBox Text="{Binding SymbolTag}"/>
+                                <WrapPanel Margin="0,4,0,0">
+                                    <CheckBox Content="LIGHT FITTING (DALI)" IsChecked="{Binding SymbolIsLight}" Margin="0,0,10,0"/>
+                                    <CheckBox Content="EXCLUDED" IsChecked="{Binding SymbolExcluded}"/>
+                                </WrapPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0"><TextBlock Text="2ND FIX QTY PER HIT " Style="{StaticResource Label}" VerticalAlignment="Center"/><TextBox Text="{Binding SymbolSecondFix}" Width="50"/></StackPanel>
+                                <Button Style="{StaticResource BtnGhost}" Content="REMOVE SELECTED SYMBOL" Command="{Binding DeleteSymbolCommand}" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Padding="12">
+                            <StackPanel>
+                                <TextBlock Text="LINEAR (TRAY / CONDUIT / CABLE)" Style="{StaticResource PanelTitle}"/>
+                                <TextBlock Text="Name + size + targets, then mode PICK LINE STYLE and click a line of that kind" Style="{StaticResource Small}" TextWrapping="Wrap"/>
+                                <TextBox Text="{Binding ClassName}" Margin="0,4,0,0" ToolTip="TRAY 300"/>
+                                <TextBox Text="{Binding ClassSize}" Margin="0,4,0,0" ToolTip="300"/>
+                                <TextBox Text="{Binding ClassTargets}" Margin="0,4,0,0" ToolTip="STAGE|ITEM|factor per metre"/>
+                                <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding LinearClasses}" DisplayMemberPath="Name" Height="70" Margin="0,6,0,0"/>
+                                <TextBlock Text="SET SCALE: real distance (m) between the two clicks" Style="{StaticResource Label}" Margin="0,6,0,0"/>
+                                <TextBox Text="{Binding ScaleMetres}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- centre: drawing with markers -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <WrapPanel Margin="0,0,0,8">
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="MODE" Style="{StaticResource Label}"/><ComboBox ItemsSource="{Binding ModeOptions}" SelectedItem="{Binding Mode}" Width="160"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0" Width="170">
+                            <TextBlock Text="{Binding ConfidenceMin, StringFormat='CONFIDENCE >= {0:0.00}'}" Style="{StaticResource Label}"/>
+                            <Slider Minimum="0.5" Maximum="0.99" Value="{Binding ConfidenceMin}" SmallChange="0.01" LargeChange="0.05"/>
+                        </StackPanel>
+                        <CheckBox Content="CLAUDE CHECK" IsChecked="{Binding UseVision}" VerticalAlignment="Bottom" Margin="0,0,8,6" ToolTip="Low-confidence hits checked by Claude vision (needs cloud reading on + API key)"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="RUN TAKEOFF" Command="{Binding RunTakeoffCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="SAVE REVIEW" Command="{Binding SaveReviewCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="IMPORT ROOMS" Command="{Binding ImportRoomsCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="TAKEOFF PDF + EXCEL" Command="{Binding WriteTakeoffPdfCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="FIT" Click="OnFit" VerticalAlignment="Bottom"/>
+                    </WrapPanel>
+                    <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
+                        <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" PreviewMouseWheel="OnWheel">
+                            <Grid x:Name="Host" Width="{Binding ImageWidth}" Height="{Binding ImageHeight}" Background="White"
+                                  MouseLeftButtonDown="OnDown" MouseMove="OnMove" MouseLeftButtonUp="OnUp">
+                                <Grid.LayoutTransform><ScaleTransform x:Name="Zoom" ScaleX="0.3" ScaleY="0.3"/></Grid.LayoutTransform>
+                                <Image Source="{Binding SheetImage}" Stretch="Fill"/>
+                                <ItemsControl ItemsSource="{Binding RunLines}" IsHitTestVisible="False">
+                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate><DataTemplate><Path Data="{Binding Geometry}" Stroke="{Binding Stroke}" StrokeThickness="4" Opacity="0.8"/></DataTemplate></ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <ItemsControl ItemsSource="{Binding Markers}">
+                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                            <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                                            <Setter Property="Visibility" Value="{Binding Visible, Converter={StaticResource BoolToVis}}"/>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Width="{Binding Size}" Height="{Binding Size}" ToolTip="{Binding Tip}" Cursor="Hand" Background="Transparent" Tag="{Binding}">
+                                                <Ellipse Stroke="{Binding Stroke}" StrokeThickness="3"/>
+                                                <Border Background="#FFE600" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-10,-14,0" Padding="2,0">
+                                                    <TextBlock Text="{Binding Label}" Foreground="#8B0000" FontWeight="Bold" FontSize="11"/>
+                                                </Border>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Canvas IsHitTestVisible="False"><Rectangle x:Name="Rubber" Stroke="#8B0000" StrokeThickness="3" StrokeDashArray="3 2" Visibility="Collapsed"/></Canvas>
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                    <TextBlock Grid.Row="2" Text="{Binding Status}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                </Grid>
+
+                <!-- right: totals, proposals, calibration -->
+                <Grid Grid.Column="4">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <TextBlock Text="{Binding TakeoffCaption}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
+                    <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding RoomTotals}" Margin="0,6,0,6">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ROOM" Binding="{Binding Room}" Width="*" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="QTY" Binding="{Binding Qty}" Width="55" ElementStyle="{StaticResource CellNumStrong}"/>
+                            <DataGridTextColumn Header="U" Binding="{Binding Unit}" Width="28" ElementStyle="{StaticResource CellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <WrapPanel Grid.Row="2">
+                        <Button Style="{StaticResource BtnGhost}" Content="PROPOSE PROJECT QTY" Command="{Binding ProposeQtyCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="TICK ALL" Command="{Binding TickAllCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="APPLY TICKED" Command="{Binding ApplyQtyCommand}" Margin="0,0,6,6"/>
+                    </WrapPanel>
+                    <DataGrid Grid.Row="3" ItemsSource="{Binding Proposals}" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="OK" Binding="{Binding Accept, UpdateSourceTrigger=PropertyChanged}" Width="34"/>
+                            <DataGridTextColumn Header="ROOM" Binding="{Binding Room}" Width="*" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="62" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="70" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="NOW" Binding="{Binding Current}" Width="42" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="NEW" Binding="{Binding Proposed}" Width="42" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="62" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Border Grid.Row="4" Style="{StaticResource Card}" Padding="8" Margin="0,8,0,0">
+                        <StackPanel>
+                            <TextBlock Text="CALIBRATE ROOMS: mode CALIBRATE ROOMS, click a corner on the drawing, then the same corner here (2-3 pairs)" Style="{StaticResource Small}" TextWrapping="Wrap"/>
+                            <ComboBox ItemsSource="{Binding PlanCodes}" SelectedItem="{Binding SelectedPlan}" Margin="0,4,0,4"/>
+                            <Image x:Name="PlanImg" Source="{Binding PlanImage}" Height="160" Stretch="Uniform" MouseLeftButtonUp="OnPlanClick" Cursor="Cross"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="STATEMENT CHECK">
+            <Grid Margin="0,10,0,0">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <WrapPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="MARKED-UP STATEMENT" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementFile}" Width="320"/></StackPanel>
+                    <Button Style="{StaticResource BtnGhost}" Content="BROWSE" Command="{Binding BrowseStatementCommand}" VerticalAlignment="Bottom" Margin="0,0,8,0"/>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="PAGES (5-8,12)" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementPages}" Width="90"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="SUBCONTRACTOR" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementSub}" Width="130"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="INVOICE NO" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementInvoice}" Width="60"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="STAGE" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementStage}" Width="80"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="TYPICAL UNIT ROOMS (P2-106, P3-103)" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementRooms}" Width="200"/></StackPanel>
+                    <Button Style="{StaticResource BtnPrimary}" Content="VERIFY" Command="{Binding VerifyStatementCommand}" VerticalAlignment="Bottom"/>
+                </WrapPanel>
+                <TextBlock Grid.Row="1" Text="{Binding StatementSummary}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,8,0,8"
+                           ToolTip="The clean drawing is the sheet selected in TAKEOFF (its latest takeoff and rooms are used); without it the library is matched on the scan."/>
+                <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding StatementLines}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="PAGE" Binding="{Binding Page}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="ROOM" Binding="{Binding Room}" Width="*" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="110" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="CLAIMED" Binding="{Binding Claimed}" Width="80" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="HIGHLIGHTED" Binding="{Binding Highlighted}" Width="95" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="DRAWING" Binding="{Binding DrawingTotal}" Width="80" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="DIFF" Binding="{Binding Diff}" Width="60" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTemplateColumn Header="FLAG" Width="130"><DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Flag}"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="REVISION COMPARE">
+            <Grid Margin="0,10,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="420"/></Grid.ColumnDefinitions>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <WrapPanel Grid.ColumnSpan="3" Margin="0,0,0,8">
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="OLD REVISION" Style="{StaticResource Label}"/><ComboBox ItemsSource="{Binding Sheets}" SelectedItem="{Binding OldSheet}" DisplayMemberPath="Label" Width="240"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="NEW REVISION" Style="{StaticResource Label}"/><ComboBox ItemsSource="{Binding Sheets}" SelectedItem="{Binding NewSheet}" DisplayMemberPath="Label" Width="240"/></StackPanel>
+                    <Button Style="{StaticResource BtnPrimary}" Content="COMPARE" Command="{Binding CompareRevisionsCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="UPDATE PROJECT QTY (DIFF)" Command="{Binding CompareToProposalsCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="CREATE VARIATION DRAFT" Command="{Binding CreateVariationCommand}" VerticalAlignment="Bottom"/>
+                </WrapPanel>
+                <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <Image Source="{Binding CompareImage}" Stretch="None"/>
+                    </ScrollViewer>
+                </Border>
+                <Grid Grid.Row="1" Grid.Column="2">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <TextBlock Text="{Binding CompareSummary}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                    <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding Deltas}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ROOM" Binding="{Binding Room}" Width="*" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="OLD" Binding="{Binding OldQty}" Width="45" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="NEW" Binding="{Binding NewQty}" Width="45" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="DELTA" Binding="{Binding Delta}" Width="50" ElementStyle="{StaticResource CellNumStrong}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Grid>
+        </TabItem>
+    </TabControl>
+</UserControl>

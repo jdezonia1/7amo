@@ -84,5 +84,6 @@ public static class ServerModules
         // [assemblies] begin
         new Modules.AssembliesServerModule(),
         // [assemblies] end
+        new Modules.DrawingsServerModule(),      // [drawings]
     };
 }

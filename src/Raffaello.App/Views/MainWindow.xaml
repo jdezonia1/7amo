@@ -44,6 +44,7 @@
         <DataTemplate DataType="{x:Type vm:AssistantPageViewModel}"><pages:AssistantPageView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BriefViewModel}"><pages:BriefView/></DataTemplate>
         <!-- [assistant] end -->
+        <!-- [drawings] begin --><DataTemplate DataType="{x:Type vm:DrawingsViewModel}"><pages:DrawingsView/></DataTemplate><!-- [drawings] end -->
         <!-- [phase3] end -->
         <!-- [insights] begin -->
         <DataTemplate DataType="{x:Type ivm:InsightsAnomaliesViewModel}"><pages:InsightsAnomaliesView/></DataTemplate>
