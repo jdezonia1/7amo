@@ -26,6 +26,7 @@ public sealed class WorkflowService
     /// <summary>Posts a claim after the remaining check. Returns the decision; blocked claims are not written.</summary>
     public ClaimCheck AddClaim(ClaimLine line, string? overReason = null)
     {
+        LengthExtras.ConvertDataRack(line, alreadyInvoiced: false, _p.CurrentUser);   // extra 15 m points: never against the cap
         var bal = Balance(line.Room, line.Stage, line.Item);
         var check = LedgerRules.Check(bal, line.Qty, overReason);
         if (!check.CanPost) return check;

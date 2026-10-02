@@ -60,6 +60,8 @@ public sealed class ClaimLine : Entity
     /// <summary>Stable key of the source row (import dedupe).</summary>
     public string SourceKey { get; set; } = "";
     public string StatementNo { get; set; } = "";
+    /// <summary>The line belongs to a cumulative invoice: it states the subcontractor's total to date for the key and replaces his earlier invoices' lines for it.</summary>
+    public bool IsCumulative { get; set; }
     public DateTime EnteredAt { get; set; }
 
     // ---- height above 4.5 m check

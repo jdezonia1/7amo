@@ -23,10 +23,12 @@ namespace Raffaello.Cli;
 ///   raffaello-cli export         --contract NO --sub NAME --invoice N --out DIR
 ///   raffaello-cli statement      --sub NAME --no S-001 --out FILE
 ///   raffaello-cli report
+/// Mapping: --data-mount WALL|CEILING, --grms-mount WALL|CEILING (DATA / GRMS 1ST FIX outlet item; default WALL).
 /// Common: --db PATH (default ./raffaello-cli.db). Outputs contain project data: keep them out of the repository.
 /// </summary>
 public static class Program
 {
+    private static MappingOptions MapOptions = MappingOptions.Default;
     private static readonly HashSet<string> Commands = new() { "import-tracker", "import-contract", "import-epromise", "import-template", "map", "build-invoice", "export", "statement", "report", "approve" };
 
     public static int Main(string[] args)
@@ -34,6 +36,11 @@ public static class Program
         if (args.Length == 0 || args[0] is "-h" or "--help") { Help(); return 0; }
         if (!Commands.Contains(args[0])) { Console.Error.WriteLine($"Unknown command {args[0]}"); Help(); return 2; }
         var opts = Options(args.Skip(1).ToArray(), out var positional);
+        MapOptions = new MappingOptions
+        {
+            Data1stFixMount = opts.GetValueOrDefault("data-mount", "WALL").ToUpperInvariant(),
+            Grms1stFixMount = opts.GetValueOrDefault("grms-mount", "WALL").ToUpperInvariant(),
+        };
         var dbPath = opts.GetValueOrDefault("db", Path.Combine(Environment.CurrentDirectory, "raffaello-cli.db"));
         var store = new Db(dbPath, "cli");
         store.EnsureSchema();
@@ -135,7 +142,7 @@ public static class Program
     private static void Map(IProjectStore store, string contract, string sub, int invoice)
     {
         var s = Snap(store);
-        var ctx = new MappingContext(contract, s.ContractItems, s.ItemBoqs, s.BoqItems, s.MappingRules);
+        var ctx = new MappingContext(contract, s.ContractItems, s.ItemBoqs, s.BoqItems, s.MappingRules) { Options = MapOptions };
         var areas = s.Rooms.GroupBy(r => r.Code, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().AreaType, StringComparer.OrdinalIgnoreCase);
         var claims = s.Claims.Where(c => c.Subcontractor.Equals(sub, StringComparison.OrdinalIgnoreCase) && c.InvoiceNo <= invoice).ToList();
         var m = new MappingEngine().Map(claims, ctx, areas);
@@ -154,7 +161,7 @@ public static class Program
     {
         var s = Snap(store);
         var rev = InvoiceWorkflow.NextRevision(s.SubInvoices, contract, sub.ToUpperInvariant(), invoice);
-        var b = InvoiceBuilder.Build(s, contract, sub, invoice, revision: save ? rev : 0);
+        var b = InvoiceBuilder.Build(s, contract, sub, invoice, revision: save ? rev : 0, options: MapOptions);
         var t = b.Totals;
         Console.WriteLine($"{b.Header.Title}: {b.Lines.Count} rows ({b.Lines.Count(l => l.Kind == "ITEM" && (l.CumQty != 0 || l.CurrQty != 0))} with quantity)");
         Console.WriteLine($"  subcontract value SAR {t.SubcontractValue:N2}");

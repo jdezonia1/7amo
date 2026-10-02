@@ -364,7 +364,7 @@ public sealed class MappingEngine
     public MappingResult Map(IEnumerable<ClaimLine> claims, MappingContext ctx, IReadOnlyDictionary<string, string>? roomAreas = null)
     {
         var res = new MappingResult();
-        foreach (var c in claims)
+        foreach (var c in LedgerRules.Effective(claims))   // cumulative invoices replace earlier lines
         {
             var q = Invoiceable.Of(c);
             if (q.Held) { res.Held.Add(q); continue; }

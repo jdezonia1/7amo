@@ -28,8 +28,32 @@ public static class LedgerRules
 {
     public const double Eps = 1e-9;
 
+    /// <summary>
+    /// Lines that count: for each subcontractor x room x stage x item, a cumulative invoice (lines flagged IsCumulative) replaces
+    /// that subcontractor's lines from earlier invoices for the same key. Lines of the cumulative invoice itself and of later
+    /// invoices count as usual. Other subcontractors and other keys are untouched.
+    /// </summary>
+    public static IEnumerable<ClaimLine> Effective(IEnumerable<ClaimLine> claims)
+    {
+        var list = claims as IReadOnlyCollection<ClaimLine> ?? claims.ToList();
+        if (!list.Any(c => c.IsCumulative)) return list;
+        var cut = list.Where(c => c.IsCumulative)
+            .GroupBy(c => (Sub: c.Subcontractor.ToUpperInvariant(), c.Key))
+            .ToDictionary(g => g.Key, g => g.Max(c => c.InvoiceNo));
+        return list.Where(c => !cut.TryGetValue((c.Subcontractor.ToUpperInvariant(), c.Key), out var n) || c.InvoiceNo >= n).ToList();
+    }
+
+    /// <summary>Lines dropped by <see cref="Effective"/> (earlier invoices superseded by a cumulative one).</summary>
+    public static List<ClaimLine> Superseded(IEnumerable<ClaimLine> claims)
+    {
+        var list = claims.ToList();
+        var keep = Effective(list).ToHashSet();
+        return list.Where(c => !keep.Contains(c)).ToList();
+    }
+
     public static Dictionary<string, RoomBalance> Balances(IEnumerable<RoomQty> project, IEnumerable<ClaimLine> claims)
     {
+        claims = Effective(claims);
         var caps = project.GroupBy(q => q.Key).ToDictionary(g => g.Key, g => g.Sum(q => q.Qty));
         var byKey = claims.Where(c => !c.Rework).GroupBy(c => c.Key).ToDictionary(g => g.Key, g => g.ToList());
         var keys = caps.Keys.Union(byKey.Keys);
@@ -48,7 +72,7 @@ public static class LedgerRules
     {
         var key = LedgerKeys.Key(room, stage, item);
         var cap = project.Where(q => q.Key == key).Sum(q => q.Qty);
-        var list = claims.Where(c => c.Key == key && !c.Rework).ToList();
+        var list = Effective(claims.Where(c => c.Key == key)).Where(c => !c.Rework).ToList();
         return new RoomBalance(room, stage, item, cap, list.Sum(c => c.Qty), list.GroupBy(c => c.Subcontractor).ToDictionary(g => g.Key, g => g.Sum(c => c.Qty)));
     }
 
@@ -220,5 +244,41 @@ public static class Invoiceable
         var high = Math.Abs(c.Qty) < LedgerRules.Eps ? 0 : HeightCheck.AcceptedHigh(c) * (baseQty / c.Qty);
         var low = baseQty - high;
         return new(c, false, "", low * factor, high * factor);
+    }
+}
+
+/// <summary>
+/// "DATA RACK" in the tracker ledger is not a rack item: it is the EXTRA data points claimed because of long routes
+/// (15 m rule). It becomes a length claim on DATA 2ND FIX with plan qty 0, so it never counts against the room's
+/// PROJECT QTY cap; it maps to the same item / BOQ row as DATA 2nd fix. Lines already invoiced are ACCEPTED (totals unchanged).
+/// </summary>
+public static class LengthExtras
+{
+    public const string DataRack = "DATA RACK";
+    public const string Marker = "DATA RACK";
+
+    public static bool IsDataRack(string item) =>
+        string.Equals(System.Text.RegularExpressions.Regex.Replace((item ?? "").Trim(), @"\s+", " "), DataRack, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Converts a DATA RACK line in place. Returns false when the line is not a DATA RACK line.</summary>
+    public static bool ConvertDataRack(ClaimLine line, bool alreadyInvoiced, string by = "TRACKER")
+    {
+        if (!IsDataRack(line.Item)) return false;
+        var extra = line.Qty;
+        line.Item = "DATA";
+        line.Stage = "2ND FIX";
+        line.Qty = 0;
+        line.WorkType = Marker;
+        line.LengthApplies = true;
+        line.LengthClaimedQty = extra;
+        line.LengthNote = $"DATA RACK in the ledger: {extra:0.##} extra data points for long routes (15 m rule)";
+        if (alreadyInvoiced)
+        {
+            line.LengthStatus = CheckStatus.Accepted;
+            line.LengthCheckedBy = by;
+            line.LengthCheckDate = line.EnteredAt == default ? DateTime.Now : line.EnteredAt;
+        }
+        else line.LengthStatus = CheckStatus.Pending;
+        return true;
     }
 }

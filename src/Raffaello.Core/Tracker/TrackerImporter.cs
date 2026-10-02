@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using Raffaello.Core.Data;
 using Raffaello.Core.Domain;
 using Raffaello.Core.Import;
+using Raffaello.Core.Ledger;
 
 namespace Raffaello.Core.Tracker;
 
@@ -127,6 +128,10 @@ public static class TrackerImporter
         if (keys.Count == 0) res.Issues.Add(new(2, IssueLevel.Error, "PROJECT QTY row 2 has no STAGE|ITEM keys."));
     }
 
+    /// <summary>"INV-9 (cumulative)", "CUM", "تراكمي" in the notes or invoice cell mark a cumulative invoice line.</summary>
+    public static bool IsCumulativeText(string text) =>
+        System.Text.RegularExpressions.Regex.IsMatch(text ?? "", @"\bcumulative\b|\bcum\.?\b|تراكمي", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
     private static void ReadLedger(XlsxStreamReader x, TrackerImportResult res)
     {
         Dictionary<string, int>? h = null;
@@ -154,6 +159,7 @@ public static class TrackerImporter
                 AreaType = rooms.TryGetValue(loc, out var room) ? room.AreaType : "", Source = "TRACKER",
                 SourceKey = string.Join('|', "TRK", r.Number, sub, invoiceText, stage, loc, item, qty.Value.ToString(CultureInfo.InvariantCulture)),
                 EnteredAt = DateTime.Now,
+                IsCumulative = IsCumulativeText(H(r, h, "NOTES")) || IsCumulativeText(invoiceText),
             };
             var above = HN(r, h, "QTY ABOVE 4.5", "QTY CLAIMED ABOVE 4.5 M", "QTY >4.5");
             if (above is > 0)
@@ -162,6 +168,8 @@ public static class TrackerImporter
                 line.HeightStatus = H(r, h, "CHECK STATUS", "HEIGHT STATUS") is { Length: > 0 } st ? st.ToUpperInvariant() : CheckStatus.Pending;
                 line.QtyAbove45Accepted = HN(r, h, "QTY ACCEPTED ABOVE 4.5", "QTY ACCEPTED >4.5") ?? 0;
             }
+            if (LengthExtras.ConvertDataRack(line, alreadyInvoiced: line.InvoiceNo > 0))
+                res.Issues.Add(new(r.Number, IssueLevel.Warning, $"LEDGER row {r.Number}: DATA RACK {line.LengthClaimedQty:0.##} ({sub} {loc}) read as 15 m extra on DATA 2ND FIX, not against PROJECT QTY."));
             res.Claims.Add(line);
         }
         if (h is null) res.Issues.Add(new(2, IssueLevel.Error, "LEDGER row 2 headers not found."));
