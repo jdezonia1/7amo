@@ -24,6 +24,8 @@ public sealed class ContractBodyRead
 public static class ContractBodyExtractor
 {
     private static readonly Regex ClauseHead = new(@"بند\s*[:\-]?\s*(\d{1,2})", RegexOptions.Compiled);
+    /// <summary>A clause title cell: "بند" with or without its number (OCR often drops it), e.g. "بند6 غرامات التأخير", "بند شروط عامه".</summary>
+    private static readonly Regex ClauseCell = new(@"^\s*بند\s*[:\-]?\s*(?<n>\d{1,2})?", RegexOptions.Compiled);
 
     public static ContractBodyRead Read(IEnumerable<SmartPage> pages)
     {
@@ -47,8 +49,8 @@ public static class ContractBodyExtractor
         if (signed.Count > 0) { t.SignedDate = signed.Max(); Set(res, "SignedDate", t.SignedDate!.Value.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture), 0.8); }
 
         // parties
-        t.FirstParty = Cut(fold, fixedText, @"المقاول\s*الرييسي\s*(\(الطرف\s*الاول\))?\s*:?\s*", @"(?=\s*(س\s*\.?\s*ت|\(طرف|،|,|\n|$))", 120);
-        t.Subcontractor = Cut(fold, fixedText, @"(مقاول\s*الباطن|اسم\s*مقاول\s*الباطن)\s*(\(الطرف\s*الثاني\))?\s*:?\s*", @"(?=\s*(سجل|س\s*\.?\s*ت|طرف|،|,|\n|$))", 120);
+        t.FirstParty = Cut(fold, fixedText, @"المقاول\s*الر.?يسي\s*(\(الطرف\s*الاول\))?\s*:?\s*", @"(?=\s*(س\s*\.?\s*ت|\(طرف|،|,|\n|$))", 120);
+        t.Subcontractor = SubcontractorVote(fold, fixedText);
         if (t.FirstParty.Length > 0) Set(res, "FirstParty", t.FirstParty, 0.75);
         if (t.Subcontractor.Length > 0) Set(res, "Subcontractor", t.Subcontractor, 0.75);
         else res.Issues.Add(new(IssueLevel.Warn, "SUB", "subcontractor name not found", null, "Subcontractor"));
@@ -65,6 +67,16 @@ public static class ContractBodyExtractor
             if (t.FirstPartyCr.Length > 0) Set(res, "FirstPartyCr", t.FirstPartyCr, 0.85);
             if (t.SubcontractorCr.Length > 0) Set(res, "SubcontractorCr", t.SubcontractorCr, 0.85);
         }
+        // CR numbers without the "س.ت" label: the 10-digit number on the main contractor's / subcontractor's line
+        foreach (var line in fold.Split('\n'))
+        {
+            var num = Regex.Match(line, @"(?<!\d)(1\d{9}|7\d{9}|2\d{9}|4\d{9})(?!\d)");
+            if (!num.Success) continue;
+            if (t.FirstPartyCr.Length == 0 && Regex.IsMatch(line, @"المقاول\s*الر.?يسي|الطرف\s*الاول") && !Regex.IsMatch(line, @"مقاول\s*الباطن")) t.FirstPartyCr = num.Value;
+            else if (t.SubcontractorCr.Length == 0 && Regex.IsMatch(line, @"مقاول\s*الباطن|الطرف\s*الثاني")) t.SubcontractorCr = num.Value;
+        }
+        if (t.FirstPartyCr.Length > 0) Set(res, "FirstPartyCr", t.FirstPartyCr, 0.75);
+        if (t.SubcontractorCr.Length > 0) Set(res, "SubcontractorCr", t.SubcontractorCr, 0.75);
         var phone = Regex.Match(fold, @"\b05\d{8}\b");
         if (phone.Success) t.SubcontractorContact = phone.Value;
         var project = Regex.Match(fixedText, @"The\s+Raff\S*\s+Hotel\s+and\s+Branded\s+Residences", RegexOptions.IgnoreCase);
@@ -77,7 +89,7 @@ public static class ContractBodyExtractor
         Set(res, "LabourOnly", t.LabourOnly ? "YES" : "NO", t.LabourOnly ? 0.85 : 0.5);
 
         // VAT
-        var vat = Regex.Match(fold, @"(غير\s*شامله|لا\s*تشمل|EXCLUD\w*|شامله|INCLUD\w*)\s*(ال)?ضريبه(\s*القيمه)?\s*(ال)?مضافه\s*(\d{1,2})?\s*%?");
+        var vat = Regex.Match(fold, @"(غير\s*شامله|لا\s*تشمل|EXCLUD\w*|شامله|INCLUD\w*)\s*(ال)?ضر\S{1,4}ه(\s*القيمه)?\s*(ال)?مضافه\s*(\d{1,2})?\s*%?");
         if (!vat.Success) vat = Regex.Match(fold, @"(EXCLUD\w*|INCLUD\w*)\s+(OF\s+)?VAT\s*(\d{1,2})?");
         if (vat.Success)
         {
@@ -90,6 +102,7 @@ public static class ContractBodyExtractor
 
         // payments: "90% دفعه تصرف بمستخلص مع تنفيذ 1st Fix", cable tray "70% دفعه بعد اعمال التركيب"
         ReadPayments(res, fold, fixedText);
+        CompletePayments(res, fold);
         var main = res.Payments.Where(p => p.Group == "MAIN").ToList();
         var tray = res.Payments.Where(p => p.Group == "TRAY").ToList();
         t.PaymentTerms = string.Join("; ", main.Select(p => $"{p.Stage} {Pc(p.Pct)}"));
@@ -144,6 +157,20 @@ public static class ContractBodyExtractor
         return res;
     }
 
+    /// <summary>The subcontractor's company name as written each time it appears ("مقاول الباطن ... شركة X"); the most frequent spelling wins (OCR slips differ per page).</summary>
+    private static string SubcontractorVote(string fold, string original)
+    {
+        var names = new List<string>();
+        foreach (Match m in Regex.Matches(fold, @"(مقاول\s*الباطن|الطرف\s*الثاني)\s*(\(?الطرف\s*الثاني\)?)?\s*:?\s*(شركه\s*)+(?<v>[\u0621-\u064A][^\n:،,()]{2,40}?)(?=\s*(سجل|س\s*\.?\s*ت|طرف|،|,|\n|$|\d|الشخص))"))
+        {
+            var v = original.Substring(m.Groups["v"].Index, m.Groups["v"].Length).Trim();
+            if (v.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length is >= 1 and <= 4) names.Add(v);
+        }
+        if (names.Count == 0) return "";
+        var best = names.GroupBy(n => ArabicText.Normalize(n)).OrderByDescending(g => g.Count()).ThenByDescending(g => g.Key.Length).First();
+        return "شركة " + best.First();
+    }
+
     /// <summary>Contract / PO codes with letter O for zero or stray spaces: "SUB-ELE-O28-2O26" -> "SUB-ELE-028-2026".</summary>
     public static string FixCodes(string text) =>
         Regex.Replace(text, @"\b[A-Za-z]{2,}(?:-[A-Za-z0-9]{1,})+\b", m => string.Join("-", m.Value.Split('-').Select(p => p.Any(char.IsDigit) ? ArabicText.FixDigitConfusions(p) : p)));
@@ -193,7 +220,7 @@ public static class ContractBodyExtractor
                 var stage = Regex.IsMatch(ctx, @"1ST\s*FIX|الاولي|الأولى") ? "1ST FIX"
                     : Regex.IsMatch(ctx, @"2ND\s*FIX|الثانيه") ? "2ND FIX"
                     : Regex.IsMatch(ctx, @"3RD\s*FIX|الثالثه") ? "3RD FIX"
-                    : Regex.IsMatch(ctx, @"التسليم\s*الابتدايي|HANDOVER|الاستلام\s*الابتدايي") ? "HANDOVER"
+                    : Regex.IsMatch(ctx, @"التسليم\s*الابتدا|HANDOVER|الاستلام\s*الابتدا") ? "HANDOVER"
                     : Regex.IsMatch(ctx, @"الاختبار|TEST|التوصيل") ? "TEST & TERMINATION"
                     : Regex.IsMatch(ctx, @"التركيب|سحب\s*الكابلات|INSTALL") ? "INSTALLATION"
                     : "";
@@ -203,6 +230,32 @@ public static class ContractBodyExtractor
                 res.Payments.Add((g, stage, pct / 100, line.Trim()));
             }
         }
+    }
+
+    /// <summary>
+    /// Stage payments must add up: outlets = stage % + handover % = 100 %, cable tray = installation + test + handover = 100 %. A percentage the
+    /// OCR lost or mangled ("1%" for "10%") is completed from the others when the text names the stage (marked "derived").
+    /// </summary>
+    private static void CompletePayments(ContractBodyRead res, string fold)
+    {
+        var main = res.Payments.Where(p => p.Group == "MAIN" && p.Stage != "HANDOVER").Select(p => p.Pct).DefaultIfEmpty(0).Max();
+        var ho = res.Payments.FindIndex(p => p.Group == "MAIN" && p.Stage == "HANDOVER");
+        if (main > 0 && Math.Abs(main - 1) > 1e-9)
+        {
+            var want = Math.Round(1 - main, 4);
+            if (ho >= 0 && Math.Abs(res.Payments[ho].Pct - want) > 1e-9) res.Payments[ho] = ("MAIN", "HANDOVER", want, "derived: stage payments add up to 100 % (read " + res.Payments[ho].Pct.ToString("P0", System.Globalization.CultureInfo.InvariantCulture) + ")");
+            else if (ho < 0 && Regex.IsMatch(fold, @"التسليم\s*الابتدا|HANDOVER")) res.Payments.Add(("MAIN", "HANDOVER", want, "derived: stage payments add up to 100 %"));
+        }
+        var tray = res.Payments.Where(p => p.Group == "TRAY").ToList();
+        if (tray.Count == 2 && Regex.IsMatch(fold, @"الكابل\s*ترا|CABLE\s*TRAY"))
+        {
+            var missing = new[] { "INSTALLATION", "TEST & TERMINATION", "HANDOVER" }.Except(tray.Select(p => p.Stage)).Single();
+            var pct = Math.Round(1 - tray.Sum(p => p.Pct), 4);
+            if (pct > 0) res.Payments.Add(("TRAY", missing, pct, "derived: tray payments add up to 100 %"));
+        }
+        res.Payments.Sort((a, b) => Order(a).CompareTo(Order(b)));
+        static int Order((string Group, string Stage, double Pct, string Source) p) =>
+            (p.Group == "MAIN" ? 0 : 10) + Array.IndexOf(new[] { "1ST FIX", "2ND FIX", "3RD FIX", "INSTALLATION", "TEST & TERMINATION", "HANDOVER" }, p.Stage);
     }
 
     /// <summary>Clauses from the clause table (narrow column "بند n + title", wide column = text); else from the running text.</summary>
@@ -215,20 +268,24 @@ public static class ContractBodyExtractor
             var usedGrid = false;
             foreach (var g in grids.Where(g => g.ColCount >= 2))
             {
-                var titleCol = Enumerable.Range(0, g.ColCount).OrderByDescending(c => g.ColumnCells(c).Count(x => ClauseHead.IsMatch(ArabicText.Fold(x.Text)))).First();
-                if (g.ColumnCells(titleCol).Count(x => ClauseHead.IsMatch(ArabicText.Fold(x.Text))) < 1) continue;
+                int Hits(int c) => g.ColumnCells(c).Count(x => ClauseCell.IsMatch(ArabicText.Fold(x.Text)));
+                var titleCol = Enumerable.Range(0, g.ColCount).OrderByDescending(Hits).First();
+                if (Hits(titleCol) < 2) continue;
                 var bodyCol = Enumerable.Range(0, g.ColCount).Where(c => c != titleCol).OrderByDescending(c => g.Columns[c].X1 - g.Columns[c].X0).First();
                 usedGrid = true;
                 for (var r = 0; r < g.RowCount; r++)
                 {
                     var title = g[r, titleCol].Text.Trim();
                     var body = string.Join("\n", LayoutBuilder.Lines(g[r, bodyCol].Words).Select(l => l.Text));
-                    var m = ClauseHead.Match(ArabicText.Fold(title));
+                    var m = ClauseCell.Match(ArabicText.Fold(title));
                     if (m.Success)
                     {
+                        var prev = res.Clauses.Count == 0 ? 0 : res.Clauses.Max(c => int.TryParse(c.ClauseNo, out var v) ? v : 0);
+                        // clause numbers only go up: a dropped or misread digit ("بند 1" for 11) takes the next number
+                        var no = (m.Groups["n"].Success && int.Parse(m.Groups["n"].Value, System.Globalization.CultureInfo.InvariantCulture) > prev ? int.Parse(m.Groups["n"].Value, System.Globalization.CultureInfo.InvariantCulture) : prev + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
                         current = new ContractClause
                         {
-                            ClauseNo = m.Groups[1].Value, Title = title.Remove(m.Index, m.Length).Trim(' ', ':', '-'), TextAr = body, Page = p.Number,
+                            ClauseNo = no, Title = title.Remove(0, Math.Min(title.Length, m.Length)).Trim(' ', ':', '-'), TextAr = body, Page = p.Number,
                             Confidence = g[r, bodyCol].Words.Count == 0 ? 0 : g[r, bodyCol].Words.Average(w => w.Confidence),
                         };
                         Upsert(res, current);

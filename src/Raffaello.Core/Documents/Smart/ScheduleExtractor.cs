@@ -65,7 +65,8 @@ public sealed class ScheduleRead
     public List<PageColumns> Columns { get; } = new();
     public List<ExtractionIssue> Issues { get; } = new();
     public int Rereads { get; set; }
-    public double LinesTotal => Items.Sum(i => i.TotalValue);
+    /// <summary>Sum of the row totals; a row whose numbers do not reconcile counts as qty x rate (a stamp read as a total must not distort it).</summary>
+    public double LinesTotal => Items.Sum(i => i.ArithmeticOk ? i.TotalValue : i.QtyValue * i.RateValue);
 
     public List<ContractItem> ToContractItems(string contractNo)
     {
@@ -351,33 +352,74 @@ public static class ScheduleExtractor
             cands[i] = new List<FieldCandidate>(fields[i].Candidates);
             if (cells[i] is { } c && page.Source == TextSource.Ocr)
             {
-                var box = c.Words.Count > 0 ? Box.Union(c.Words.Select(w => w.Box)) : c.Box;
-                foreach (var alt in await rereader.RereadAsync(page, box, numeric: true, ct).ConfigureAwait(false))
-                {
-                    var cleaned = CleanNumber(alt.Value);
-                    if (cleaned.Length > 0) cands[i].Add(alt with { Value = cleaned });
-                }
+                // the words' box and the whole ruled cell (inset from the lines): the second sees digits the first reading split off or missed
+                var boxes = new List<Box>();
+                if (c.Words.Count > 0) boxes.Add(Box.Union(c.Words.Select(w => w.Box)));
+                if (c.Box.W < 400) boxes.Add(new Box(c.Box.X + 4, c.Box.Y + 4, Math.Max(4, c.Box.W - 8), Math.Max(4, c.Box.H - 8)));
+                foreach (var box in boxes)
+                    foreach (var alt in await rereader.RereadAsync(page, box, numeric: true, ct).ConfigureAwait(false))
+                    {
+                        var cleaned = CleanNumber(alt.Value);
+                        if (cleaned.Length > 0) cands[i].Add(alt with { Value = cleaned });
+                    }
             }
         }
-        // the combination that satisfies qty x rate = total, preferring agreement between engines
-        var combos = from q in cands[0].Select(c => (c, v: ArabicText.ParseNumber(c.Value))).Where(x => x.v != null)
-                     from r in cands[1].Select(c => (c, v: ArabicText.ParseNumber(c.Value))).Where(x => x.v != null)
-                     from t in cands[2].Select(c => (c, v: ArabicText.ParseNumber(c.Value))).Where(x => x.v != null)
+        // stamp / signature noise: a company CR number or a run of digits is not a schedule number
+        foreach (var cs in cands) cs.RemoveAll(c => ArabicText.ParseNumber(c.Value) is double v && (v >= 1e8 || v < 0));
+        double? Top(int i, out int votes, out int total)
+        {
+            var vs = cands[i].Select(c => ArabicText.ParseNumber(c.Value)).Where(v => v != null).Select(v => v!.Value).ToList();
+            total = vs.Count;
+            if (vs.Count == 0) { votes = 0; return null; }
+            var g = vs.GroupBy(v => v).OrderByDescending(x => x.Count()).ThenByDescending(x => cands[i].Where(c => ArabicText.ParseNumber(c.Value) == x.Key).Max(c => c.Confidence)).First();
+            votes = g.Count();
+            return g.Key;
+        }
+        bool Agreed(int i) { var v = Top(i, out var votes, out var total); return v != null && votes >= 2 && votes >= 0.6 * total; }
+
+        // a zero quantity (provisional item, 0 x rate = 0) says nothing about the rate: vote on the rate readings alone, never "correct" it
+        if (Top(0, out _, out _) is 0d && (Top(2, out _, out _) ?? 0) == 0)
+        {
+            Apply(item.Qty, cands[0], 0);
+            if (cands[2].Count > 0) Apply(item.Total, cands[2], 0);
+            var rv = FieldVote.Decide(item.Rate.Name, cands[1]);
+            item.Rate.Candidates.Clear(); item.Rate.Candidates.AddRange(cands[1]);
+            item.Rate.Value = rv.Value; item.Rate.Status = rv.Status; item.Rate.Confidence = rv.Confidence;
+            item.Rate.Note = rv.Status == FieldStatus.Conflict ? "qty 0: the rate cannot be checked by the arithmetic - " + rv.Note : "qty 0: rate read only, not checked by the arithmetic";
+            // provisional (qty 0) rows: nothing can confirm the rate, always shown for review
+            if (rv.Status != FieldStatus.Conflict) { item.Rate.Status = FieldStatus.Low; item.Rate.Confidence = Math.Min(item.Rate.Confidence, 0.7); }
+            return;
+        }
+
+        // the combination that satisfies qty x rate = total, preferring agreement between engines (non-zero numbers only)
+        var combos = from q in cands[0].Select(c => (c, v: ArabicText.ParseNumber(c.Value))).Where(x => x.v is > 0)
+                     from r in cands[1].Select(c => (c, v: ArabicText.ParseNumber(c.Value))).Where(x => x.v is > 0)
+                     from t in cands[2].Select(c => (c, v: ArabicText.ParseNumber(c.Value))).Where(x => x.v is > 0)
                      where DocValidators.AmountOk(q.v!.Value, r.v!.Value, t.v!.Value)
                      select (q, r, t);
         var ok = combos.ToList();
         if (ok.Count > 0)
         {
-            var (q, r, t) = ok.OrderByDescending(x => x.q.c.Confidence + x.r.c.Confidence + x.t.c.Confidence).First();
+            var first = fields.Select(f => ArabicText.ParseNumber(f.Value)).ToArray();
+            int Kept((double? Q, double? R, double? T) c) => (first[0] == c.Q ? 1 : 0) + (first[1] == c.R ? 1 : 0) + (first[2] == c.T ? 1 : 0);
+            var (q, r, t) = ok.OrderByDescending(x => Kept((x.q.v, x.r.v, x.t.v))).ThenByDescending(x => x.q.c.Confidence + x.r.c.Confidence + x.t.c.Confidence).First();
             Apply(item.Qty, cands[0], q.v!.Value); Apply(item.Rate, cands[1], r.v!.Value); Apply(item.Total, cands[2], t.v!.Value);
+            if (Kept((q.v, r.v, t.v)) <= 1)
+            {
+                // two of the three first readings had to change: plausible, but not proven - the user decides
+                foreach (var f in fields.Where(f => f.Note.Contains("corrected")))
+                {
+                    f.Status = FieldStatus.Conflict;
+                    f.Confidence = Math.Min(f.Confidence, 0.5);
+                }
+                item.Issues.Add("two readings changed to make qty x rate = total");
+            }
             return;
         }
         // one number unreadable: derive it from the other two - only when both were read the same way by two models - and flag it
-        var vals = cands.Select(cs => cs.Select(c => ArabicText.ParseNumber(c.Value)).FirstOrDefault(v => v != null)).ToArray();
-        bool Agreed(int i) => cands[i].Count >= 2 && cands[i].Select(c => ArabicText.ParseNumber(c.Value)).Where(v => v != null).Distinct().Count() == 1
-                              && cands[i].Count(c => ArabicText.ParseNumber(c.Value) != null) >= 2;
+        var vals = new[] { Top(0, out _, out _), Top(1, out _, out _), Top(2, out _, out _) };
         string Read(int i) => string.Join(" / ", cands[i].Select(c => c.Value).Distinct());
-        if (Agreed(0) && Agreed(1) && vals[0] is double q4 && vals[1] is double r4)
+        if (Agreed(0) && Agreed(1) && vals[0] is double q4 && vals[1] is double r4 && q4 > 0 && r4 > 0)
         {
             var read = Read(2);
             Apply(item.Qty, cands[0], q4); Apply(item.Rate, cands[1], r4);
@@ -467,7 +509,7 @@ public static class ScheduleExtractor
         if (bad > 0) res.Issues.Add(new(IssueLevel.Warn, "ARITH", $"{bad} row(s) where qty x rate <> total after re-reading", null, ""));
         if (res.StatedTotal is double st)
         {
-            if (!DocValidators.TotalOk(res.Items.Select(i => i.TotalValue), st))
+            if (!DocValidators.TotalOk(new[] { res.LinesTotal }, st))
                 res.Issues.Add(new(IssueLevel.Warn, "GRAND_TOTAL", $"rows sum to {res.LinesTotal:N2} but the schedule total says {st:N2}", null, ""));
         }
         var review = res.Items.Count(i => i.NeedsReview);

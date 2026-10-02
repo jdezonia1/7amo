@@ -48,6 +48,13 @@ public static class ContractScheduleExcel
                     if (N("QTY") is null && N("RATE") is null && desc.Length > 0) { section = desc; res.Sections.Add(desc); }
                     continue;
                 }
+                if (!no.Any(char.IsDigit))
+                {
+                    // "الاجمالي" / TOTAL written in the number column: the grand total row
+                    if (System.Text.RegularExpressions.Regex.IsMatch(ArabicText.Normalize(no + " " + desc), @"الاجمالي|TOTAL|GRAND"))
+                        res.StatedTotal = N("TOTAL") ?? N("RATE") ?? res.StatedTotal;
+                    continue;
+                }
                 var itemNo = ContractLinkImporter.NormalizeItemNo(no);
                 var item = new ContractItem
                 {

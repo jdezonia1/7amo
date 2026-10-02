@@ -118,7 +118,7 @@ public static class DocClassifier
         // a rate schedule page also mentions contract words in its header; a contract body has no numbered price rows
         if (scores[DocTypes.Subcontract] > 0 && scores[DocTypes.RateSchedule] >= 4) scores[DocTypes.Subcontract] *= 0.5;
         // MIR forms quote the DN / PO numbers; the form wins over the DN when both are present
-        if (scores[DocTypes.MirForm] > 0 && scores[DocTypes.Dn] > 0 && scores[DocTypes.Dn] < 4) scores[DocTypes.Dn] *= 0.5;
+        if (scores[DocTypes.MirForm] >= 3 && scores[DocTypes.Dn] > 0 && !f.IsPhoto) scores[DocTypes.Dn] *= 0.3;
 
         var ranked = scores.Where(kv => kv.Key != DocTypes.Other).OrderByDescending(kv => kv.Value).ToList();
         var best = ranked[0];
@@ -140,7 +140,11 @@ public static class DocClassifier
         foreach (var (p, c) in pages.OrderBy(x => x.Page))
         {
             var type = c.Type;
-            if (type == DocTypes.Other && res.Count > 0 && res[^1].Type is DocTypes.RateSchedule or DocTypes.Subcontract && res[^1].LastPage == p - 1) type = res[^1].Type;
+            // a continuation page without its own keywords belongs to the document before it (contract body, schedule, MIR form, MAR)
+            if (type == DocTypes.Other && res.Count > 0 && res[^1].Type is DocTypes.RateSchedule or DocTypes.Subcontract or DocTypes.MirForm or DocTypes.Mar && res[^1].LastPage == p - 1)
+            {
+                type = res[^1].Type;
+            }
             if (res.Count > 0 && res[^1].Type == type && res[^1].LastPage == p - 1)
                 res[^1] = res[^1] with { LastPage = p, Confidence = Math.Min(res[^1].Confidence, Math.Max(c.Confidence, 0.3)) };
             else res.Add(new DocSegment(type, p, p, c.Confidence));

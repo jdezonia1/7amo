@@ -348,3 +348,73 @@ cores x size, CU / AL, LSOH, fire rated, conduit size / type, amps, ways, watts,
 Settings), lines OMISSION / ADDITION (contract rate) / NEW ITEM (material + labour + equipment, overhead %, profit %),
 totals and ageing, submission Excel / PDF and register export in the house style.
 <!-- [phase4] end -->
+
+<!-- [smart-reader] begin -->
+## Smart document reader (offline-first) and contract intelligence
+
+**Principle: Raffaello is not a file store.** Everything that is read becomes rows in the database - contract header terms
+(`ContractTerms`), clauses (`ContractClause`), rate schedule (`ContractItem`), rules (`ContractRule`), DN / PO / MIR lines,
+statement claim lines. The original file is kept only as **evidence** (`DocRecord`: SHA-256, where it is stored, which record it fed)
+plus the text of every page (`DocPageText`) for the search index. Nothing leaves the PC unless *cloud reading* is switched on
+(Materials > SETTINGS) and an API key is set.
+
+### How a page is read
+1. **PDF text layer** (PdfPig) - scored for plausibility first (`TextQuality`): reversed Arabic, letter O for zero (`O28-2O26`),
+   misspelt names (`MPBCO`), runs of Arabic-Indic glyph garbage. A garbled scanner layer is **discarded**, never parsed.
+2. **Offline OCR - PaddleOCR PP-OCRv5** (`src/Raffaello.Ocr`, NuGet `Sdcb.PaddleOCR` + `Sdcb.PaddleOCR.Models.Local/LocalV5` -
+   the Arabic and English models ship inside the packages, nothing is downloaded). Page rendered at 300 dpi with PDFium
+   (`Docnet.Core`); pre-processing with OpenCV: phone-photo detection and paper (largest quadrilateral) perspective crop, CLAHE contrast
+   + denoise, quarter-turn orientation chosen by recognition confidence, deskew from the text-line angles, upscaling of small text,
+   a binarised second pass for faded scans, table ruling detection. Arabic comes back in visual order and is re-ordered to logical
+   order; Latin words / numbers that the Arabic model drops inside Arabic lines (`PVC 1st Fix`, `4.5`, `15`) are read word by word with
+   the English model and put back.
+3. **Windows OCR** (second offline engine, app only) when the page confidence is low; **Claude vision** (strict JSON schema, same
+   validators) only when cloud reading is on. Readings **vote**; disagreements become CONFLICT fields for the user - never silently picked.
+4. **Layout and tables**: words -> lines -> columns (layout text for the existing PO / DN / MIR parsers); table grids from ruling lines,
+   whitespace, or a learned template; column roles from the header (رقم / التوصيف / الوحدة / الكمية / سعر الوحدة / الاجمالي, Sr / Description /
+   Unit / Qty / Rate / Amount) or from the contents (qty x rate = total decides which number column is which).
+5. **Classification** of every page (subcontract, rate schedule, PO, DN, MIR form, MAR, receiving checklist, qty list, test certificate,
+   drum label, WIR, site statement, marked drawing, Aconex screenshot, invoice); bundles are split into typed page ranges.
+6. **Validators everywhere**: qty x rate = amount, section / grand totals, VAT 15 %, units (عدد, م.ط, طرف, No., m, KM ...), item
+   numbering, BOQ code / room / contract / PO / DN / batch patterns, dates (Arabic month names too). A failing or low-confidence number is
+   re-read (word box and whole ruled cell, both models); the combination that satisfies the arithmetic wins (VALIDATED); a smudged
+   number is DERIVED from the other two only when both were read the same way twice - and is still shown for review.
+
+### Where it is used
+- **Contracts & BOQ > IMPORT CONTRACT PDF**: signed contract (scan) -> header terms, clauses, rate schedule, rules; cross-checked item by item
+  against the contract's items (link workbook) or a contract Excel (qty / rate / unit / description / missing items); the review window shows
+  the page with a box over every field (green sure, yellow check, dark red conflict / low / derived, blue confirmed), F8 jumps through the
+  fields that need a look, each difference is resolved PDF / EXCEL / EDIT; **CONFIRM & LEARN** also stores the layout template
+  (anchors, column ranges) for that issuer so the next contract of the same form is read with it.
+- **Materials**: PO / DN / MIR readers use the same stack (DN phone photos, test certificates, drum labels offline); saved documents go into the index.
+- **Site statements > READ SCANNED STATEMENT**: handwritten summary + marked typical-unit drawings -> a DRAFT of claim lines
+  (rooms x systems x the counts written on the drawing), checked against room caps like any statement. Handwriting is weak offline.
+- **Aconex > READ SCREENSHOT**: a printed / scanned Search Workflows screenshot (any orientation) -> workflow steps, stored as a check.
+- **Ctrl+K**: full-text search over every read page (SQLite FTS5 trigram locally, PostgreSQL full text + substring on the server):
+  `81064344`, `SUB-ELE-028`, Arabic words.
+- `raffaello-cli read-doc FILE [--pages 1-3]` and `raffaello-cli doc-bench --samples DIR --out DIR [--truth FILE]` (accuracy benchmark).
+
+### Measured accuracy (doc-bench on the real sample files, Linux, 4 cores, offline only - no Windows OCR, no cloud)
+| Document | Result |
+|---|---|
+| Signed contract SUB-ELE-028 (23-page scan, garbled scanner layer) vs contract Excel, 323 items | scanner text layer as-is: 9 % of items; PaddleOCR + voting: **items 100 %, qty 99.1 %, rate 92.6 %, unit 98.8 %, description characters 85.8 %**; 109 rows flagged for review (stamps over numbers, provisional qty-0 rows), **0 wrong numbers left unflagged**. OCR 48 s / page. |
+| Contract 1 (4-page scan) | pages typed 4/4; header terms 12/12; clauses 11/11; Aconex workflow screenshot (page on its side) 25/30 cells (last row under a stamp) |
+| MIR bundle, 46 pages | page types 45/46; DN phone photos: batch 16/16, qty 16/16, item no. 14/16 (2 flagged: pen ticks over the numbers); test certificates 16/16 pages; drum labels: batch on 18/21 photos, all 18 match a DN batch |
+| PO (p1 scanned screenshot) | PO no., supplier, date, total, VAT, grand total 6/6; 50 lines sum to the total; approval workflow screenshot 26/30 cells |
+| Site statement (handwriting) | summary rows 13/15 found but stage 6/15, % 4/15, room IDs 5/22; marked drawing counts 2/4 - **handwriting is weak offline: review everything** (Claude vision recommended for these) |
+
+### Contract intelligence (rules warn, never block)
+Every clause becomes a machine-readable `ContractRule` (payment % per stage, retention, advance, 15 m and 30 m route rules with their items,
+4.5 m height bands, delay penalty + cap, warranty, VAT treatment, labour-only scope; PO tolerance from the PO). `ContractRuleEngine` checks
+ledger claims, invoices, deliveries and packages and returns **warnings only**, each with the clause text and page; **BYPASS** needs a reason
+and is recorded (who / when / why, audited, append-only on the server) and printed in every invoice package as `09_Contract_checks.pdf`.
+Contracts & BOQ > TERMS, RULES & OBLIGATIONS edits the rules and shows the **obligations calendar** (handover, warranty end, retention release,
+penalty start / cap - also in "Needs you today"); COMPARE CONTRACTS puts subcontractors' terms and rates for the same kind of item side by side.
+Data-integrity locks stay hard: a DN line is invoiced once, an approved invoice is locked; over-cap ledger entries need a reason (already a
+recorded bypass).
+
+### Windows notes
+The win-x64 runtimes (`Sdcb.PaddleInference.runtime.win64.mkl`, `OpenCvSharp4.runtime.win`, PDFium) are referenced when building on Windows;
+their native DLLs are kept next to `Raffaello.exe` (outside the single file). Verify on Windows: first OCR of a scanned contract, Windows OCR
+as second engine (install the Arabic OCR language pack for Arabic), the review window and its boxes.
+<!-- [smart-reader] end -->

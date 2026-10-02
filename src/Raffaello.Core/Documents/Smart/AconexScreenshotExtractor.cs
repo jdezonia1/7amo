@@ -28,7 +28,7 @@ public static class AconexScreenshotExtractor
     {
         cfg ??= new AconexConfig();
         var res = new AconexScreenshotRead { Page = page.Number };
-        var words = page.Words.ToList();
+        var words = SplitGluedDates(page.Words).ToList();
         var all = ArabicText.Fold(page.ReadingText + "\n" + page.Text);
         var wf = Regex.Match(all, @"WORKFLOW\s*NO\.?\s*:?\s*(WF\s*-?\s*\d{5,7})");
         if (wf.Success) res.WorkflowNo = Regex.Replace(wf.Groups[1].Value, @"\s", "").Replace("WF", "WF-").Replace("--", "-");
@@ -76,6 +76,35 @@ public static class AconexScreenshotExtractor
         return res;
     }
 
+    private static readonly string[] KnownLabels =
+    {
+        "Document No.", "Document Revision", "Document Version", "Document Title", "Step Name", "Action", "Assigned To", "Date In", "Date Due",
+        "Original Due Date", "Date Completed", "Step Status", "Step Outcome", "File Name", "Workflow No.", "Workflow Name",
+    };
+
+    /// <summary>OCR'd header label to the Aconex label it is closest to ("Slep Name" -> "Step Name", "Date DueA" -> "Date Due").</summary>
+    internal static string Canonical(string label)
+    {
+        static string K(string x) => new string(x.ToUpperInvariant().Where(char.IsLetter).ToArray());
+        var k = K(label);
+        if (k.Length == 0) return label;
+        var best = KnownLabels.Select(l => (l, d: ArabicText.Levenshtein(K(l), k))).OrderBy(x => x.d).First();
+        return best.d <= Math.Max(1, K(best.l).Length / 4) ? best.l : label;
+    }
+
+    /// <summary>Recognisers glue adjacent date cells ("18/05/202619/05/2026"): split them into one word per date, boxes shared proportionally.</summary>
+    internal static IEnumerable<OcrWord> SplitGluedDates(IEnumerable<OcrWord> words)
+    {
+        foreach (var w in words)
+        {
+            var ms = Regex.Matches(w.Text, @"\d{1,2}/\d{1,2}/\d{4}");
+            if (ms.Count < 2 || w.Text.Length == 0) { yield return w; continue; }
+            var per = w.Box.W / w.Text.Length;
+            foreach (Match m in ms)
+                yield return new OcrWord { Text = m.Value, Confidence = w.Confidence, Engine = w.Engine, Box = new Box(w.Box.X + m.Index * per, w.Box.Y, m.Length * per, w.Box.H) };
+        }
+    }
+
     /// <summary>Columns from the header labels: labels whose boxes overlap horizontally are one column ("Date" over "Completed"); boundaries at the midpoints.</summary>
     private static List<(string Label, double X0, double X1)> ColumnsFrom(List<OcrWord> header)
     {
@@ -85,7 +114,7 @@ public static class AconexScreenshotExtractor
             var g = groups.FirstOrDefault(g => g.Any(x => x.Box.HorizontalOverlap(w.Box) > Math.Min(x.Box.W, w.Box.W) * 0.3));
             if (g != null) g.Add(w); else groups.Add(new List<OcrWord> { w });
         }
-        var ordered = groups.Select(g => (Label: string.Join(" ", g.OrderBy(w => w.Box.Y).Select(w => w.Text)), Box: Box.Union(g.Select(w => w.Box)))).OrderBy(g => g.Box.X).ToList();
+        var ordered = groups.Select(g => (Label: Canonical(string.Join(" ", g.OrderBy(w => w.Box.Y).Select(w => w.Text))), Box: Box.Union(g.Select(w => w.Box)))).OrderBy(g => g.Box.X).ToList();
         var res = new List<(string, double, double)>();
         for (var i = 0; i < ordered.Count; i++)
         {

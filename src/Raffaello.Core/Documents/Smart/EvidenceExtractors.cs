@@ -152,9 +152,10 @@ public static class SiteStatementExtractor
     public static MarkedCounts ReadDrawing(SmartPage p)
     {
         var mc = new MarkedCounts { Page = p.Number };
-        var text = ArabicText.NormalizeDigits(p.ReadingText + "\n" + p.Text);
+        // handwriting: "1B" is 18, "O" is 0 when the token is otherwise a number
+        var text = Regex.Replace(ArabicText.NormalizeDigits(p.ReadingText + "\n" + p.Text), @"\b[0-9OolISBZ]{1,4}\b", m => m.Value.Any(char.IsDigit) ? ArabicText.FixDigitConfusions(m.Value) : m.Value);
         var u = ArabicText.Fold(text);
-        foreach (Match m in Regex.Matches(u, @"\b(\d{1,3})\s*POI\w*\s+(SOCKET\s*POWER|SOCKET|POWER|IT\s*BOX|IT|DATA|LIGH\w*\s*BOX|LIGH\w*|GRMS|INSTALL\w*[^\n]{0,30}GRMS)"))
+        foreach (Match m in Regex.Matches(u, @"\b(\d{1,3})[ \t]*POI\w*[ \t]+([^\n]{0,40}?GRMS|SOCKET\s*POWER|SOCKET|POWER|IT\s*BOX|IT\b|DATA|LIGH\w*\s*BOX|LIGH\w*)"))
         {
             var sys = m.Groups[2].Value switch
             {

@@ -150,11 +150,53 @@ public static class DnReader
                 };
                 doc.Lines.Add(last);
             }
+            else if (Loose(l) is { } x)
+            {
+                var conv = Units.Convert(x.Qty, Units.Km, Units.M);
+                last = new MatDnLine
+                {
+                    Order = doc.Lines.Count + 1, ItemNo = x.Item, ItemCode = x.Code, Description = x.Desc, Batch = x.Batch, RawQty = x.Qty, RawUnit = Units.Km,
+                    Qty = conv.Qty, Unit = conv.Unit, ConversionNote = conv.Note, Fingerprint = Fingerprints.Key(x.Desc),
+                };
+                doc.Lines.Add(last);
+                if (x.ItemRepaired) res.Warn("ITEM_READ", $"item number read as '{x.RawItem}' (pen marks / margin) - taken as {x.Item}, check it", last.Order);
+            }
         }
         foreach (var p in text.Pages.Where(p => p.IsScan && p.Source != TextSource.Ocr))
             res.Warn("SCAN_PAGE", $"page {p.Number} is a photo / scan without text - use OCR or cloud reading");
         Validate(res);
         return res;
+    }
+
+    private sealed record LooseLine(string Item, string RawItem, bool ItemRepaired, string Code, string Desc, string Batch, double Qty);
+
+    /// <summary>
+    /// A DN line from a phone photo where OCR glued or split columns ("B043110 001", "0010013278392", "00132899601.046 KMc"): batch (001x + 6 digits),
+    /// quantity in KM right after it, material code (100 + 5 digits), item number (six digits, 000nn0; pen ticks in the margin are cut off and flagged).
+    /// </summary>
+    private static LooseLine? Loose(string line)
+    {
+        var l = Documents.ArabicText.NormalizeDigits(line);
+        if (!Regex.IsMatch(l, @"K\s*M", RegexOptions.IgnoreCase) || SubTotal.IsMatch(l)) return null;
+        var compact = Regex.Replace(l, @"\s+", "");
+        var b = Regex.Matches(compact, @"001[1-9]\d{6}").LastOrDefault();
+        if (b is null) return null;
+        var after = compact[(b.Index + b.Length)..];
+        var q = Regex.Match(after, @"^[^\d]{0,2}(\d{1,3}\.\d{3})K?M?", RegexOptions.IgnoreCase);
+        if (!q.Success) return null;
+        var code = Regex.Match(compact[..b.Index], @"100\d{5}");
+        var desc = Regex.Match(l, @"\d\s*[Xx]\s*\d+(?:\.\d+)?\s*mm\S*", RegexOptions.IgnoreCase);
+        var rawItem = Regex.Match(l, @"^\s*(\d{1,7})").Groups[1].Value;
+        var item = rawItem;
+        var repaired = false;
+        if (!Regex.IsMatch(item, @"^000\d{3}$"))
+        {
+            repaired = true;
+            var d = item.Length >= 3 ? item[^3..] : item;
+            item = d.Length == 0 ? "" : "000" + d.PadLeft(3, '0');
+        }
+        var descText = desc.Success ? Regex.Replace(desc.Value, @"(\d{4}|\d{4}\d{3})$", "") : "";
+        return new LooseLine(item, rawItem, repaired, code.Success ? code.Value : "", descText, b.Value, Units.ParseNumber(q.Groups[1].Value) ?? 0);
     }
 
     public static void Validate(ExtractionResult<DnDocument> res)

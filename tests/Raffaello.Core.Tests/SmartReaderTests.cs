@@ -286,10 +286,10 @@ public class SmartReaderTests
         The Raffles Hotel and Branded Residences مشروع
         ( Mobco-Raffles-SUB-ELE-O28-2O26 )
         انه في يوم الثلاثاء الموافق 12 مايو 2026 تم توقيع هذا العقد بين:
-        المقاول الرئيسي: شركة مؤنس محمد الشايب وشركاه للأعمال المدنية (موبكو) س.ت 1010178838 ، عنوانها الدائم الرياض
-        مقاول الباطن : شركة روتس لاندسكيب سجل تجاري رقم : 7051467475 طرف ثاني
+        المقاول الرئيسي: شركة مؤنس محمد الشايب وشركاه للأعمال المدنية (موبكو) س.ت 1012345678 ، عنوانها الدائم الرياض
+        مقاول الباطن : شركة النخيل للتنسيق سجل تجاري رقم : 7098765432 طرف ثاني
         تنفيذ الأعمال الكهربائيه (مصنعيات فقط)
-        جوال 0563921461
+        جوال 0500000000
         بند 4 الكميات والأسعار
         الاسعار المذكورة في العقد غير شاملة الضريبة المضافة 15%
         بند 5 شروط الدفع
@@ -319,9 +319,9 @@ public class SmartReaderTests
         var t = b.Terms;
         Assert.Equal("Mobco-Raffles-SUB-ELE-028-2026", t.ContractNo);
         Assert.Equal(new DateTime(2026, 5, 12), t.ContractDate);
-        Assert.Equal("1010178838", t.FirstPartyCr);
-        Assert.Equal("7051467475", t.SubcontractorCr);
-        Assert.Contains("روتس لاندسكيب", t.Subcontractor);
+        Assert.Equal("1012345678", t.FirstPartyCr);
+        Assert.Equal("7098765432", t.SubcontractorCr);
+        Assert.Contains("النخيل للتنسيق", t.Subcontractor);
         Assert.True(t.LabourOnly);
         Assert.Equal("EXCLUDED", t.VatTreatment);
         Assert.Equal(0.15, t.VatPct, 6);
@@ -507,9 +507,9 @@ public class SmartReaderTests
         Assert.NotEmpty(docs.All<DocField>());
 
         // full-text search: Arabic word, a code, a number
-        Assert.NotEmpty(docs.Search("لاندسكيب"));
+        Assert.NotEmpty(docs.Search("للتنسيق"));
         Assert.NotEmpty(docs.Search("SUB-ELE-028"));
-        var hit = docs.Search("7051467475").First();
+        var hit = docs.Search("7098765432").First();
         Assert.Equal("Contract", hit.LinkedTable);
         Assert.Equal(res.ContractNo, hit.LinkedKey);
         Assert.Empty(docs.Search("81064344"));

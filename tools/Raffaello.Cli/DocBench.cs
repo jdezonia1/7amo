@@ -243,6 +243,13 @@ public static class DocBench
         ClassTable(c, doc, types?.ToDictionary(kv => kv.Key, kv => kv.Value!.GetValue<string>()) ?? new());
         foreach (var p in doc.Pages) c.Md.AppendLine($"- p{p.Number}: {p.Kind.Type} ({p.Kind.Confidence:0.00}; {p.Kind.Reason}) - {p.Source} conf {p.Confidence:0.00}{(p.Notes.Count > 0 ? "; " + string.Join("; ", p.Notes) : "")}");
         c.Md.AppendLine();
+        foreach (var p in doc.Pages)
+        {
+            var grids = p.Ocr is null ? new List<TableGrid>() : TableBuilder.FromRulings(p.Ocr);
+            var gtext = string.Join("\n", grids.Select(g => $"GRID {g.RowCount}x{g.ColCount}: " + string.Join(" || ", Enumerable.Range(0, g.RowCount).Select(r => string.Join(" | ", g.RowCells(r).Select(x => x.Text.Length > 40 ? x.Text[..40] : x.Text))))));
+            File.WriteAllText(Path.Combine(c.Out, $"contract1_p{p.Number}.txt"), p.Text + "\n\n===== READING ORDER\n" + p.ReadingText + "\n\n===== GRIDS\n" + gtext +
+                "\nRULINGS " + string.Join(" ", p.Ocr?.Rulings.Select(r => $"{(r.Horizontal ? "H" : "V")}{r.Pos:0}:{r.Start:0}-{r.End:0}") ?? Array.Empty<string>()));
+        }
         var body = ContractBodyExtractor.Read(doc.Pages.Where(p => p.Kind.Type == DocTypes.Subcontract));
         HeaderTable(c, "Contract 1 header terms", body, "contract1Header");
         var expClauses = c.Truth?["contract1"]?["clauses"]?.GetValue<int>() ?? 0;
@@ -259,10 +266,12 @@ public static class DocBench
         c.Md.AppendLine($"Workflow no. read: '{read.WorkflowNo}' (truth {truth?["no"]?.GetValue<string>()}), name '{read.WorkflowName}', state {read.Result?.State}, current step '{read.Result?.CurrentStep}'. Steps read {steps.Count} / {exp.Count}.").AppendLine();
         c.Md.AppendLine("| Step (truth) | Step read | Date in | Due | Completed | Status | Outcome | Cells OK |").AppendLine("|---|---|---|---|---|---|---|---|");
         int cells = 0, ok = 0;
+        var used = new HashSet<object>();
         foreach (var e in exp)
         {
             var name = e["step"]!.GetValue<string>();
-            var s = steps.OrderByDescending(x => Sim(x.StepName, name)).FirstOrDefault(x => Sim(x.StepName, name) > 0.6);
+            var s = steps.Where(x => !used.Contains(x)).OrderByDescending(x => Sim(x.StepName, name)).FirstOrDefault(x => Sim(x.StepName, name) > 0.6);
+            if (s != null) used.Add(s);
             bool D(string k, DateTime? v) => (e[k]!.GetValue<string>() is var t && t.Length == 0 ? v is null : v?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) == t);
             var checks = new[]
             {
@@ -298,7 +307,9 @@ public static class DocBench
                 var page = doc.Pages.FirstOrDefault(x => x.Number == p);
                 if (page is null) continue;
                 n++;
-                if (page.Kind.Type == type) ok++; else wrong.Add($"p{p} {page.Kind.Type} (expected {type})");
+                // the type the app uses for the page = its segment (continuation pages join the document before them)
+                var got = doc.Segments.FirstOrDefault(sg => p >= sg.FirstPage && p <= sg.LastPage)?.Type ?? page.Kind.Type;
+                if (got == type) ok++; else wrong.Add($"p{p} {got} (expected {type})");
             }
         }
         c.Md.AppendLine($"Page classification: {ok}/{n} correct. Segments: {string.Join("; ", doc.Segments)}.{(wrong.Count > 0 ? " Wrong: " + string.Join(", ", wrong.Take(12)) : "")}").AppendLine();
