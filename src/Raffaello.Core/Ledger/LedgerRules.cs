@@ -115,7 +115,7 @@ public static class LedgerRules
     {
         Building = c.Building, Subcontractor = c.Subcontractor, InvoiceNo = c.InvoiceNo, Stage = c.Stage, Floor = c.Floor, Room = c.Room, Item = c.Item, Unit = c.Unit,
         Qty = c.Qty, SitePct = c.SitePct, WirPct = c.WirPct, WirNo = c.WirNo, Notes = c.Notes, Rework = c.Rework, WorkType = c.WorkType, AreaType = c.AreaType,
-        Source = c.Source, StatementNo = c.StatementNo, EnteredAt = DateTime.Now,
+        Source = c.Source, StatementNo = c.StatementNo, EnteredAt = DateTime.Now, IsCumulative = c.IsCumulative,
         QtyAbove45 = c.QtyAbove45, HeightStatus = c.HeightStatus, QtyAbove45Accepted = c.QtyAbove45Accepted, HeightCheckedBy = c.HeightCheckedBy, HeightCheckDate = c.HeightCheckDate, HeightNote = c.HeightNote,
         LengthApplies = c.LengthApplies, LengthClaimedQty = c.LengthClaimedQty, RouteLengthTotal = c.RouteLengthTotal, LengthGroups = c.LengthGroups, LengthRevisedQty = c.LengthRevisedQty,
         LengthRevisedOverride = c.LengthRevisedOverride, LengthStatus = c.LengthStatus, LengthNote = c.LengthNote, LengthAttachment = c.LengthAttachment,

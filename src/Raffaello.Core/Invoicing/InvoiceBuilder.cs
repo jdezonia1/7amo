@@ -1,5 +1,6 @@
 using Raffaello.Core.Data;
 using Raffaello.Core.Domain;
+using Raffaello.Core.Ledger;
 using Raffaello.Core.Mapping;
 
 namespace Raffaello.Core.Invoicing;
@@ -100,6 +101,8 @@ public static class InvoiceBuilder
         }
         foreach (var g in mapping.Parts.Where(p => p.Item is null).GroupBy(p => (p.Line.Stage, p.Line.Item, Why: p.Explanation.Split("; ").Last())))
             build.Warnings.Add($"Not mapped: {g.Key.Stage} {g.Key.Item} - {g.Count()} lines, qty {g.Sum(p => p.Qty):0.##} ({g.Key.Why})");
+        foreach (var blk in CumulativeSplit.Pending(claims))
+            build.Warnings.Add($"{blk.Sub} INV 1-{blk.InvoiceNo} is one CUMULATIVE block ({blk.Lines} lines) - awaiting invoice files to split; it counts once, as INV {blk.InvoiceNo}.");
         if (mapping.Held.Count > 0) build.Warnings.Add($"{mapping.Held.Count} claim lines held out (pending height / length checks).");
         build.Lines.AddRange(lines);
         return build;

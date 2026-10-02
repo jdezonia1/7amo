@@ -128,6 +128,8 @@ public sealed class WorkflowService
 
     // ------------------------------------------------------------------ invoices
 
+    public string CumulativeBanner() => CumulativeSplit.Banner(_p.Snapshot.Claims);
+
     public InvoiceBuild BuildInvoice(string contractNo, string sub, int invoiceNo, int revision) => InvoiceBuilder.Build(_p.Snapshot, contractNo, sub, invoiceNo, revision: revision, options: MappingOptions());
 
     /// <summary>Mapping defaults from Settings (DATA / GRMS 1st fix wall or ceiling).</summary>
@@ -154,6 +156,43 @@ public sealed class WorkflowService
             ProjectCode = st.InvoiceProjectCode, ProjectDirector = st.InvoiceProjectDirector, VendorNo = st.InvoiceVendorNo,
             SignatureNames = st.InvoiceSignatureNames.Split(';', StringSplitOptions.TrimEntries),
         };
+    }
+
+    // ------------------------------------------------------------------ past invoices + cumulative split
+
+    public PastInvoiceFile PreviewPastInvoice(string path, string contractNo) => PastInvoiceImporter.Read(path, contractNo);
+
+    /// <summary>Row key ("item|code") a ledger line maps to in this contract (the biggest part when height splits it).</summary>
+    public Func<ClaimLine, string?> RowKeyOf(string contractNo)
+    {
+        var s = _p.Snapshot;
+        var ctx = new MappingContext(contractNo, s.ContractItems, s.ItemBoqs, s.BoqItems, s.MappingRules) { Options = MappingOptions() };
+        var areas = s.Rooms.GroupBy(r => r.Code, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().AreaType, StringComparer.OrdinalIgnoreCase);
+        var engine = new MappingEngine();
+        return c =>
+        {
+            var probe = LedgerRules.Copy(c);
+            probe.IsCumulative = false;
+            var part = engine.Map(new[] { probe }, ctx, areas).Parts.Where(p => p.Item != null && p.BoqCode.Length > 0).OrderByDescending(p => Math.Abs(p.Qty)).FirstOrDefault();
+            return part is null ? null : PastInvoiceFile.RowKey(part.Item!.ItemNo, part.BoqCode);
+        };
+    }
+
+    public SplitResult PreviewSplit(string contractNo, string sub, IReadOnlyList<PastInvoiceFile> files) =>
+        CumulativeSplit.Split(_p.Snapshot.Claims, sub, files.Select(f => new InvoiceCum(f.InvoiceNo, f.CumByRow())).ToList(), RowKeyOf(contractNo));
+
+    /// <summary>Posts the split lines, retires the cumulative lines they replace, and stores the files as approved invoices.</summary>
+    public string CommitSplit(SplitResult r, string contractNo, IReadOnlyList<PastInvoiceFile> files)
+    {
+        if (r.NewLines.Count > 0)
+            _p.Store.Batch(w =>
+            {
+                w.InsertMany(r.NewLines);
+                foreach (var c in r.Replaced) { c.ReplacedBySplit = true; w.Update(c); }
+            }, $"{r.Summary}");
+        var stored = files.Select(f => PastInvoiceImporter.Commit(f, _p.Store, contractNo, r.Subcontractor)).Count(h => h != null);
+        _p.Reload();
+        return $"{r.Summary}; {stored} invoice files stored as approved invoices";
     }
 
     // ------------------------------------------------------------------ site statements
