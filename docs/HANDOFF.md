@@ -1,3 +1,16 @@
+# STATUS 02-Oct-2026 night (branch claude/dazzling-turing-20kq62) - READ THIS FIRST
+
+- Windows: RUN_ONE_CLICK.bat -> BUILD OK, all tests pass (Core 443, Server 9 + 42 skipped without PostgreSQL, Automation 9, OCR 9).
+- Fixed on Windows: SQLite temp-file lock in tests, server SafeName drive-letter bug, duplicate x:Key "Num" (start-up crash),
+  command palette stuck open (DataContext + Palette.IsOpen binding).
+- The app now OPENS on Mohamed's laptop. Next job: open every page, fix what breaks (layout, crashes in commands, empty data).
+- Diagnostics: %APPDATA%\Raffaello\startup.log, error.log, binding_errors.log; RUN_DIAG.bat collects them into diag_log.txt.
+- Fast loop on Windows: UPDATE_AND_RUN.bat (downloads the branch zip, incremental Debug build, starts the app). A local session
+  on the PC can instead build directly: dotnet build src\Raffaello.App -c Debug, run bin\Debug\net8.0-windows10.0.19041.0\Raffaello.exe.
+- Before pushing: tools/check_app.sh (cloud) or `dotnet run --project tools/Raffaello.XamlCheck -- <app bin> src/Raffaello.App`
+  - every {Binding} path on 47 screens checked, currently 0 problems.
+- Paused (not pushed, redo from section 2b): B5/B6 bill rule + gas-meter vs BMS link-table check.
+
 # Handoff — continue Raffaello on Mohamed's PC (02-Oct-2026)
 
 Branch: `claude/raffaello-artifact-design-nm5ade` — everything merged; build 0 errors / 0 warnings;
