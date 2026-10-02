@@ -228,7 +228,7 @@ public sealed class DemoSeeder
             var value = p.Lines.Where(l => l.Sub == s.Name).Sum(l => l.Line.QsQty * l.Line.Rate);
             p.Contracts.Add(new Contract
             {
-                Subcontractor = s.Name, ContractNo = $"SC-RAF-EL-{p.Contracts.Count + 1:000}", Scope = s.Scope, Value = Math.Round(value, -2),
+                Subcontractor = s.Name, ContractNo = $"SC-RAF-EL-{p.Contracts.Count + 1:000}", Scope = s.Scope, Value = Math.Round(value / 100.0) * 100,
                 RetentionPct = 0.10, AdvancePct = s.Name == "AWRAD" ? 0.0 : 0.10, SignedAt = ProjectStart.AddDays(-30 + 12 * p.Contracts.Count), Status = "ACTIVE",
             });
         }
