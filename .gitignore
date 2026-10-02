@@ -13,3 +13,4 @@ TestResults/
 server-publish/
 setup_server_log.txt
 appsettings.Local.json
+out/
