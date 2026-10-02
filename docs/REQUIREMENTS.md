@@ -26,6 +26,14 @@ The app must be multi-user (several people editing at once).
    Need workflow lookup by number → status + screenshot. Download WIRs/MIRs by date, group, discipline or number.
 6. **BOQ**: upload Excel → categorise by system and category.
 
+7. **Auto-coding new PO lines** (added 02-Oct): when a new PO is loaded for invoicing and its lines have no
+   BOQ no. / cost code / budget resource, fill them from similar items already invoiced: (1) exact history by
+   supplier code or normalised description, (2) attribute fingerprint (cables: cores×size, CU/AL, MICA/fire-rated,
+   voltage; conduit size/type; fittings type/wattage), (3) text similarity against past invoiced lines and the
+   E-Promise budget list, unit must agree, top-3 suggestions with score. High confidence → auto-filled; medium →
+   filled + flagged for review; low → user picks. Every confirmation is learned; each line records where its code
+   came from. Reuse the same matcher for variations and new owner BOQ items.
+
 ## Findings from the sample files
 - **Subcontractor contract (Excel)** `contract_excel.xlsx`: Arabic labour-only rate schedule, one sheet,
   ~323 items in 23 sections (Lighting & Power, Façade, LED strip, Cable tray, Terminations, Cable pulling,
