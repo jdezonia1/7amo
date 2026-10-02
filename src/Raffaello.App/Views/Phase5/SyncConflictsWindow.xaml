@@ -1,0 +1,62 @@
+<Window x:Class="Raffaello.App.Views.Phase5.SyncConflictsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Raffaello - Sync conflicts" Width="1060" Height="640" WindowStartupLocation="CenterOwner" Icon="pack://application:,,,/Assets/raffaello.ico"
+        Background="{DynamicResource BgBrush}" Foreground="{DynamicResource InkBrush}" FontFamily="{StaticResource FontSans}">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,14">
+            <TextBlock Text="SYNC CONFLICTS" Style="{StaticResource PageTitle}"/>
+            <TextBlock Text="Changes you made offline that the server could not apply as they were. KEEP MINE writes your version, KEEP THEIRS drops your change, MERGE keeps their row with the fields you tick." Style="{StaticResource Small}" TextWrapping="Wrap"/>
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="340"/><ColumnDefinition Width="14"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}">
+                <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Items}" SelectedItem="{Binding Selected, Mode=TwoWay}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,4">
+                                <TextBlock Text="{Binding Title}" Style="{StaticResource BodyStrong}" FontSize="12" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Summary}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Unit.At, StringFormat='offline change of {0:dd-MMM HH:mm}'}" Style="{StaticResource Small}" FontSize="10"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Card}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                        <TextBlock Text="{Binding Selected.Title}" Style="{StaticResource PanelTitle}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Selected.Message}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0" Visibility="{Binding ShowReason, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="REASON TO POST IT OVER THE REMAINING QTY (KEEP MINE)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBox Text="{Binding OverReason, UpdateSourceTrigger=PropertyChanged}" Margin="0,3,0,0"/>
+                    </StackPanel>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Fields}" AutoGenerateColumns="False" CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="FIELD" Binding="{Binding Name}" IsReadOnly="True" Width="150"/>
+                            <DataGridTextColumn Header="BEFORE" Binding="{Binding Base}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="MINE" Binding="{Binding Mine}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="THEIRS" Binding="{Binding Theirs}" IsReadOnly="True" Width="*"/>
+                            <DataGridCheckBoxColumn Header="USE MINE" Binding="{Binding UseMine, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
+                            <DataGridTextColumn Header="" Binding="{Binding Flag}" IsReadOnly="True" Width="90"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <TextBlock Text="{Binding Message}" Style="{StaticResource Small}" VerticalAlignment="Center" Margin="0,0,14,0" MaxWidth="460" TextWrapping="Wrap"/>
+            <Button Style="{StaticResource BtnGhost}" Content="KEEP THEIRS" Click="OnKeepTheirs" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource BtnGhost}" Content="MERGE" Click="OnMerge" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource BtnPrimary}" Content="KEEP MINE" Click="OnKeepMine" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource BtnGhost}" Content="CLOSE" Click="OnClose"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -9,3 +9,7 @@ TestResults/
 *.db-wal
 *.db-shm
 .claude/worktrees/
+# [phase5] server build output, setup log and site settings
+server-publish/
+setup_server_log.txt
+appsettings.Local.json

@@ -53,7 +53,9 @@ public partial class App : Application
         var splash = new SplashWindow();
         splash.Show();
 
-        var project = new ProjectService(settings);
+        // [phase5] begin: data source = local SQLite file or Raffaello server (Settings > Data source)
+        var project = new ProjectService(settings, Raffaello.Core.Remote.DataSourceFactory.Create);
+        // [phase5] end
         try
         {
             await Task.Run(() => project.Initialize(msg => splash.Dispatcher.Invoke(() => splash.Status = msg)));
@@ -130,6 +132,9 @@ public partial class App : Application
         splash.Close();
         main.Go("Welcome");
         sp.GetRequiredService<PresenceService>().Start();
+        // [phase5] begin: live "updated by X" toasts, offline / sync status
+        new Services.Phase5.RemoteSyncService(sp.GetRequiredService<DataService>(), sp.GetRequiredService<ToastService>()).Start(project.Store as Raffaello.Core.Remote.RemoteProjectStore);
+        // [phase5] end
     }
 
     protected override void OnExit(ExitEventArgs e)

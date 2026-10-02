@@ -87,6 +87,44 @@
                 </Border>
             </StackPanel>
             <StackPanel Grid.Column="2">
+                <!-- [phase5] begin: data source (local file / Raffaello server) -->
+                <Border Style="{StaticResource Card}" Margin="0,0,0,16" DataContext="{Binding Server}">
+                    <StackPanel>
+                        <TextBlock Text="DATA SOURCE" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Sync.Text}" Style="{StaticResource BodyStrong}" FontSize="12"/>
+                        <TextBlock Text="{Binding Sync.Detail}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <RadioButton Content="Local (this PC / shared file)" IsChecked="{Binding IsLocal}" GroupName="P5Source" Margin="0,0,16,0"/>
+                            <RadioButton Content="Server (URL)" IsChecked="{Binding IsServer}" GroupName="P5Source"/>
+                        </StackPanel>
+                        <TextBlock Text="SERVER ADDRESS (e.g. http://RAFFAELLO-SRV:5180)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBox Text="{Binding ServerUrl, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="12" Margin="0,3,0,6"/>
+                        <CheckBox Content="Sign in with my Windows account (domain PC)" IsChecked="{Binding UseWindowsAuth}" Margin="0,0,0,6"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="APP ACCOUNT" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding SignInUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="PASSWORD" Style="{StaticResource Label}" FontSize="10"/><PasswordBox x:Name="P5Password" Margin="0,3,0,0"/></StackPanel>
+                            <Button Grid.Column="4" Style="{StaticResource BtnGhost}" Content="SIGN IN" VerticalAlignment="Bottom" Command="{Binding SignInCommand}" CommandParameter="{Binding ElementName=P5Password}"/>
+                        </Grid>
+                        <WrapPanel Margin="0,0,0,6">
+                            <Button Style="{StaticResource BtnGhost}" Content="TEST CONNECTION" Command="{Binding TestCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="USE THIS DATA SOURCE" Command="{Binding ApplyCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="RETRY NOW" Command="{Binding RetryCommand}" Margin="0,0,8,6"/>
+                        </WrapPanel>
+                        <WrapPanel Margin="0,0,0,6">
+                            <Button Style="{StaticResource BtnGhost}" Content="SYNC CONFLICTS" Command="{Binding ConflictsCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="INVOICE APPROVALS" Command="{Binding ApprovalsCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="MIGRATION DRY RUN" Command="{Binding DryRunCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="COPY LOCAL DATA TO SERVER" Command="{Binding RunMigrationCommand}" Margin="0,0,8,6"/>
+                        </WrapPanel>
+                        <TextBlock Text="{Binding Status}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap"/>
+                        <TextBox Text="{Binding MigrationReport, Mode=OneWay}" IsReadOnly="True" FontFamily="{StaticResource FontMono}" FontSize="11" MaxHeight="220"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap" Margin="0,6,0,0"
+                                 Visibility="{Binding MigrationReport, Converter={StaticResource NullToVis}}"/>
+                        <TextBlock Text="Server mode: the data lives on the office server (PostgreSQL). If the server is unreachable you keep working on the last copy; changes are sent when it is back. The migration copies the local file named on the left (ids kept, safe to run twice; ADMIN only)." Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+                <!-- [phase5] end -->
                 <Border Style="{StaticResource Card}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">

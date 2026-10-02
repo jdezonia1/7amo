@@ -13,6 +13,12 @@ public sealed partial class SettingsViewModel : PageViewModel
 {
     public SettingsViewModel(PageContext ctx) : base(ctx) { }
 
+    // [phase5] begin
+    private Phase5.ServerSettingsViewModel? _server;
+    /// <summary>Data source card: Local file or Raffaello server (URL, sign-in, migration, sync conflicts, approvals).</summary>
+    public Phase5.ServerSettingsViewModel Server => _server ??= new Phase5.ServerSettingsViewModel(Ctx);
+    // [phase5] end
+
     public override string Key => "Settings";
     public override string Title => "SETTINGS";
     public override string Subtitle => "Stored per user in %APPDATA%\\Raffaello\\settings.json";

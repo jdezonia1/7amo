@@ -24,11 +24,19 @@ dotnet build Raffaello.sln -c Release --no-restore >> "%LOG%" 2>&1 || goto :fail
 
 echo [3/5] Running tests...
 dotnet test tests\Raffaello.Core.Tests\Raffaello.Core.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
+REM [phase5] begin: server tests (PostgreSQL integration tests skip themselves when no test database is reachable)
+dotnet test tests\Raffaello.Server.Tests\Raffaello.Server.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
+REM [phase5] end
 
 echo [4/5] Publishing self-contained win-x64 single file to publish\ ...
 dotnet publish src\Raffaello.App\Raffaello.App.csproj -c Release -r win-x64 --self-contained true ^
   -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None ^
   -o publish >> "%LOG%" 2>&1 || goto :fail
+
+REM [phase5] begin: server build for the office server PC (copy server-publish + SETUP_SERVER.bat there)
+echo      Publishing Raffaello.Server to server-publish\ ...
+dotnet publish src\Raffaello.Server\Raffaello.Server.csproj -c Release -r win-x64 --self-contained true -p:DebugType=None -o server-publish >> "%LOG%" 2>&1 || goto :fail
+REM [phase5] end
 
 echo [5/5] Launching Raffaello...
 echo BUILD OK >> "%LOG%"
