@@ -23,7 +23,9 @@ public static class ModuleEntities
 
     public static readonly Type[] Variations = { typeof(Variation), typeof(VariationLine), typeof(VariationDoc), typeof(VariationStatusChange) };
 
-    public static IReadOnlyList<Type> All => MaterialsStoreBase.EntityTypes.Concat(Aconex).Concat(Variations).ToList();
+    public static IReadOnlyList<Type> All => MaterialsStoreBase.EntityTypes.Concat(Aconex).Concat(Variations)
+        .Concat(Cables.CableStore.EntityTypes)   // [cables]
+        .ToList();
 
     private static bool _registered;
     public static void RegisterAll()
