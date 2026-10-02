@@ -318,7 +318,8 @@ public sealed class DemoSeeder
             var lvl = Math.Max(0, g.First().LevelIndex - 1);
             var start = ProjectStart.AddDays(7 * (2 + stageIdx * 9 + lvl * 2.5));
             var progress = g.Average(l => l.Progress);
-            var span = Math.Max(14, Math.Min((_today.AddDays(-12) - start).TotalDays, 7 * 22 * Math.Max(0.25, progress)));
+            var available = (_today.AddDays(-6) - start).TotalDays;
+            var span = Math.Max(14, progress >= 0.97 ? Math.Min(available, 7 * 16) : available);
             for (var k = 0; k < n; k++)
             {
                 var submitted = start.AddDays(span * (k + 0.5) / n + _r.Next(-2, 3));
