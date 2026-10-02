@@ -67,6 +67,11 @@ The app must be multi-user (several people editing at once).
     revision, show the diff between revisions, keep the Aconex workflow no. per revision. Approved revisions are locked
     and become "previous" for the next invoice.
 
+13. **BOQ code choice** (confirmed 02-Oct): POWER → "small power points", LIGHT → "lighting points, to <area>",
+    switches → switch rows, emergency → emergency lighting row. Lighting area taken from the room's area type
+    (apartment / BOH / FOH / balcony); manual override always possible and learned. (Invoice 1 put branded lighting on
+    "to BOH" — default is "to apartment" unless Mohamed says BOH is intended.)
+
 ## Findings from the sample files
 - **Subcontractor contract (Excel)** `contract_excel.xlsx`: Arabic labour-only rate schedule, one sheet,
   ~323 items in 23 sections (Lighting & Power, Façade, LED strip, Cable tray, Terminations, Cable pulling,
