@@ -38,6 +38,10 @@ public sealed class PlaywrightAconexClient : IAconexClient
     private async Task<IPage> StartAsync()
     {
         if (_page is { IsClosed: false }) return _page;
+        // single-file publish: the driver (.playwright\node + package) sits next to the exe, not next to the (bundled) dll
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PLAYWRIGHT_DRIVER_SEARCH_PATH"))
+            && Directory.Exists(Path.Combine(AppContext.BaseDirectory, ".playwright")))
+            Environment.SetEnvironmentVariable("PLAYWRIGHT_DRIVER_SEARCH_PATH", AppContext.BaseDirectory);
         _pw ??= await Playwright.CreateAsync().ConfigureAwait(false);
         Directory.CreateDirectory(ProfileDir);
         var opt = new BrowserTypeLaunchPersistentContextOptions

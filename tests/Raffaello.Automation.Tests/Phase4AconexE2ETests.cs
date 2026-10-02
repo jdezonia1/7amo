@@ -93,6 +93,32 @@ public sealed class Phase4AconexE2ETests : IDisposable
     }
 
     [SkippableFact]
+    public async Task Workflow_page_inside_a_frame_is_read_through_the_frame_selector()
+    {
+        Skip.If(BrowserEnv.SkipReason != null, BrowserEnv.SkipReason);
+        var cfg = Cfg();
+        cfg.Workflows.SearchPath = "/Framed/Workflow";
+        cfg.Workflows.FrameSelector = "iframe#frameMain";
+        await using var client = Client(cfg);
+        var r = await client.LookupWorkflowAsync("WF-000123", Path.Combine(_root, "shots"));
+        Assert.Equal(5, r.Steps.Count);
+        Assert.Equal("Finance Manager", r.CurrentStep);
+        Assert.True(File.Exists(r.TableScreenshotPath));
+    }
+
+    [SkippableFact]
+    public async Task Expired_session_logs_in_again_with_the_stored_credential()
+    {
+        Skip.If(BrowserEnv.SkipReason != null, BrowserEnv.SkipReason);
+        await using var client = Client(Cfg());
+        await client.LookupWorkflowAsync("WF-000123", Path.Combine(_root, "shots"));
+        _server.ExpireSessions();
+        var r = await client.LookupWorkflowAsync("WF-000456", Path.Combine(_root, "shots"));
+        Assert.Equal(2, _server.LoginCount);
+        Assert.Single(r.Steps);
+    }
+
+    [SkippableFact]
     public async Task Unknown_workflow_is_not_found()
     {
         Skip.If(BrowserEnv.SkipReason != null, BrowserEnv.SkipReason);

@@ -126,6 +126,9 @@ public sealed class MockAconexServer : IDisposable
         }
     }
 
+    /// <summary>Server-side session timeout: every browser must log in again.</summary>
+    public void ExpireSessions() { lock (_lock) _sessions.Clear(); }
+
     private bool LoggedIn(HttpListenerRequest req) => req.Cookies[Cookie] is { } c && _sessions.Contains(c.Value);
 
     private void Route(HttpListenerContext ctx)
@@ -164,6 +167,8 @@ public sealed class MockAconexServer : IDisposable
         {
             case "/home": case "": Html(ctx, Shell("Home", "<p>Welcome to the mock project.</p>")); return;
             case "/workflow/searchworkflows": Html(ctx, WorkflowPage(req)); return;
+            // classic Aconex shows module pages inside a frame
+            case "/framed/workflow": Html(ctx, Shell("Workflows", "<iframe id='frameMain' name='main' src='/Workflow/SearchWorkflows' style='width:100%;height:900px;border:0'></iframe>")); return;
             case "/documentregister/search": Html(ctx, RegisterPage(req)); return;
             case "/documentregister/download": Download(ctx); return;
             default: Send(ctx, 404, "text/plain", Encoding.UTF8.GetBytes("not found")); return;
