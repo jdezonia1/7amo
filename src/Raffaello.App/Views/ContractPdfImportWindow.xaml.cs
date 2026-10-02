@@ -23,7 +23,7 @@ public partial class ContractPdfImportWindow : Window
 
     private void OnBoxClick(object sender, MouseButtonEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: ReviewField f } && DataContext is ContractPdfImportViewModel vm)
+        if (sender is FrameworkElement { DataContext: PdfReviewField f } && DataContext is ContractPdfImportViewModel vm)
         {
             vm.SelectedField = f;
             vm.Tab = "FIELDS";

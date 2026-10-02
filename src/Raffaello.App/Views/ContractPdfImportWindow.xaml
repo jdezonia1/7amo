@@ -54,7 +54,7 @@
                                     </Style>
                                 </ItemsControl.ItemContainerStyle>
                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type vm:ReviewField}">
+                                    <DataTemplate DataType="{x:Type vm:PdfReviewField}">
                                         <Border Width="{Binding W}" Height="{Binding H}" BorderBrush="{Binding Stroke}" Cursor="Hand" MouseLeftButtonDown="OnBoxClick"
                                                 ToolTip="{Binding Value}">
                                             <Border.Style>

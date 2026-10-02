@@ -38,7 +38,10 @@
                                 ToolTip="The subcontractor's invoice layout: item x BOQ rows, stage %, sections"/>
                         <Button Style="{StaticResource BtnGhost}" Content="E-PROMISE BOQ LIST" Command="{Binding ImportEPromiseCommand}" Margin="0,0,6,6"
                                 ToolTip="BOQ codes with cost code / budget resource"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="IMPORT CONTRACT PDF" Command="{Binding ImportContractPdfCommand}" Margin="0,0,6,6"
+                                ToolTip="The signed contract (scan): header terms, clauses, rate schedule and rules read offline, cross-checked item by item with the Excel; you resolve each difference"/>
                     </WrapPanel>
+                    <TextBlock Text="{Binding ReadingBusy}" Style="{StaticResource BodyStrong}" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" FontSize="11"/>
                     <Grid Margin="0,6,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <TextBlock Style="{StaticResource Label}" VerticalAlignment="Center"><Run Text="CONTRACT DOCUMENTS  "/><Run Text="{Binding SelectedContractNo, Mode=OneWay}"/><Run Text="  (go into the invoice package)"/></TextBlock>
@@ -174,5 +177,100 @@
                 </DataGrid>
             </DockPanel>
         </Border>
+
+        <!-- terms, rules, obligations -->
+        <Grid Grid.Row="3" Visibility="{Binding IsTerms, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="200"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding ContractNos}" SelectedItem="{Binding SelectedContractNo, Mode=TwoWay}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding ReaderStatus, Mode=OneWay}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="12,0,0,0" FontSize="10"/>
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="{Binding TermsText}" Style="{StaticResource Body}" TextWrapping="Wrap" Margin="0,8,0,8"/>
+                    <DockPanel Grid.Row="2">
+                        <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                            <TextBlock Text="CONTRACT RULES - WARNINGS ONLY, NEVER BLOCKING (EDIT, THEN SAVE RULE)" Style="{StaticResource PanelTitle}" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Style="{StaticResource BtnGhost}" Content="ADD" Command="{Binding AddRuleCommand}"/>
+                                <Button Style="{StaticResource BtnGhost}" Content="DELETE" Command="{Binding DeleteRuleCommand}" Margin="6,0,0,0"/>
+                                <Button Style="{StaticResource BtnPrimary}" Content="SAVE RULE" Command="{Binding SaveRuleCommand}" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                        <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding RuleRows}" SelectedItem="{Binding SelectedRule, Mode=TwoWay}" IsReadOnly="False">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Header="ON" Binding="{Binding Enabled}" Width="40"/>
+                                <DataGridTextColumn Header="RULE" Binding="{Binding RuleType}" Width="120"/>
+                                <DataGridTextColumn Header="SUMMARY" Binding="{Binding Summary}" Width="*" MinWidth="200"/>
+                                <DataGridTextColumn Header="PARAMETERS" Binding="{Binding ParamsJson}" Width="200"/>
+                                <DataGridTextColumn Header="ITEMS" Binding="{Binding ItemNos}" Width="90"/>
+                                <DataGridTextColumn Header="CLAUSE" Binding="{Binding ClauseNo}" Width="56" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="P" Binding="{Binding SourcePage}" Width="30" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="ORIGIN" Binding="{Binding Origin}" Width="60" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                    <TextBlock Grid.Row="3" Text="CLAUSES (AS READ FROM THE SIGNED CONTRACT)" Style="{StaticResource PanelTitle}" Margin="0,10,0,6"/>
+                    <DataGrid Grid.Row="4" Style="{StaticResource CardGrid}" ItemsSource="{Binding ClauseRows}" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="CLAUSE" Binding="{Binding ClauseNo}" Width="56"/>
+                            <DataGridTextColumn Header="TITLE" Binding="{Binding Title}" Width="140"/>
+                            <DataGridTextColumn Header="TEXT" Binding="{Binding TextAr}" Width="*">
+                                <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="FlowDirection" Value="RightToLeft"/></Style></DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="RULES" Binding="{Binding RulesFound}" Width="110"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <TextBlock Text="OBLIGATIONS CALENDAR (ALL CONTRACTS)" Style="{StaticResource PanelTitle}"/>
+                    <Grid Grid.Row="1" Margin="0,6,0,6">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel><TextBlock Text="COMPLETION DATE" Style="{StaticResource Label}"/><DatePicker SelectedDate="{Binding CompletionDate, Mode=TwoWay}"/></StackPanel>
+                        <StackPanel Grid.Column="2"><TextBlock Text="HANDOVER DATE" Style="{StaticResource Label}"/><DatePicker SelectedDate="{Binding HandoverDate, Mode=TwoWay}"/></StackPanel>
+                        <Button Grid.Column="3" Style="{StaticResource BtnGhost}" Content="SAVE DATES" Command="{Binding SaveDatesCommand}" VerticalAlignment="Bottom" Margin="8,0,0,0"/>
+                    </Grid>
+                    <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding ObligationRows}" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="DATE" Binding="{Binding Date, StringFormat=dd-MMM-yyyy}" Width="90"/>
+                            <DataGridTextColumn Header="WHAT" Binding="{Binding Kind}" Width="120"/>
+                            <DataGridTextColumn Header="DETAIL" Binding="{Binding Text}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Grid.Row="3" Text="BYPASSES (WHO / WHEN / WHY)" Style="{StaticResource PanelTitle}" Margin="0,10,0,6"/>
+                    <DataGrid Grid.Row="4" Style="{StaticResource CardGrid}" ItemsSource="{Binding BypassRows}" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="WHEN" Binding="{Binding BypassedAt, StringFormat=dd-MMM HH:mm}" Width="84"/>
+                            <DataGridTextColumn Header="BY" Binding="{Binding BypassedBy}" Width="70"/>
+                            <DataGridTextColumn Header="RULE" Binding="{Binding RuleType}" Width="100"/>
+                            <DataGridTextColumn Header="ON" Binding="{Binding ContextKey}" Width="120"/>
+                            <DataGridTextColumn Header="REASON" Binding="{Binding Reason}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- compare contracts -->
+        <Grid Grid.Row="3" Visibility="{Binding IsCompare, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="TERMS SIDE BY SIDE" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding CompareTerms}" AutoGenerateColumns="True" IsReadOnly="True" MaxHeight="260"/>
+                </DockPanel>
+            </Border>
+            <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="RATES FOR THE SAME KIND OF ITEM (MATCHED BY STAGE, CONDUIT, MOUNT, HEIGHT, CATEGORY, SYSTEMS, SIZE, UNIT)" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding CompareRates}" AutoGenerateColumns="True" IsReadOnly="True"/>
+                </DockPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

@@ -13,7 +13,7 @@ using Raffaello.Core.Documents.Smart;
 namespace Raffaello.App.ViewModels;
 
 /// <summary>One extracted field on the review screen; editing it confirms it.</summary>
-public sealed partial class ReviewField : ObservableObject
+public sealed class PdfReviewField : ObservableObject
 {
     public required FieldResult F { get; init; }
     public int Page => F.Page;
@@ -48,11 +48,13 @@ public sealed partial class ReviewField : ObservableObject
         : F.NeedsReview || F.Confidence < 0.75 ? new SolidColorBrush(Color.FromRgb(0x8B, 0, 0))
         : F.Confidence < 0.9 ? new SolidColorBrush(Color.FromRgb(0xE0, 0xC0, 0x00)) : new SolidColorBrush(Color.FromRgb(0x2E, 0x8B, 0x57));
 
-    [ObservableProperty] private double _x;
-    [ObservableProperty] private double _y;
-    [ObservableProperty] private double _w;
-    [ObservableProperty] private double _h;
-    [ObservableProperty] private bool _isSelected;
+    private double _bx, _by, _bw, _bh;
+    private bool _sel;
+    public double X { get => _bx; set => SetProperty(ref _bx, value); }
+    public double Y { get => _by; set => SetProperty(ref _by, value); }
+    public double W { get => _bw; set => SetProperty(ref _bw, value); }
+    public double H { get => _bh; set => SetProperty(ref _bh, value); }
+    public bool IsSelected { get => _sel; set => SetProperty(ref _sel, value); }
 }
 
 public sealed partial class DiffRow : ObservableObject
@@ -91,10 +93,10 @@ public sealed partial class ContractPdfImportViewModel : ObservableObject
         _renderer = renderer;
         foreach (var p in result.Document.Pages)
             Pages.Add(new PageOption(p.Number, $"p{p.Number}  {p.Kind.Type}  {p.Source}{(p.Source == TextSource.Ocr ? $" {p.Confidence:0.00}" : "")}"));
-        foreach (var (name, f) in result.Body.Fields) Fields.Add(new ReviewField { F = f, Row = "HEADER" });
+        foreach (var (name, f) in result.Body.Fields) Fields.Add(new PdfReviewField { F = f, Row = "HEADER" });
         foreach (var it in result.Schedule.Items)
             foreach (var f in it.Fields.Where(f => f.Status != FieldStatus.Missing || f.Name != ColumnRoles.Desc))
-                Fields.Add(new ReviewField { F = f, Row = "item " + it.ItemNo });
+                Fields.Add(new PdfReviewField { F = f, Row = "item " + it.ItemNo });
         foreach (var d in result.Diffs) Diffs.Add(new DiffRow { D = d });
         Terms = TermsText(result);
         foreach (var c in result.Body.Clauses) Clauses.Add(c);
@@ -105,8 +107,8 @@ public sealed partial class ContractPdfImportViewModel : ObservableObject
 
     public string Title => $"CONTRACT PDF IMPORT - {Result.Document.FileName}";
     public ObservableCollection<PageOption> Pages { get; } = new();
-    public ObservableCollection<ReviewField> Fields { get; } = new();
-    public ObservableCollection<ReviewField> PageBoxes { get; } = new();
+    public ObservableCollection<PdfReviewField> Fields { get; } = new();
+    public ObservableCollection<PdfReviewField> PageBoxes { get; } = new();
     public ObservableCollection<DiffRow> Diffs { get; } = new();
     public ObservableCollection<ContractClause> Clauses { get; } = new();
     public ObservableCollection<ContractRule> Rules { get; } = new();
@@ -119,7 +121,7 @@ public sealed partial class ContractPdfImportViewModel : ObservableObject
     [ObservableProperty] private double _imageWidth = 1;
     [ObservableProperty] private double _imageHeight = 1;
     [ObservableProperty] private double _zoom = 0.35;
-    [ObservableProperty] private ReviewField? _selectedField;
+    [ObservableProperty] private PdfReviewField? _selectedField;
     [ObservableProperty] private DiffRow? _selectedDiff;
     [ObservableProperty] private string _summary = "";
     [ObservableProperty] private string _contractNo = "";
@@ -136,7 +138,7 @@ public sealed partial class ContractPdfImportViewModel : ObservableObject
 
     partial void OnSelectedPageChanged(PageOption? value) => _ = LoadPageAsync(value);
 
-    partial void OnSelectedFieldChanged(ReviewField? oldValue, ReviewField? newValue)
+    partial void OnSelectedFieldChanged(PdfReviewField? oldValue, PdfReviewField? newValue)
     {
         if (oldValue != null) oldValue.IsSelected = false;
         if (newValue is null) return;

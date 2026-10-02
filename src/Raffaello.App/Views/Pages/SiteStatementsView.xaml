@@ -62,7 +62,12 @@
                     <TextBlock Text="POST AS INVOICE NO" Style="{StaticResource Label}"/>
                     <TextBox Text="{Binding InvoiceNo, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
                 </StackPanel>
-                <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="OPEN FILLED STATEMENT" Command="{Binding OpenCommand}" VerticalAlignment="Bottom" Margin="10,0,0,0"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="10,0,0,0">
+                    <Button Style="{StaticResource BtnGhost}" Content="OPEN FILLED STATEMENT" Command="{Binding OpenCommand}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="READ SCANNED STATEMENT" Command="{Binding ReadScannedStatementCommand}" Margin="6,0,0,0"
+                            ToolTip="Handwritten summary + marked typical-unit drawings, read offline into a DRAFT (pages below). Handwriting is weak offline - check every line."/>
+                    <TextBox Text="{Binding ScanPages, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="6,0,0,0" ToolTip="Pages to read, e.g. 1-6"/>
+                </StackPanel>
                 <TextBlock Grid.Column="2" Text="{Binding PreviewText}" Style="{StaticResource BodyStrong}" VerticalAlignment="Bottom" Margin="14,0" TextTrimming="CharacterEllipsis"/>
             </Grid>
             <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding Preview}" VirtualizingPanel.IsVirtualizing="True">

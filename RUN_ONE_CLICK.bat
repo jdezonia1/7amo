@@ -29,6 +29,8 @@ dotnet test tests\Raffaello.Server.Tests\Raffaello.Server.Tests.csproj -c Releas
 REM [phase5] end
 REM [phase6] Aconex browser tests against the local mock site (use Microsoft Edge; skipped when no browser can start)
 dotnet test tests\Raffaello.Automation.Tests\Raffaello.Automation.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
+REM smart document reader: offline OCR stack (PaddleOCR + OpenCV + PDFium) on synthetic pages
+dotnet test tests\Raffaello.Ocr.Tests\Raffaello.Ocr.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
 
 echo [4/5] Publishing self-contained win-x64 single file to publish\ ...
 dotnet publish src\Raffaello.App\Raffaello.App.csproj -c Release -r win-x64 --self-contained true ^

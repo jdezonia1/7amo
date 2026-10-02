@@ -27,8 +27,11 @@ public sealed partial class AconexHubViewModel : PageViewModel
 
     private readonly DispatcherTimer _daily = new() { Interval = TimeSpan.FromMinutes(1) };
 
-    public AconexHubViewModel(PageContext ctx, AconexAutomationService automation, AconexViewModel scripts) : base(ctx)
+    public Services.SmartReading Reading { get; }
+
+    public AconexHubViewModel(PageContext ctx, AconexAutomationService automation, AconexViewModel scripts, Services.SmartReading reading) : base(ctx)
     {
+        Reading = reading;
         Automation = automation;
         Scripts = scripts;
         Lookup = new AconexLookupViewModel(this);
@@ -270,6 +273,40 @@ public sealed partial class AconexLookupViewModel : ObservableObject
             if (await hub.C.Data.WriteAsync(x => msg = x.Workflow.ApplyAconexOutcome(p), hub.C.Toasts))
                 hub.C.Toasts.Show(p.Action == OutcomeProposal.Approve ? "INVOICE APPROVED" : "INVOICE REJECTED", msg, ToastKind.Good, 8);
         }
+    }
+
+    /// <summary>
+    /// A printed / scanned Aconex "Search Workflows" screenshot (image or PDF, any orientation) read offline into the workflow steps and
+    /// stored as a check, exactly like a live lookup (current step, overdue, outcome).
+    /// </summary>
+    [RelayCommand]
+    private async Task ReadScreenshot()
+    {
+        var path = _hub.C.Dialogs.OpenFile("Aconex workflow screenshot (PDF or image)", "Screenshot|*.pdf;*.png;*.jpg;*.jpeg|All files|*.*");
+        if (path is null) return;
+        try
+        {
+            var opts = _hub.Reading.Options(new Progress<string>(m => _hub.AddLog(m)));
+            var doc = await Task.Run(() => Raffaello.Core.Documents.Smart.SmartReader.ReadAsync(path, opts));
+            var pages = doc.Pages.Where(p => p.Kind.Type == Raffaello.Core.Documents.Smart.DocTypes.AconexScreenshot).ToList();
+            if (pages.Count == 0) pages = doc.Pages.Take(1).ToList();
+            var found = 0;
+            foreach (var page in pages)
+            {
+                var read = Raffaello.Core.Documents.Smart.AconexScreenshotExtractor.Read(page, _hub.Automation.Config, DateTime.Today);
+                foreach (var i in read.Issues) _hub.AddLog($"p{page.Number}: {i.Message}");
+                if (read.Result is not { Steps.Count: > 0 } r) continue;
+                var inv = SelectedInvoice?.WorkflowNo is { Length: > 0 } iw && WorkflowParser.NormalizeWf(iw) == WorkflowParser.NormalizeWf(r.WorkflowNo) ? SelectedInvoice : null;
+                _hub.Automation.Store.SaveCheck(r, inv?.Id);
+                WorkflowNo = r.WorkflowNo;
+                found++;
+                await OfferOutcomesAsync(_hub, new[] { r });
+            }
+            if (found == 0) { _hub.C.Toasts.Show("NO WORKFLOW TABLE FOUND", "The screenshot needs the Search Workflows table with Step Name / Assigned To / Date Due.", ToastKind.Warn); return; }
+            ShowLatest();
+            _hub.C.Toasts.Show("SCREENSHOT READ", $"{WorkflowNo}: {Steps.Count} step(s) - check them against the picture", ToastKind.Good, 8);
+        }
+        catch (Exception ex) { _hub.C.Toasts.Show("CANNOT READ SCREENSHOT", ex.Message, ToastKind.Error); }
     }
 
     [RelayCommand]

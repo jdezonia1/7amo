@@ -27,7 +27,57 @@ public sealed class StatementPreviewRow
 /// <summary>Site statements: generate the per-room sheet for a subcontractor, read it back with duplicate detection and remaining checks.</summary>
 public sealed partial class SiteStatementsViewModel : PageViewModel
 {
-    public SiteStatementsViewModel(PageContext ctx) : base(ctx) { }
+    private readonly Services.SmartReading _reading;
+    public SiteStatementsViewModel(PageContext ctx, Services.SmartReading reading) : base(ctx) { _reading = reading; }
+
+    /// <summary>Pages of a scanned statement to read (summary + marked typical-unit drawings), e.g. "1-6".</summary>
+    [ObservableProperty] private string _scanPages = "1-6";
+
+    /// <summary>
+    /// A scanned / handwritten statement (summary table + marked drawings) read offline into a DRAFT: rows (stage, unit type, systems, %,
+    /// rooms) x the counts written on the typical-unit drawing -> claim lines, checked against the room caps like any statement.
+    /// Handwriting read offline is weak: every line is a draft to correct before posting.
+    /// </summary>
+    [RelayCommand]
+    private async Task ReadScannedStatement()
+    {
+        var path = Ctx.Dialogs.OpenFile("Scanned site statement (PDF)", "PDF|*.pdf|All files|*.*");
+        if (path is null) return;
+        if (string.IsNullOrWhiteSpace(Sub)) { Ctx.Toasts.Show("SUBCONTRACTOR NEEDED", "Enter the subcontractor first.", ToastKind.Warn); return; }
+        var set = new HashSet<int>();
+        foreach (var part in ScanPages.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var ab = part.Split('-'); if (!int.TryParse(ab[0], out var a)) continue;
+            var b = ab.Length > 1 && int.TryParse(ab[1], out var bb) ? bb : a;
+            for (var i = a; i <= b; i++) set.Add(i);
+        }
+        var inv = int.TryParse(InvoiceNo, out var n) ? n : 0;
+        try
+        {
+            PreviewText = "READING THE SCAN (offline OCR)...";
+            var opts = _reading.Options(new Progress<string>(s => PreviewText = "READING  " + s));
+            var o2 = new Raffaello.Core.Documents.Smart.SmartReaderOptions { Engines = opts.Engines, Rasterizer = opts.Rasterizer, Vision = opts.Vision, Progress = opts.Progress, Pages = set.Count == 0 ? null : set.Contains };
+            var doc = await Task.Run(() => Raffaello.Core.Documents.Smart.SmartReader.ReadAsync(path, o2));
+            var summary = doc.Pages.Where(p => p.Kind.Type == Raffaello.Core.Documents.Smart.DocTypes.SiteStatement).ToList();
+            if (summary.Count == 0 && doc.Pages.Count > 0) summary.Add(doc.Pages[0]);
+            var drawings = doc.Pages.Where(p => p.Kind.Type == Raffaello.Core.Documents.Smart.DocTypes.MarkedDrawing).ToList();
+            var draft = Raffaello.Core.Documents.Smart.SiteStatementExtractor.Read(summary, drawings);
+            var no = StatementNo.Trim().Length > 0 ? StatementNo.Trim() : draft.StatementNo.Length > 0 ? draft.StatementNo : "SCAN-" + DateTime.Now.ToString("yyyyMMdd");
+            var res = Raffaello.Core.Documents.Smart.StatementDraftConverter.ToImport(draft, Project.Snapshot, Sub.Trim(), no, inv, WorkingBuilding);
+            _preview = res;
+            PreviewFile = path;
+            HasPreview = true;
+            PreviewText = $"DRAFT FROM SCAN: {draft.Rows.Count} row(s), {draft.Drawings.Count} marked drawing(s) - {res.Summary}. Check every line against the scan before posting.";
+            Preview.Clear();
+            foreach (var (line, check) in res.Checks) Preview.Add(new StatementPreviewRow { Line = line, Check = check });
+            Issues.Clear();
+            foreach (var i in draft.Issues) Issues.Add($"{i.Level.ToString().ToUpperInvariant()}  {i.Message}");
+            foreach (var i in res.Issues) Issues.Add($"{i.Level.ToString().ToUpperInvariant()}  {i.Message}");
+            foreach (var r in draft.Rows) Issues.Add($"ROW {r.No}: {r.Stage} {r.UnitType} {string.Join("+", r.Systems)} {(r.Pct is double pc ? pc.ToString("P0") : "")} rooms {string.Join(", ", r.Rooms)}  <- \"{r.Raw}\" (conf {r.Confidence:0.00})");
+            Raffaello.Core.Documents.DocArchive.Save(_reading.Documents, doc.ToDocText(), path, "SITE STATEMENT", nameof(Raffaello.Core.Domain.SiteStatement), no);
+        }
+        catch (Exception ex) { PreviewText = "No statement opened"; Ctx.Toasts.Show("CANNOT READ SCAN", ex.Message, ToastKind.Error); }
+    }
 
     public override string Key => "SiteStatements";
     public override string Title => "SITE STATEMENTS";

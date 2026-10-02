@@ -91,7 +91,7 @@ public sealed partial class ContractsViewModel
             TermsText = t is null ? "No terms read for this contract yet - IMPORT CONTRACT PDF (the signed contract) to get its terms, clauses and rules."
                 : $"{t.Subcontractor}  |  dated {t.ContractDate:dd-MMM-yyyy}  |  labour only {(t.LabourOnly ? "YES" : "NO")}  |  VAT {t.VatTreatment} {t.VatPct:P0}\n" +
                   $"Payment: {t.PaymentTerms}  |  tray / pulling / panels: {t.TrayPaymentTerms}\n" +
-                  $"Retention {(t.RetentionPct is double r ? r.ToString("P0") : "-")}  |  penalty {(t.DelayPenaltyPerWeek is double pw ? $"SAR {pw:N0}/week" : "-")} cap {(t.DelayPenaltyCapPct is double c ? c.ToString("P0") : "-")}  |  warranty {(t.WarrantyMonths is int m ? m + " months" : "-")}  |  source {t.SourceFile}";
+                  $"Retention {(t.RetentionPct is double rp ? rp.ToString("P0") : "-")}  |  penalty {(t.DelayPenaltyPerWeek is double pw ? $"SAR {pw:N0}/week" : "-")} cap {(t.DelayPenaltyCapPct is double cp ? cp.ToString("P0") : "-")}  |  warranty {(t.WarrantyMonths is int m ? m + " months" : "-")}  |  source {t.SourceFile}";
             foreach (var r in Docs.All<ContractRule>().Where(r => r.ContractNo == no).OrderBy(r => r.RuleType)) RuleRows.Add(r);
             foreach (var b in Docs.All<RuleBypass>().Where(b => b.ContractNo == no).OrderByDescending(b => b.BypassedAt)) BypassRows.Add(b);
             foreach (var c in Docs.All<ContractClause>().Where(c => c.ContractNo == no).OrderBy(c => int.TryParse(c.ClauseNo, out var v) ? v : 99)) ClauseRows.Add(c);

@@ -16,7 +16,27 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
     private List<PaletteEntry> _static = new();
     private Func<IEnumerable<PaletteEntry>>? _actions;
 
-    public CommandPaletteViewModel(DataService data, FilterState filter) { _data = data; _filter = filter; }
+    private readonly Raffaello.Core.Documents.IDocumentStore _docs;
+    public CommandPaletteViewModel(DataService data, FilterState filter, Raffaello.Core.Documents.IDocumentStore docs) { _data = data; _filter = filter; _docs = docs; }
+
+    /// <summary>Full-text hits in every page read by the document reader (DN numbers, contract codes, Arabic words).</summary>
+    private IEnumerable<PaletteEntry> DocumentHits(string q)
+    {
+        List<Raffaello.Core.Documents.DocSearchHit> hits;
+        try { hits = _docs.Search(q, 12); } catch (Exception) { yield break; }
+        foreach (var h in hits)
+        {
+            var module = h.LinkedTable switch { "Contract" => "Contracts", "MatDn" or "MatPo" or "MatMir" => "Materials", "SiteStatement" => "SiteStatements", _ => "" };
+            var rec = h;
+            yield return new("DOCUMENT", $"{h.FileName}  p{h.Page}  ({h.DocType}{(h.LinkedKey.Length > 0 ? " -> " + h.LinkedKey : "")})", h.Snippet, "",
+                () =>
+                {
+                    if (module.Length > 0) GoTo(module, new NavTarget(module, Key: rec.LinkedKey));
+                    var path = _docs.All<Raffaello.Core.Documents.DocRecord>().FirstOrDefault(d => d.Id == rec.DocRecordId)?.StoredPath;
+                    if (module.Length == 0 && path != null && System.IO.File.Exists(path)) DialogService.OpenWithShell(path);
+                });
+        }
+    }
 
     public ObservableCollection<PaletteEntry> Results { get; } = new();
     [ObservableProperty] private bool _isOpen;
@@ -110,6 +130,7 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
             var terms = q.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             bool Match(PaletteEntry e) => terms.All(t => e.Title.Contains(t, StringComparison.OrdinalIgnoreCase) || e.Detail.Contains(t, StringComparison.OrdinalIgnoreCase) || e.Group.Contains(t, StringComparison.OrdinalIgnoreCase));
             hits = source.Where(Match).Take(12).Concat(Dynamic(_nav).Where(Match).Take(40));
+            if (q.Length >= 3) hits = hits.Concat(DocumentHits(q));
         }
         Results.Clear();
         foreach (var h in hits) Results.Add(h);
