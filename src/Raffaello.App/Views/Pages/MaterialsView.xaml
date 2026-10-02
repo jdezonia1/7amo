@@ -1,0 +1,98 @@
+<UserControl x:Class="Raffaello.App.Views.Pages.MaterialsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
+    <Grid Margin="24,0,24,20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="14"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid>
+            <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="12"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="PURCHASE ORDERS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Pos}" SelectedItem="{Binding SelectedPo, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <Grid>
+                                        <TextBlock Text="{Binding Po.PoNo}" Style="{StaticResource BodyStrong}" FontSize="13"/>
+                                        <TextBlock Text="{Binding DeliveredPct, StringFormat=P0}" Style="{StaticResource NumTotal}" FontSize="12" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <TextBlock Text="{Binding Po.Supplier}" Style="{StaticResource Small}" FontSize="11" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
+                                    <ProgressBar Style="{StaticResource SlimProgress}" Value="{Binding DeliveredPct, Mode=OneWay}" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <Border Grid.Row="2" Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="ALARMS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Alarms}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource Well}" Margin="0,0,0,4">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <ContentControl Style="{StaticResource Tag}" Content="{Binding Status}"/>
+                                                <TextBlock Text="{Binding Title}" Style="{StaticResource BodyStrong}" FontSize="12" Margin="6,0,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="150"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Detail}" Style="{StaticResource Small}" FontSize="11" Margin="0,3,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="12"/>
+                <RowDefinition Height="230"/>
+            </Grid.RowDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12,10" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <ContentControl Style="{StaticResource Tag}" Content="{Binding TotalCheckStatus}" VerticalAlignment="Top" Margin="0,2,10,0"/>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="{Binding TotalCheck}" Style="{StaticResource BodyStrong}" FontSize="13"/>
+                        <TextBlock Text="{Binding PoSummary}" Style="{StaticResource Small}" FontSize="11"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <DataGrid x:Name="Grid" Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding Rows}" FrozenColumnCount="3"/>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Padding="12">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="DELIVERED vs PO  |  PER LINE" Style="{StaticResource Label}"/>
+                        <lvc:CartesianChart Series="{Binding LineSeries}" XAxes="{Binding LineX}" YAxes="{Binding LineY}" LegendPosition="Hidden" TooltipPosition="Top"/>
+                    </DockPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="CUMULATIVE DELIVERIES  |  % OF PO VALUE" Style="{StaticResource Label}"/>
+                        <lvc:CartesianChart Series="{Binding CumSeries}" XAxes="{Binding CumX}" YAxes="{Binding CumY}" LegendPosition="Hidden" TooltipPosition="Top"/>
+                    </DockPanel>
+                </Border>
+                <Border Grid.Column="4" Style="{StaticResource Card}" Padding="12">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="DN TIMELINE  |  BUBBLE = VALUE" Style="{StaticResource Label}"/>
+                        <lvc:CartesianChart Series="{Binding Timeline}" XAxes="{Binding TimelineX}" YAxes="{Binding TimelineY}" LegendPosition="Hidden" TooltipPosition="Top"/>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
