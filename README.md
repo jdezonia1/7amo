@@ -348,3 +348,28 @@ cores x size, CU / AL, LSOH, fire rated, conduit size / type, amps, ways, watts,
 Settings), lines OMISSION / ADDITION (contract rate) / NEW ITEM (material + labour + equipment, overhead %, profit %),
 totals and ageing, submission Excel / PDF and register export in the house style.
 <!-- [phase4] end -->
+
+<!-- [cables] begin -->
+## Cables - panel & cable register (TRACK > CABLES)
+
+Mohamed's rule: read panel names and cable FROM -> TO from drawings / SLDs, so a site statement that claims a FROM-TO already claimed is FLAGGED.
+
+- **Register** (`Raffaello.Core/Cables`): panels (normalised name, type, building, zone, level, fed-from parent, aliases) and cable runs
+  (FROM -> TO, cores x size, CU/AL, XLPE / LSOH / MICA, companion earth e.g. 1x16 with 4x16, design / measured length, breaker, source doc + page,
+  confidence). Name normaliser: spaces / hyphens / case / leading zeros / O-for-0 / token order ('SMDB HT-Z1-LB2- CM 01' = 'SMDB-HT-Z1-LB2-CM-01');
+  names without a building token are scoped by building. Similar names (FAN / FANS) are only suggested: confirm (merge + learned alias) or reject.
+- **Readers**: cable schedule Excel / CSV (header found anywhere, columns by synonyms, mapping remembered per header layout); SLD PDF (PdfPig vector text +
+  lines: boxes, feeder lines joined at junctions, bus bars, size / breaker / length annotations, printed schedule rows); DWG / DXF (ACadSharp 3.8.0, MIT:
+  attributes, TEXT / MTEXT, lines / polylines); scanned SLD through the document reader's layout OCR + rasterizer when registered. Review, edit, save.
+- **Claims**: tracker 'CABLES BRANDED' / 'CABLES HOTEL' (the subcontractors' cable statements) + ledger CABLE PULLING lines (paired with the sheet
+  rows that are the same claim, incl. per-size total lines - nothing counted twice); the site statement has a CABLES sheet (STAGE, SUBCONTRACTOR,
+  INVOICE #, LOCATION, LEVEL, FROM, TO, CABLE SIZE, QTY, SITE %, WIR %, WIR NO, NOTES) + a CABLE RUNS list. Claims without a design run create
+  PROVISIONAL runs ("from statements only - no design length"); a later SLD / schedule confirms them in place.
+- **Flags (warnings, bypass with reason, audited)**: DUPLICATE FROM-TO (same route + size + stage, any sub / invoice, with the earlier claims),
+  OVER LENGTH, CUMULATIVE > 100 %, EARTH COMPANION (info), STAGE BEFORE PULLING, UNKNOWN RUN, DIFFERENT SPELLING. Shown in the statement preview,
+  ledger entry (cable lines), invoice build warnings, Needs-today, 09_Cable_checks.pdf in the invoice package and the Cables page.
+- **Invoicing**: pulling claims are ledger lines (existing mapping: cable item by size -> BOQ code, 70 %); TERMINATION & TEST (20 %) and HANDOVER (10 %)
+  are added by the invoice hook to the same item row (row at that stage % if the layout has one, else converted qty x stage % / row %).
+- Server: `CablesServerModule`; client `RemoteCableStore` / `CableStoreSelector`. CLI: `cables-import-tracker FILE`, `cables-report [--out DIR]`,
+  `cables-read FILE [--save]`, `cables-dump FILE`.
+<!-- [cables] end -->

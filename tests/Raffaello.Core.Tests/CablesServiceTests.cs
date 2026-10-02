@@ -221,4 +221,17 @@ public class CablesServiceTests
         Assert.Equal(6, CableStore.EntityTypes.Length);
         Assert.Contains(typeof(CableClaim), Remote.ModuleEntities.All);
     }
+
+    [Fact]
+    public void Ledger_cable_line_posted_by_hand_joins_the_register_and_warns_on_duplicates()
+    {
+        var (db, svc) = NewService();
+        svc.Import(new[] { Claim("SUBA", 1, "SMDB-HT-Z1-LB2-CM-01", "LDB-HT-Z1-LB2-03", "4x16", 145) }, null, "INV 1");
+        var line = new ClaimLine { Building = Buildings.Hotel, Subcontractor = "SUBB", InvoiceNo = 2, Stage = "CABLE PULLING", Room = "SMDB HT-Z1-LB2- CM 01", Item = "4X16", Qty = 140, Notes = "LDB-HT-Z1-LB2-03", SourceKey = "MAN-1" };
+        db.Insert(line);
+        var warn = CableHooks.LedgerPosted(db, line);
+        Assert.Contains(CableFlagCodes.Duplicate, warn);
+        Assert.Equal(2, svc.Load().Claims.Count);
+        Assert.Equal("", CableHooks.LedgerPosted(db, new ClaimLine { Stage = "1ST FIX", SourceKey = "X" }));
+    }
 }

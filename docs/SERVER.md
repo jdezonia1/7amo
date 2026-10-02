@@ -148,3 +148,12 @@ the environment variable `Kestrel__Certificates__Default__Password`.
 `RemoteVariationStore` (`src/Raffaello.Core/Remote/RemoteModuleStores.cs`) when `DataSourceFactory.Current` is set; the app picks
 the implementation per call (`MaterialsStoreSelector`). `ModuleEntities.RegisterAll()` makes the migration and the offline
 cache include these tables; a data reset clears them on both sides.
+
+<!-- [cables] begin -->
+## Cables module
+
+`CablesServerModule` (`CablePanels`, `CablePanelAliases`, `CableRuns`, `CableClaims`, `CableFlagDecisions`, `CableImportProfiles`) is in
+`ServerModules.All`; no write guard (cable flags are warnings, computed client side by `CableFlagEngine`). Client: `RemoteCableStore`,
+picked per call by `CableStoreSelector`; the types are in `ModuleEntities.All` (migration, offline cache, reset). Run references (C-0001) are assigned
+before insert, so batches with temporary ids work.
+<!-- [cables] end -->
