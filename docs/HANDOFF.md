@@ -30,6 +30,15 @@ Read first: `docs/REQUIREMENTS.md` (all of Mohamed's rules and answers), `docs/R
 - Still to check on Windows: the new CABLES tab, the statement WARNINGS panel, the Assemblies "route length" line; labels of
   scanned drawings are not OCR-read for measured lengths (vector PDF words / CAD texts only - type the circuit text on scans).
 
+## 2b. To build next (answers from Mohamed, 02-Oct)
+- **Bills (Branded owner BOQ): B5 = BASEMENT, B6 = APARTMENTS.** BOQ-code mapping must pick the bill from the claim's
+  location: basement levels (Basement 1 / B1 / LB1 / LB2, plot basements like P2-BS1) → B5 codes; apartments and other
+  above-ground residence areas → B6. Unknown location → flag "bill not determined", never guess. Configurable rule table
+  (building → level/area pattern → bill). Hotel bills B2/B3 unchanged until explained. Re-check CONCRETE PLUS B5 citations.
+- **Gas meter items are SEPARATE from BMS.** The contract link table wrongly links Metering-section items to
+  B6-01-01-00-6-22-X-18 ("BMS system"): exclude it for gas/metering, propose the right gas-meter codes from E-Promise for
+  confirmation, and add a "link-table check" warning for contract items linked to a BOQ code of a different system.
+
 ## 3. Real-system checks
 - Aconex browser automation: edit `%APPDATA%\Raffaello\aconex.config.json` selectors; test 1 workflow + 3–4 WIRs.
 - Server: `SETUP_SERVER.bat` on the always-on PC from IT; Windows sign-in; migrate local data (dry run first).
@@ -37,8 +46,8 @@ Read first: `docs/REQUIREMENTS.md` (all of Mohamed's rules and answers), `docs/R
 - Claude: set the API key in Settings; test the assistant and cloud reading of handwritten statements.
 
 ## 4. Open questions for Mohamed
-- B5 vs B6 bills; CONCRETE PLUS cited codes (AV S-9 vs U-11, EVAC C-9 vs D-9, GRMS W-7 vs AB-7, lighting areas).
-- Gas meter items linked to "BMS system" (6-22-X-18)? 2nd-fix GRMS for ROOTS? Hotel DB panel BOQ code?
+- CONCRETE PLUS cited codes (AV S-9 vs U-11, EVAC C-9 vs D-9, GRMS W-7 vs AB-7, lighting areas).
+- 2nd-fix GRMS for ROOTS? Hotel DB panel BOQ code?
 - Cable stages 20 % / 10 % conversion rule when the invoice row is at another %.
 - BOQ breakdown defaults (route lengths, drops, waste, 18 SAR/man-hour, OH/profit 10 %) and material norms (Insights).
 - Owner BOQ with rates, MOS %, owner invoice template; CONCRETE PLUS invoice files 1–9 (cumulative split).
