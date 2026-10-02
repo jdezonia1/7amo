@@ -230,6 +230,16 @@ public static class ContractPdfImport
         return rec;
     }
 
+    /// <summary>Confirm &amp; learn: stores / refines the schedule layout template for this issuer so the next contract of the same form reads deterministically.</summary>
+    public static ReadTemplate LearnTemplate(ContractPdfReadResult res, IDocumentStore docs)
+    {
+        var issuer = Issuer(res.Document);
+        var pages = res.Document.Pages.Where(p => p.Kind.Type == DocTypes.RateSchedule).ToList();
+        var existing = docs.All<ReadTemplate>().FirstOrDefault(t => t.DocType == DocTypes.RateSchedule && string.Equals(t.Issuer, issuer, StringComparison.OrdinalIgnoreCase));
+        var t = TemplateLearner.LearnSchedule(existing, issuer, res.Schedule, pages);
+        return t.Id == 0 ? docs.Insert(t, $"Template learned: {t.DocType} / {t.Issuer}") : docs.Update(t, $"Template refined: {t.DocType} / {t.Issuer} ({t.Confirmations} confirmations)");
+    }
+
     /// <summary>Document record for a read file (evidence path = where the original is kept).</summary>
     public static DocRecord Archive(SmartDocument doc, string type, string linkedTable, string linkedKey, string evidencePath, string user) => new()
     {
