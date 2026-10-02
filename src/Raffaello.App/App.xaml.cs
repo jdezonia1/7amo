@@ -122,6 +122,12 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, OwnerMosViewModel>();
                 s.AddSingleton<PageViewModel, BoqViewModel>();
                 // [phase3] end
+                // [drawings] begin - takeoff / statement check / revision compare (store follows the data source)
+                s.AddSingleton<Raffaello.Core.Drawings.IDrawingStore>(sp => new Raffaello.Core.Drawings.DrawingStoreSelector(() => sp.GetRequiredService<ProjectService>().Store));
+                s.AddSingleton(sp => new Raffaello.Core.Drawings.DrawingsService(sp.GetRequiredService<Raffaello.Core.Drawings.IDrawingStore>(), Raffaello.Core.Drawings.DrawingSettings.Load(),
+                    new Raffaello.Core.Drawings.PdfiumRasterizer(), () => sp.GetRequiredService<ProjectService>().Store));
+                s.AddSingleton<PageViewModel, DrawingsViewModel>();
+                // [drawings] end
                 s.AddSingleton<PageViewModel, WirViewModel>();
                 s.AddSingleton<PageViewModel, ContractsViewModel>();
                 s.AddSingleton<PageViewModel, InvoicesViewModel>();

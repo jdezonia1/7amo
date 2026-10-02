@@ -35,6 +35,7 @@
         <DataTemplate DataType="{x:Type vm:MaterialsHubViewModel}"><pages:MaterialsHubView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:OwnerMosViewModel}"><pages:OwnerMosView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BoqViewModel}"><pages:BoqView/></DataTemplate>
+        <!-- [drawings] begin --><DataTemplate DataType="{x:Type vm:DrawingsViewModel}"><pages:DrawingsView/></DataTemplate><!-- [drawings] end -->
         <!-- [phase3] end -->
 
         <Style x:Key="FilterCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">

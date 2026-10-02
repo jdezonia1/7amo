@@ -45,6 +45,9 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 // [phase4] begin
                 Item("Variations", "VARIATIONS / EI", "IconContracts", ""),
                 // [phase4] end
+                // [drawings] begin
+                Item("Drawings", "DRAWINGS", "IconPlan", ""),
+                // [drawings] end
                 // [phase3] begin
                 Item("Boq", "BOQ", "IconDatabase", ""),
                 // [phase3] end
@@ -145,6 +148,9 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         // [phase4] begin
         new PaletteEntry("ACTION", "Aconex: where is each invoice", "Invoice status board (workflow step, who, due)", "", () => Go("Aconex")),
         new PaletteEntry("ACTION", "Variations / EI", "Register, suggestions, submission export", "", () => Go("Variations")),
+        // [drawings] begin
+        new PaletteEntry("ACTION", "Drawing takeoff", "Count symbols / measure lines on PDF, DWG, DXF, IFC; statement highlights; revision compare", "", () => Go("Drawings")),
+        // [drawings] end
         // [phase4] end
     };
 
