@@ -53,7 +53,7 @@ public static class SupplierInvoices
         var header = new SubInvoice
         {
             Subcontractor = po.Supplier, ContractNo = po.PoNo, InvoiceNo = invoiceNo, Revision = revision, Status = SubInvoiceStatus.Draft, CreatedAt = DateTime.Now,
-            RetentionPct = po.RetentionPct, AdvancePct = po.AdvancePct, Notes = $"{Marker} | PO {po.PoNo}",
+            RetentionPct = po.RetentionPct, AdvancePct = po.AdvancePct, Notes = $"{Marker} | PO {po.PoNo}", Kind = InvoiceKinds.Supplier,
             PeriodTo = current.Select(l => dnHeader.GetValueOrDefault(l.DnId)?.DnDate).Where(d => d != null).DefaultIfEmpty(null).Max(),
         };
         var build = new InvoiceBuild { Header = header, PreviousApproved = p.SubInvoices.Where(i => i.ContractNo == po.PoNo && i.Subcontractor == po.Supplier && i.Status == SubInvoiceStatus.Approved && i.InvoiceNo < invoiceNo).OrderByDescending(i => i.InvoiceNo).FirstOrDefault() };

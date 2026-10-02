@@ -254,6 +254,22 @@ public sealed partial class AconexLookupViewModel : ObservableObject
         ShowLatest();
         LoadAttachments();
         _hub.C.Toasts.Show(r.State, r.Summary, r.State is WorkflowStates.Error or WorkflowStates.NotFound ? ToastKind.Warn : r.IsOverdue ? ToastKind.Warn : ToastKind.Good, 8);
+        await OfferOutcomesAsync(_hub, new[] { r });
+    }
+
+    /// <summary>[phase6] Approved / rejected in Aconex: ask (never silently) whether to record it on the linked invoice revision.</summary>
+    internal static async Task OfferOutcomesAsync(AconexHubViewModel hub, IEnumerable<WorkflowLookupResult> results)
+    {
+        foreach (var r in results)
+        {
+            OutcomeProposal? p;
+            try { p = AconexOutcomes.Propose(r, hub.Automation.Store.ActiveLinks(), hub.Project.Snapshot.SubInvoices); }
+            catch (Exception) { continue; }
+            if (p is null || !hub.C.Dialogs.Confirm(p.Action == OutcomeProposal.Approve ? "Aconex: approved" : "Aconex: rejected", p.Question)) continue;
+            string msg = "";
+            if (await hub.C.Data.WriteAsync(x => msg = x.Workflow.ApplyAconexOutcome(p), hub.C.Toasts))
+                hub.C.Toasts.Show(p.Action == OutcomeProposal.Approve ? "INVOICE APPROVED" : "INVOICE REJECTED", msg, ToastKind.Good, 8);
+        }
     }
 
     [RelayCommand]
@@ -346,6 +362,7 @@ public sealed partial class AconexBoardViewModel : ObservableObject
         var overdue = results.Count(r => r.IsOverdue);
         _hub.C.Toasts.Show(auto ? "DAILY ACONEX REFRESH" : "STATUS BOARD REFRESHED", $"{results.Count} workflows checked, {overdue} overdue, {results.Count(r => r.State == WorkflowStates.Error)} errors",
             overdue > 0 ? ToastKind.Warn : ToastKind.Good, 8);
+        await AconexLookupViewModel.OfferOutcomesAsync(_hub, results);
     }
 
     [RelayCommand] private void Stop() => _cts?.Cancel();

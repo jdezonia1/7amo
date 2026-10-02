@@ -47,7 +47,7 @@ public sealed partial class ChecksViewModel : PageViewModel
     public override string Title => "CHECKS";
     public override string Subtitle => "HEIGHT CHECK (>4.5 m) and LENGTH CHECK (15 m rule) - pending lines are held out of invoicing";
     public override bool ShowFilterBar => false;
-    protected override bool UsesFilter => false;
+    protected override bool UsesFilter => true;   // [phase6] the building switcher drives it
 
     public string[] Kinds { get; } = { "HEIGHT", "LENGTH" };
     public string[] Scopes { get; } = { "PENDING", "ALL" };
@@ -100,7 +100,7 @@ public sealed partial class ChecksViewModel : PageViewModel
         var keep = Selected?.Line.Id;
         var claims = Project.Snapshot.Claims;
         var height = IsHeight;
-        var all = claims.Where(c => height ? c.QtyAbove45 != 0 : c.LengthApplies).Select(c => new CheckRow { Line = c, IsHeight = height }).ToList();
+        var all = claims.Where(c => InBuilding(c.Building) && (height ? c.QtyAbove45 != 0 : c.LengthApplies)).Select(c => new CheckRow { Line = c, IsHeight = height }).ToList();
         var q = all.AsEnumerable();
         if (Scope == "PENDING") q = q.Where(r => r.Pending);
         if (SubFilter is { Length: > 0 } s && s != "ALL") q = q.Where(r => r.Sub == s);

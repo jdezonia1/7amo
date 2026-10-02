@@ -68,7 +68,7 @@ public sealed partial class LedgerViewModel : PageViewModel
     public override string Title => "ROOMS & LEDGER";
     public override string Subtitle => "Remaining = PROJECT QTY - all subcontractors, per room x stage x item (stages never summed)";
     public override bool ShowFilterBar => false;
-    protected override bool UsesFilter => false;
+    protected override bool UsesFilter => true;   // [phase6] the building switcher drives it
 
     public ObservableCollection<LedgerRoomRow> Rooms { get; } = new();
     public ObservableCollection<BalanceRow> Balances { get; } = new();
@@ -148,10 +148,10 @@ public sealed partial class LedgerViewModel : PageViewModel
         var s = Project.Snapshot;
         var byRoom = _balances.Values.GroupBy(b => b.Room, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
         var pending = s.Claims.Where(c => HeightCheck.IsPending(c) || LengthCheck.IsPending(c)).GroupBy(c => c.Room, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
-        var rooms = s.Rooms.Where(r => r.Plot > 0 || r.Plan.Length > 0 || byRoom.ContainsKey(r.Code)).ToList();
+        var rooms = s.Rooms.Where(r => InBuilding(r.Building) && (r.Plot > 0 || r.Plan.Length > 0 || byRoom.ContainsKey(r.Code))).ToList();
         // ledger locations that are not rooms (stairs, panels ...) still need a row
-        foreach (var extra in byRoom.Keys.Where(k => rooms.All(r => !r.Code.Equals(k, StringComparison.OrdinalIgnoreCase))))
-            rooms.Add(new Room { Code = extra, Building = Buildings.Branded, RoomType = "NOT IN ROOMS", Level = s.Claims.FirstOrDefault(c => c.Room == extra)?.Floor ?? "" });
+        foreach (var extra in byRoom.Keys.Where(k => s.Rooms.All(r => !r.Code.Equals(k, StringComparison.OrdinalIgnoreCase)) && s.Claims.Any(c => c.Room == k && InBuilding(c.Building))))
+            rooms.Add(new Room { Code = extra, Building = WorkingBuilding, RoomType = "NOT IN ROOMS", Level = s.Claims.FirstOrDefault(c => c.Room == extra)?.Floor ?? "" });
         var q = rooms.AsEnumerable();
         if (!string.IsNullOrWhiteSpace(Search))
             q = q.Where(r => r.Code.Contains(Search, StringComparison.OrdinalIgnoreCase) || r.RoomType.Contains(Search, StringComparison.OrdinalIgnoreCase) || r.Level.Contains(Search, StringComparison.OrdinalIgnoreCase));
@@ -296,7 +296,7 @@ public sealed partial class LedgerViewModel : PageViewModel
         var file = Ctx.Dialogs.OpenFile("Tracker workbook (v19)", "Tracker|*.xlsm;*.xlsx|All files|*.*");
         if (file is null) return;
         TrackerImportResult? preview = null;
-        try { preview = await Task.Run(() => Project.Workflow.PreviewTracker(file, Buildings.Branded)); }
+        try { preview = await Task.Run(() => Project.Workflow.PreviewTracker(file, WorkingBuilding)); }
         catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ TRACKER", ex.Message, ToastKind.Error); return; }
         var issues = string.Join("\n", preview.Issues.GroupBy(i => System.Text.RegularExpressions.Regex.Replace(i.Message, @"row \d+", "row #")).Take(8).Select(g => $"- {g.Key} (x{g.Count()})"));
         if (!Ctx.Dialogs.Confirm("Import tracker", $"{preview.Summary}\n\nArea types: {string.Join(", ", preview.Rooms.GroupBy(r => r.AreaType).Select(g => $"{g.Key} {g.Count()}"))}\n\n{issues}\n\nImport? Ledger lines already imported are skipped; PROJECT QTY is replaced.")) return;
@@ -304,6 +304,22 @@ public sealed partial class LedgerViewModel : PageViewModel
         _plans = null;
         await Ctx.Data.WriteAsync(p => msg = p.Workflow.CommitTracker(preview), Ctx.Toasts);
         Ctx.Toasts.Show("TRACKER IMPORTED", msg, ToastKind.Good, 8);
+    }
+
+    /// <summary>[phase6] Room list of the building chosen in the switcher (HOTEL ...), columns found by header text.</summary>
+    [RelayCommand]
+    private async Task ImportRoomList()
+    {
+        var file = Ctx.Dialogs.OpenFile($"{WorkingBuilding} room list (Excel)");
+        if (file is null) return;
+        Raffaello.Core.Tracker.RoomListImportResult? r;
+        try { r = await Task.Run(() => Project.Workflow.PreviewRoomList(file, WorkingBuilding)); }
+        catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ ROOM LIST", ex.Message, ToastKind.Error); return; }
+        if (r.Rooms.Count == 0) { Ctx.Toasts.Show("NO ROOMS FOUND", string.Join("\n", r.Issues.Select(i => i.Message)), ToastKind.Warn, 10); return; }
+        var cols = string.Join(", ", r.ColumnsFound.Select(kv => $"{kv.Key} = '{kv.Value}'"));
+        if (!Ctx.Dialogs.Confirm("Import room list", $"{r.Summary}\n\nColumns: {cols}\n\n{string.Join("\n", r.Issues.Take(6).Select(i => "- " + i.Message))}\n\nImport into {WorkingBuilding}? Area types already set are kept.")) return;
+        string msg = "";
+        if (await Ctx.Data.WriteAsync(p => msg = p.Workflow.CommitRoomList(r), Ctx.Toasts)) Ctx.Toasts.Show("ROOM LIST IMPORTED", msg, ToastKind.Good, 8);
     }
 
     [RelayCommand] private void PlanRoom(string? room) { if (room != null) SelectRoom(room); }

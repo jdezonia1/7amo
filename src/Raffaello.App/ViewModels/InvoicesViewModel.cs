@@ -67,7 +67,7 @@ public sealed partial class InvoicesViewModel : PageViewModel
     public override string Title => "INVOICES";
     public override string Subtitle => "Built from the room ledger: claims up to this invoice no, previous = last approved invoice, approved invoices are locked";
     public override bool ShowFilterBar => false;
-    protected override bool UsesFilter => false;
+    protected override bool UsesFilter => true;   // [phase6] the building switcher drives it
 
     public ObservableCollection<string> ContractNos { get; } = new();
     public ObservableCollection<string> Subcontractors { get; } = new();
@@ -79,6 +79,13 @@ public sealed partial class InvoicesViewModel : PageViewModel
     public ObservableCollection<ContractItem> ItemChoices { get; } = new();
     public ObservableCollection<ContractItemBoq> BoqChoices { get; } = new();
     public string[] Tabs { get; } = { "LINES", "NEEDS CONFIRMATION", "WARNINGS", "DIFF" };
+    /// <summary>[phase6] Invoice kinds shown in the list.</summary>
+    public string[] KindOptions { get; } = new[] { "ALL" }.Concat(InvoiceKinds.All).ToArray();
+    [ObservableProperty] private string _kindFilter = InvoiceKinds.Subcontractor;
+    /// <summary>Building from the room ledger only applies to subcontractor invoices.</summary>
+    public bool CanBuildFromLedger => KindFilter is "ALL" or InvoiceKinds.Subcontractor;
+    partial void OnKindFilterChanged(string value) { OnPropertyChanged(nameof(CanBuildFromLedger)); Refresh(); }
+    private bool SelectedIsLedgerKind => _build?.Header is not { } h || InvoiceKinds.IsSubcontractor(h);
 
     [ObservableProperty] private string _contractNo = "";
     [ObservableProperty] private string _sub = "";
@@ -126,13 +133,14 @@ public sealed partial class InvoicesViewModel : PageViewModel
     protected override void Refresh()
     {
         var s = Project.Snapshot;
-        Sync(ContractNos, s.ContractItems.Select(i => i.ContractNo).Concat(s.TemplateRows.Select(t => t.ContractNo)).Where(x => x.Length > 0).Distinct().OrderBy(x => x));
+        Sync(ContractNos, s.ContractItems.Where(i => BuildingFilter is null || s.Contracts.Where(c => c.ContractNo == i.ContractNo).All(c => InBuilding(c.Building))).Select(i => i.ContractNo).Concat(s.TemplateRows.Select(t => t.ContractNo)).Where(x => x.Length > 0).Distinct().OrderBy(x => x));
         Sync(Subcontractors, s.Claims.Select(c => c.Subcontractor).Concat(s.SubInvoices.Select(i => i.Subcontractor)).Where(x => x.Length > 0).Distinct().OrderBy(x => x));
         if (ContractNo.Length == 0) ContractNo = ContractNos.FirstOrDefault() ?? "";
         if (Sub.Length == 0) Sub = s.Contracts.FirstOrDefault(c => c.ContractNo == ContractNo)?.Subcontractor is { Length: > 0 } cs ? cs : Subcontractors.FirstOrDefault() ?? "";
         var keep = SelectedStored?.Invoice.Id;
         Stored.Clear();
-        foreach (var inv in s.SubInvoices.OrderBy(i => i.Subcontractor).ThenByDescending(i => i.InvoiceNo).ThenByDescending(i => i.Revision))
+        foreach (var inv in s.SubInvoices.Where(i => KindFilter == "ALL" || InvoiceKinds.Of(i) == KindFilter)
+                     .OrderBy(i => i.Subcontractor).ThenByDescending(i => i.InvoiceNo).ThenByDescending(i => i.Revision))
         {
             var lines = s.SubInvoiceLines.Where(l => l.SubInvoiceId == inv.Id);
             Stored.Add(new StoredInvoiceRow { Invoice = inv, CurrGross = InvoiceTotals.Of(inv, lines).CurrGross });
@@ -301,6 +309,7 @@ public sealed partial class InvoicesViewModel : PageViewModel
     [RelayCommand]
     private async Task NewRevision()
     {
+        if (!SelectedIsLedgerKind) { Ctx.Toasts.Show("NOT A SUBCONTRACTOR INVOICE", "Supplier invoices are revised on the Materials page (from DN lines); owner MOS on the Owner MOS page.", ToastKind.Warn, 8); return; }
         if (StoredHeader() is not { } inv) return;
         if (inv.Locked) { Ctx.Toasts.Show("APPROVED INVOICES ARE LOCKED", "Build the next invoice number.", ToastKind.Warn); return; }
         if (inv.Status != SubInvoiceStatus.Rejected && !Ctx.Dialogs.Confirm("New revision", $"{inv.Title} is {inv.Status}. Build Rev {inv.Revision + 1} from the ledger anyway?")) return;
@@ -404,6 +413,7 @@ public sealed partial class InvoicesViewModel : PageViewModel
     [RelayCommand]
     private async Task ExportTracker()
     {
+        if (!SelectedIsLedgerKind) { Ctx.Toasts.Show("NO ROOM TRACKER FOR THIS INVOICE", "The head-office tracker covers the room ledger (subcontractor invoices). Supplier invoices use the MIR tracker on the Materials page.", ToastKind.Warn, 8); return; }
         var h = _build?.Header;
         var name = h is null ? $"TRACKER_ALL_{DateTime.Today:yyyyMMdd}.xlsx" : $"TRACKER_{Safe(h.Subcontractor)}_INV-{h.InvoiceNo}.xlsx";
         var path = Ctx.Dialogs.SaveFile("Head-office tracker (values only, protected)", name);

@@ -54,6 +54,12 @@ public abstract partial class PageViewModel : ObservableObject
     public FilterSpec Spec => Ctx.Filter.Spec;
     public DateTime Today => Ctx.Project.Options.Today;
 
+    /// <summary>[phase6] Building chosen in the header switcher (null = all).</summary>
+    public string? BuildingFilter => Ctx.Filter.Spec.Building;
+    /// <summary>Building used for imports / generation when one must be chosen (switcher, else BRANDED).</summary>
+    public string WorkingBuilding => BuildingFilter ?? Raffaello.Core.Domain.Buildings.Branded;
+    public bool InBuilding(string? building) => BuildingFilter is null || string.IsNullOrEmpty(building) || string.Equals(building, BuildingFilter, StringComparison.OrdinalIgnoreCase);
+
     /// <summary>Rows of the chain within the shared filter.</summary>
     public List<ChainRow> Scoped() => Spec.Apply(Ctx.Project.Chain).ToList();
 

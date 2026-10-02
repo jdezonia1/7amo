@@ -18,8 +18,8 @@ public sealed class AconexAutomationService : IAsyncDisposable, IDisposable
     private PlaywrightAconexClient? _client;
     private bool? _clientHeadless;
     private string? _storePath;
-    private SqliteAconexStore? _store;
-    private SqliteVariationStore? _variations;
+    private IAconexStore? _store;
+    private IVariationStore? _variations;
 
     public AconexAutomationService(ProjectService project)
     {
@@ -38,13 +38,25 @@ public sealed class AconexAutomationService : IAsyncDisposable, IDisposable
 
     private AconexConfig LoadConfigSafe(out string error)
     {
-        try { error = ""; ConfigError = ""; return AconexConfig.Load(ConfigPath); }
+        try { error = ""; ConfigError = ""; return WithProjectFolders(AconexConfig.Load(ConfigPath)); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidDataException)
         {
             error = $"{ConfigPath}: {ex.Message}";
             ConfigError = error;
             return new AconexConfig();
         }
+    }
+
+    /// <summary>[phase6] Empty Aconex folders fall back to the shared documents folder (Settings > Documents root).</summary>
+    private AconexConfig WithProjectFolders(AconexConfig c)
+    {
+        var f = Raffaello.Core.Settings.ProjectFolders.From(_project.Settings);
+        if (string.IsNullOrWhiteSpace(c.Folders.WirFolder)) c.Folders.WirFolder = f.Wir;
+        if (string.IsNullOrWhiteSpace(c.Folders.MirFolder)) c.Folders.MirFolder = f.Mir;
+        if (string.IsNullOrWhiteSpace(c.Folders.OtherFolder)) c.Folders.OtherFolder = f.Other;
+        if (string.IsNullOrWhiteSpace(c.Folders.ScreenshotFolder) || c.Folders.ScreenshotFolder == new Raffaello.Core.AconexWeb.FolderConfig().ScreenshotFolder)
+            c.Folders.ScreenshotFolder = f.AconexScreenshots;
+        return c;
     }
 
     /// <summary>Reads aconex.config.json again (after the user edited it). Returns the problem, or "" when fine.</summary>
@@ -64,10 +76,19 @@ public sealed class AconexAutomationService : IAsyncDisposable, IDisposable
         var path = _project.DataLocation;
         if (_storePath == path && _store != null && _variations != null) return;
         var user = _project.Settings.EffectiveUserName;
-        _store = new SqliteAconexStore(path, user);
-        _store.EnsureSchema();
-        _variations = new SqliteVariationStore(path, user);
-        _variations.EnsureSchema();
+        // [phase6] server mode: the Aconex and variation tables live on the server
+        if (_project.Store is Raffaello.Core.Remote.RemoteProjectStore remote)
+        {
+            _store = new Raffaello.Core.Remote.RemoteAconexStore(remote) { User = user };
+            _variations = new Raffaello.Core.Remote.RemoteVariationStore(remote) { User = user };
+        }
+        else
+        {
+            _store = new SqliteAconexStore(path, user);
+            _store.EnsureSchema();
+            _variations = new SqliteVariationStore(path, user);
+            _variations.EnsureSchema();
+        }
         _storePath = path;
     }
 

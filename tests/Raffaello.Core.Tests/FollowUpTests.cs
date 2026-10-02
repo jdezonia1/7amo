@@ -113,7 +113,7 @@ public class FollowUpTests
     [Fact]
     public void CumulativeText_IsDetected()
     {
-        Assert.True(TrackerImporter.IsCumulativeText("CONCRETE PLUS INV-9 (cumulative) - plot 2 Ground Floor total 578"));
+        Assert.True(TrackerImporter.IsCumulativeText("SUBX INV-9 (cumulative) - plot 9 Ground Floor total 100"));
         Assert.True(TrackerImporter.IsCumulativeText("INV 9 CUM"));
         Assert.False(TrackerImporter.IsCumulativeText("accumulator room"));
     }

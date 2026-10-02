@@ -52,6 +52,7 @@
         <KeyBinding Key="E" Modifiers="Control" Command="{Binding ExportViewCommand}"/>
         <KeyBinding Key="L" Modifiers="Control+Shift" Command="{Binding ToggleThemeCommand}"/>
         <KeyBinding Key="F5" Command="{Binding ReloadCommand}"/>
+        <KeyBinding Key="F1" Command="{Binding ShowShortcutsCommand}"/>
         <KeyBinding Key="Escape" Command="{Binding EscapeCommand}"/>
         <KeyBinding Key="H" Modifiers="Control" Command="{Binding GoWelcomeCommand}"/>
         <KeyBinding Key="D1" Modifiers="Control" Command="{Binding GoIndexCommand}" CommandParameter="1"/>
@@ -178,6 +179,11 @@
                     <TextBlock Text="{Binding Current.Subtitle}" Style="{StaticResource Small}" Margin="0,1,0,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- [phase6] building switcher: drives every module (ledger, plans, checks, statements, contracts, invoices, reports) -->
+                    <StackPanel Margin="0,0,10,0" VerticalAlignment="Center" ToolTip="Building shown in every module">
+                        <TextBlock Text="BUILDING" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
+                        <ComboBox Style="{StaticResource FilterCombo}" MinWidth="110" ItemsSource="{Binding Filter.Buildings}" SelectedItem="{Binding Filter.Building, Mode=TwoWay}"/>
+                    </StackPanel>
                     <Button Command="{Binding OpenPaletteCommand}" Style="{StaticResource BtnGhost}" Width="250" HorizontalContentAlignment="Stretch" Margin="0,0,10,0" ToolTip="Ctrl+K">
                         <Grid>
                             <StackPanel Orientation="Horizontal">

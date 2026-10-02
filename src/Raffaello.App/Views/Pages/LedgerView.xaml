@@ -45,8 +45,12 @@
             <Grid Margin="0,0,0,8">
                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding Summary}" Style="{StaticResource Label}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="IMPORT TRACKER" Command="{Binding ImportTrackerCommand}" Margin="12,0,0,0"
-                        ToolTip="Read BRANDED_MEP_TRACKER (v19): ROOMS, PROJECT QTY, LEDGER, PLANS. Shows a preview first."/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Style="{StaticResource BtnGhost}" Content="IMPORT TRACKER" Command="{Binding ImportTrackerCommand}" Margin="12,0,0,0"
+                            ToolTip="Read the tracker workbook (ROOMS, PROJECT QTY, LEDGER, PLANS) into the building chosen at the top. Shows a preview first."/>
+                    <Button Style="{StaticResource BtnGhost}" Content="IMPORT ROOM LIST" Command="{Binding ImportRoomListCommand}" Margin="6,0,0,0"
+                            ToolTip="Any room list (e.g. the HOTEL keys): columns found by header text, optional STAGE|ITEM PROJECT QTY columns"/>
+                </StackPanel>
             </Grid>
             <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12">
                 <DockPanel>

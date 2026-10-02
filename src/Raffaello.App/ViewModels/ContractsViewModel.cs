@@ -60,7 +60,7 @@ public sealed partial class ContractsViewModel : PageViewModel
     public override string Title => "CONTRACTS & BOQ";
     public override string Subtitle => "Contract items with their rate-driving attributes and BOQ links; E-Promise BOQ codes; rates and PROJECT QTY";
     public override bool ShowFilterBar => false;
-    protected override bool UsesFilter => false;
+    protected override bool UsesFilter => true;   // [phase6] the building switcher drives it
 
     public ObservableCollection<ContractRow> Contracts { get; } = new();
     public ObservableCollection<BoqRow> Boq { get; } = new();
@@ -114,7 +114,8 @@ public sealed partial class ContractsViewModel : PageViewModel
             var t = chainBySub.GetValueOrDefault(c.Subcontractor);
             Contracts.Add(new ContractRow { Contract = c, Claimed = t.Claimed, Certified = t.Certified });
         }
-        var nos = s.ContractItems.Select(i => i.ContractNo).Distinct().OrderBy(x => x).ToList();
+        var inBuilding = s.Contracts.Where(c => InBuilding(c.Building)).Select(c => c.ContractNo).ToHashSet();
+        var nos = s.ContractItems.Select(i => i.ContractNo).Distinct().Where(n => BuildingFilter is null || inBuilding.Contains(n) || s.Contracts.All(c => c.ContractNo != n)).OrderBy(x => x).ToList();
         if (!ContractNos.SequenceEqual(nos)) { ContractNos.Clear(); foreach (var n in nos) ContractNos.Add(n); }
         if (!ContractNos.Contains(SelectedContractNo)) SelectedContractNo = ContractNos.FirstOrDefault() ?? "";
         else FillItems();

@@ -69,14 +69,177 @@ public interface IMaterialsStore
     int ReleaseLines(IReadOnlyCollection<long> dnLineIds);
 }
 
-/// <summary>SQLite implementation in the same data file as <see cref="Db"/> (WAL, busy timeout, audit log shared).</summary>
-public sealed class SqliteMaterialsStore : IMaterialsStore
+/// <summary>
+/// The store-independent part of <see cref="IMaterialsStore"/> (PO / DN / MIR saves, DN-line hard lock): written once against
+/// the generic entity primitives, so the SQLite file and the server get the same rules.
+/// </summary>
+public abstract class MaterialsStoreBase : IMaterialsStore
 {
     public static readonly Type[] EntityTypes =
     {
         typeof(MatPo), typeof(MatPoLine), typeof(MatPoScope), typeof(MatDn), typeof(MatDnLine), typeof(MatMir), typeof(MatMirDn), typeof(MatMirEvidence),
         typeof(MatDnInvoiceLock), typeof(MatCodeMemory), typeof(MosValuation), typeof(MosLine), typeof(MosInstalled), typeof(BoqLine), typeof(BoqCatRule),
     };
+
+    public abstract string User { get; }
+    public abstract void EnsureSchema();
+    public abstract List<T> All<T>() where T : Entity, new();
+    public abstract T Insert<T>(T entity, string? summary = null) where T : Entity;
+    public abstract T Update<T>(T entity, string? summary = null) where T : Entity, new();
+    public abstract void Delete<T>(T entity, string? summary = null) where T : Entity;
+    public abstract void Batch(Action<IStoreBatch> work, string summary);
+    protected abstract DateTime Now();
+    /// <summary>True when a write failed because another user locked the same DN line first (unique index / server guard).</summary>
+    protected abstract bool IsLockConflict(Exception ex);
+
+    public MaterialsSnapshot Load() => new()
+    {
+        Pos = All<MatPo>(), PoLines = All<MatPoLine>(), PoScope = All<MatPoScope>(), Dns = All<MatDn>(), DnLines = All<MatDnLine>(),
+        Mirs = All<MatMir>(), MirDns = All<MatMirDn>(), MirEvidence = All<MatMirEvidence>(), Locks = All<MatDnInvoiceLock>(),
+        CodeMemory = All<MatCodeMemory>(), MosValuations = All<MosValuation>(), MosLines = All<MosLine>(), MosInstalled = All<MosInstalled>(),
+        BoqLines = All<BoqLine>(), BoqRules = All<BoqCatRule>(),
+    };
+
+    public MatPo SavePo(MatPo po, IReadOnlyList<MatPoLine> lines, IReadOnlyList<MatPoScope> scope)
+    {
+                var key = MaterialsSnapshot.PoKey(po.PoNo);
+        var existing = All<MatPo>().FirstOrDefault(p => MaterialsSnapshot.PoKey(p.PoNo) == key && string.Equals(p.Supplier, po.Supplier, StringComparison.OrdinalIgnoreCase));
+        var oldLines = existing is null ? new List<MatPoLine>() : All<MatPoLine>().Where(l => l.PoId == existing.Id).ToList();
+        var oldScope = existing is null ? new List<MatPoScope>() : All<MatPoScope>().Where(l => l.PoId == existing.Id).ToList();
+        var dnLinks = existing is null ? new List<MatDnLine>() : All<MatDnLine>().Where(d => d.PoLineId != null && oldLines.Any(o => o.Id == d.PoLineId)).ToList();
+        Batch(w =>
+        {
+            if (existing != null)
+            {
+                po.Id = existing.Id; po.RowVersion = existing.RowVersion;
+                w.Update(po);
+                foreach (var l in oldScope) w.Delete(l);
+                // keep line ids where the line number survives, so DN matches stay linked
+                var byNo = oldLines.GroupBy(l => l.LineNo).ToDictionary(g => g.Key, g => g.First());
+                foreach (var l in lines)
+                {
+                    l.PoId = po.Id;
+                    if (byNo.Remove(l.LineNo, out var old)) { l.Id = old.Id; l.RowVersion = old.RowVersion; w.Update(l); }
+                    else { l.Id = 0; w.Insert(l); }
+                }
+                foreach (var gone in byNo.Values)
+                {
+                    foreach (var d in dnLinks.Where(d => d.PoLineId == gone.Id)) { d.PoLineId = null; d.MatchStatus = ""; w.Update(d); }
+                    w.Delete(gone);
+                }
+            }
+            else
+            {
+                w.Insert(po);
+                foreach (var l in lines) { l.Id = 0; l.PoId = po.Id; }
+                w.InsertMany(lines);
+            }
+            foreach (var s in scope) { s.Id = 0; s.PoId = po.Id; }
+            w.InsertMany(scope);
+        }, $"PO {po.PoNo} ({po.Supplier}) saved: {lines.Count} lines, SAR {lines.Sum(l => l.Amount):N2}");
+        return po;
+    }
+
+    public MatDn SaveDn(MatDn dn, IReadOnlyList<MatDnLine> lines)
+    {
+                var existing = All<MatDn>().FirstOrDefault(d => d.DnNo.Equals(dn.DnNo, StringComparison.OrdinalIgnoreCase) && string.Equals(d.Supplier, dn.Supplier, StringComparison.OrdinalIgnoreCase));
+        var oldLines = existing is null ? new List<MatDnLine>() : All<MatDnLine>().Where(l => l.DnId == existing.Id).ToList();
+        if (oldLines.Count > 0)
+        {
+            var locked = All<MatDnInvoiceLock>().Where(k => oldLines.Any(o => o.Id == k.DnLineId)).ToList();
+            if (locked.Count > 0)
+                throw new DnLineLockedException(locked, $"DN {dn.DnNo} has {locked.Count} line(s) already invoiced (INV-{locked[0].InvoiceNo:00}); it cannot be re-imported.");
+        }
+        Batch(w =>
+        {
+            if (existing != null)
+            {
+                dn.Id = existing.Id; dn.RowVersion = existing.RowVersion;
+                w.Update(dn);
+                foreach (var l in oldLines) w.Delete(l);
+            }
+            else w.Insert(dn);
+            foreach (var l in lines) { l.Id = 0; l.DnId = dn.Id; }
+            w.InsertMany(lines);
+        }, $"DN {dn.DnNo} ({dn.Supplier}, PO {dn.PoNo}) saved: {lines.Count} lines");
+        return dn;
+    }
+
+    public MatMir SaveMir(MatMir mir, IReadOnlyList<MatMirDn> dns, IReadOnlyList<MatMirEvidence> evidence)
+    {
+                var existing = All<MatMir>().FirstOrDefault(m => m.MirNo.Equals(mir.MirNo, StringComparison.OrdinalIgnoreCase) && m.Revision == mir.Revision);
+        var oldDns = existing is null ? new List<MatMirDn>() : All<MatMirDn>().Where(x => x.MirId == existing.Id).ToList();
+        var oldEv = existing is null ? new List<MatMirEvidence>() : All<MatMirEvidence>().Where(x => x.MirId == existing.Id).ToList();
+        Batch(w =>
+        {
+            if (existing != null)
+            {
+                mir.Id = existing.Id; mir.RowVersion = existing.RowVersion;
+                w.Update(mir);
+                foreach (var x in oldDns) w.Delete(x);
+                foreach (var x in oldEv) w.Delete(x);
+            }
+            else w.Insert(mir);
+            foreach (var x in dns) { x.Id = 0; x.MirId = mir.Id; }
+            foreach (var x in evidence) { x.Id = 0; x.MirId = mir.Id; }
+            w.InsertMany(dns);
+            w.InsertMany(evidence);
+        }, $"MIR {mir.MirNo} Rev {mir.Revision} saved: {dns.Count} DN refs, {evidence.Count} evidence rows");
+        return mir;
+    }
+
+    public void LockDnLines(IReadOnlyCollection<long> dnLineIds, string supplier, string poNo, int invoiceNo, long subInvoiceId)
+    {
+                var ids = dnLineIds.Distinct().ToList();
+        var existing = All<MatDnInvoiceLock>().Where(k => ids.Contains(k.DnLineId)).ToList();
+        bool Same(MatDnInvoiceLock k) => k.InvoiceNo == invoiceNo && string.Equals(k.Supplier, supplier, StringComparison.OrdinalIgnoreCase)
+                                         && MaterialsSnapshot.PoKey(k.PoNo) == MaterialsSnapshot.PoKey(poNo);
+        var conflicts = existing.Where(k => !Same(k)).ToList();
+        if (conflicts.Count > 0)
+            throw new DnLineLockedException(conflicts, $"{conflicts.Count} DN line(s) are already invoiced under {string.Join(", ", conflicts.Select(k => $"{k.Supplier} {k.PoNo} INV-{k.InvoiceNo:00}").Distinct())}. A DN line can be invoiced once.");
+        var have = existing.Select(k => k.DnLineId).ToHashSet();
+        var now = Now();
+        try
+        {
+            Batch(w =>
+            {
+                foreach (var k in existing.Where(k => k.SubInvoiceId != subInvoiceId)) { k.SubInvoiceId = subInvoiceId; w.Update(k); }
+                w.InsertMany(ids.Where(i => !have.Contains(i)).Select(i => new MatDnInvoiceLock
+                { DnLineId = i, Supplier = supplier, PoNo = poNo, InvoiceNo = invoiceNo, SubInvoiceId = subInvoiceId, LockedAt = now }));
+            }, $"{supplier} {poNo} INV-{invoiceNo:00}: {ids.Count - have.Count} DN line(s) locked");
+        }
+        catch (Exception ex) when (IsLockConflict(ex))
+        {
+            // another user locked the same line between our read and write: the unique index is the hard lock
+            var now2 = All<MatDnInvoiceLock>().Where(k => ids.Contains(k.DnLineId) && !Same(k)).ToList();
+            throw new DnLineLockedException(now2, "Another user invoiced some of these DN lines a moment ago. Reload and try again.");
+        }
+    }
+
+    public int ReleaseLocks(string supplier, string poNo, int invoiceNo)
+    {
+                var mine = All<MatDnInvoiceLock>().Where(k => k.InvoiceNo == invoiceNo && string.Equals(k.Supplier, supplier, StringComparison.OrdinalIgnoreCase)
+                                                         && MaterialsSnapshot.PoKey(k.PoNo) == MaterialsSnapshot.PoKey(poNo)).ToList();
+        if (mine.Count == 0) return 0;
+        Batch(w => { foreach (var k in mine) w.Delete(k); }, $"{supplier} {poNo} INV-{invoiceNo:00}: {mine.Count} DN line lock(s) released");
+        return mine.Count;
+    }
+
+    public int ReleaseLines(IReadOnlyCollection<long> dnLineIds)
+    {
+                var set = dnLineIds.ToHashSet();
+        var mine = All<MatDnInvoiceLock>().Where(k => set.Contains(k.DnLineId)).ToList();
+        if (mine.Count == 0) return 0;
+        Batch(w => { foreach (var k in mine) w.Delete(k); }, $"{mine.Count} DN line lock(s) released");
+        return mine.Count;
+    }
+
+}
+
+/// <summary>SQLite implementation in the same data file as <see cref="Db"/> (WAL, busy timeout, audit log shared).</summary>
+public sealed class SqliteMaterialsStore : MaterialsStoreBase
+{
+    public new static readonly Type[] EntityTypes = MaterialsStoreBase.EntityTypes;
 
     private readonly Func<Db> _db;
     private bool _schemaReady;
@@ -95,9 +258,9 @@ public sealed class SqliteMaterialsStore : IMaterialsStore
         }
     }
 
-    public string User => _db().User;
+    public override string User => _db().User;
 
-    public void EnsureSchema() { EnsureSchema(_db()); _schemaReady = true; _schemaPath = _db().Path; }
+    public override void EnsureSchema() { EnsureSchema(_db()); _schemaReady = true; _schemaPath = _db().Path; }
 
     private static void EnsureSchema(Db db)
     {
@@ -147,163 +310,13 @@ public sealed class SqliteMaterialsStore : IMaterialsStore
         cmd.ExecuteNonQuery();
     }
 
-    public MaterialsSnapshot Load()
-    {
-        var db = Db;
-        return new MaterialsSnapshot
-        {
-            Pos = db.All<MatPo>(), PoLines = db.All<MatPoLine>(), PoScope = db.All<MatPoScope>(), Dns = db.All<MatDn>(), DnLines = db.All<MatDnLine>(),
-            Mirs = db.All<MatMir>(), MirDns = db.All<MatMirDn>(), MirEvidence = db.All<MatMirEvidence>(), Locks = db.All<MatDnInvoiceLock>(),
-            CodeMemory = db.All<MatCodeMemory>(), MosValuations = db.All<MosValuation>(), MosLines = db.All<MosLine>(), MosInstalled = db.All<MosInstalled>(),
-            BoqLines = db.All<BoqLine>(), BoqRules = db.All<BoqCatRule>(),
-        };
-    }
-
-    public List<T> All<T>() where T : Entity, new() => Db.All<T>();
-    public T Insert<T>(T entity, string? summary = null) where T : Entity => Db.Insert(entity, summary);
-    public T Update<T>(T entity, string? summary = null) where T : Entity, new() => Db.Update(entity, summary);
-    public void Delete<T>(T entity, string? summary = null) where T : Entity => Db.Delete(entity, summary);
-    public void Batch(Action<IStoreBatch> work, string summary) => Db.Batch(work, summary);
-
-    public MatPo SavePo(MatPo po, IReadOnlyList<MatPoLine> lines, IReadOnlyList<MatPoScope> scope)
-    {
-        var db = Db;
-        var key = MaterialsSnapshot.PoKey(po.PoNo);
-        var existing = db.All<MatPo>().FirstOrDefault(p => MaterialsSnapshot.PoKey(p.PoNo) == key && string.Equals(p.Supplier, po.Supplier, StringComparison.OrdinalIgnoreCase));
-        var oldLines = existing is null ? new List<MatPoLine>() : db.All<MatPoLine>().Where(l => l.PoId == existing.Id).ToList();
-        var oldScope = existing is null ? new List<MatPoScope>() : db.All<MatPoScope>().Where(l => l.PoId == existing.Id).ToList();
-        var dnLinks = existing is null ? new List<MatDnLine>() : db.All<MatDnLine>().Where(d => d.PoLineId != null && oldLines.Any(o => o.Id == d.PoLineId)).ToList();
-        db.Batch(w =>
-        {
-            if (existing != null)
-            {
-                po.Id = existing.Id; po.RowVersion = existing.RowVersion;
-                w.Update(po);
-                foreach (var l in oldScope) w.Delete(l);
-                // keep line ids where the line number survives, so DN matches stay linked
-                var byNo = oldLines.GroupBy(l => l.LineNo).ToDictionary(g => g.Key, g => g.First());
-                foreach (var l in lines)
-                {
-                    l.PoId = po.Id;
-                    if (byNo.Remove(l.LineNo, out var old)) { l.Id = old.Id; l.RowVersion = old.RowVersion; w.Update(l); }
-                    else { l.Id = 0; w.Insert(l); }
-                }
-                foreach (var gone in byNo.Values)
-                {
-                    foreach (var d in dnLinks.Where(d => d.PoLineId == gone.Id)) { d.PoLineId = null; d.MatchStatus = ""; w.Update(d); }
-                    w.Delete(gone);
-                }
-            }
-            else
-            {
-                w.Insert(po);
-                foreach (var l in lines) { l.Id = 0; l.PoId = po.Id; }
-                w.InsertMany(lines);
-            }
-            foreach (var s in scope) { s.Id = 0; s.PoId = po.Id; }
-            w.InsertMany(scope);
-        }, $"PO {po.PoNo} ({po.Supplier}) saved: {lines.Count} lines, SAR {lines.Sum(l => l.Amount):N2}");
-        return po;
-    }
-
-    public MatDn SaveDn(MatDn dn, IReadOnlyList<MatDnLine> lines)
-    {
-        var db = Db;
-        var existing = db.All<MatDn>().FirstOrDefault(d => d.DnNo.Equals(dn.DnNo, StringComparison.OrdinalIgnoreCase) && string.Equals(d.Supplier, dn.Supplier, StringComparison.OrdinalIgnoreCase));
-        var oldLines = existing is null ? new List<MatDnLine>() : db.All<MatDnLine>().Where(l => l.DnId == existing.Id).ToList();
-        if (oldLines.Count > 0)
-        {
-            var locked = db.All<MatDnInvoiceLock>().Where(k => oldLines.Any(o => o.Id == k.DnLineId)).ToList();
-            if (locked.Count > 0)
-                throw new DnLineLockedException(locked, $"DN {dn.DnNo} has {locked.Count} line(s) already invoiced (INV-{locked[0].InvoiceNo:00}); it cannot be re-imported.");
-        }
-        db.Batch(w =>
-        {
-            if (existing != null)
-            {
-                dn.Id = existing.Id; dn.RowVersion = existing.RowVersion;
-                w.Update(dn);
-                foreach (var l in oldLines) w.Delete(l);
-            }
-            else w.Insert(dn);
-            foreach (var l in lines) { l.Id = 0; l.DnId = dn.Id; }
-            w.InsertMany(lines);
-        }, $"DN {dn.DnNo} ({dn.Supplier}, PO {dn.PoNo}) saved: {lines.Count} lines");
-        return dn;
-    }
-
-    public MatMir SaveMir(MatMir mir, IReadOnlyList<MatMirDn> dns, IReadOnlyList<MatMirEvidence> evidence)
-    {
-        var db = Db;
-        var existing = db.All<MatMir>().FirstOrDefault(m => m.MirNo.Equals(mir.MirNo, StringComparison.OrdinalIgnoreCase) && m.Revision == mir.Revision);
-        var oldDns = existing is null ? new List<MatMirDn>() : db.All<MatMirDn>().Where(x => x.MirId == existing.Id).ToList();
-        var oldEv = existing is null ? new List<MatMirEvidence>() : db.All<MatMirEvidence>().Where(x => x.MirId == existing.Id).ToList();
-        db.Batch(w =>
-        {
-            if (existing != null)
-            {
-                mir.Id = existing.Id; mir.RowVersion = existing.RowVersion;
-                w.Update(mir);
-                foreach (var x in oldDns) w.Delete(x);
-                foreach (var x in oldEv) w.Delete(x);
-            }
-            else w.Insert(mir);
-            foreach (var x in dns) { x.Id = 0; x.MirId = mir.Id; }
-            foreach (var x in evidence) { x.Id = 0; x.MirId = mir.Id; }
-            w.InsertMany(dns);
-            w.InsertMany(evidence);
-        }, $"MIR {mir.MirNo} Rev {mir.Revision} saved: {dns.Count} DN refs, {evidence.Count} evidence rows");
-        return mir;
-    }
-
-    public void LockDnLines(IReadOnlyCollection<long> dnLineIds, string supplier, string poNo, int invoiceNo, long subInvoiceId)
-    {
-        var db = Db;
-        var ids = dnLineIds.Distinct().ToList();
-        var existing = db.All<MatDnInvoiceLock>().Where(k => ids.Contains(k.DnLineId)).ToList();
-        bool Same(MatDnInvoiceLock k) => k.InvoiceNo == invoiceNo && string.Equals(k.Supplier, supplier, StringComparison.OrdinalIgnoreCase)
-                                         && MaterialsSnapshot.PoKey(k.PoNo) == MaterialsSnapshot.PoKey(poNo);
-        var conflicts = existing.Where(k => !Same(k)).ToList();
-        if (conflicts.Count > 0)
-            throw new DnLineLockedException(conflicts, $"{conflicts.Count} DN line(s) are already invoiced under {string.Join(", ", conflicts.Select(k => $"{k.Supplier} {k.PoNo} INV-{k.InvoiceNo:00}").Distinct())}. A DN line can be invoiced once.");
-        var have = existing.Select(k => k.DnLineId).ToHashSet();
-        var now = db.Clock();
-        try
-        {
-            db.Batch(w =>
-            {
-                foreach (var k in existing.Where(k => k.SubInvoiceId != subInvoiceId)) { k.SubInvoiceId = subInvoiceId; w.Update(k); }
-                w.InsertMany(ids.Where(i => !have.Contains(i)).Select(i => new MatDnInvoiceLock
-                { DnLineId = i, Supplier = supplier, PoNo = poNo, InvoiceNo = invoiceNo, SubInvoiceId = subInvoiceId, LockedAt = now }));
-            }, $"{supplier} {poNo} INV-{invoiceNo:00}: {ids.Count - have.Count} DN line(s) locked");
-        }
-        catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
-        {
-            // another user locked the same line between our read and write: the unique index is the hard lock
-            var now2 = db.All<MatDnInvoiceLock>().Where(k => ids.Contains(k.DnLineId) && !Same(k)).ToList();
-            throw new DnLineLockedException(now2, "Another user invoiced some of these DN lines a moment ago. Reload and try again.");
-        }
-    }
-
-    public int ReleaseLocks(string supplier, string poNo, int invoiceNo)
-    {
-        var db = Db;
-        var mine = db.All<MatDnInvoiceLock>().Where(k => k.InvoiceNo == invoiceNo && string.Equals(k.Supplier, supplier, StringComparison.OrdinalIgnoreCase)
-                                                         && MaterialsSnapshot.PoKey(k.PoNo) == MaterialsSnapshot.PoKey(poNo)).ToList();
-        if (mine.Count == 0) return 0;
-        db.Batch(w => { foreach (var k in mine) w.Delete(k); }, $"{supplier} {poNo} INV-{invoiceNo:00}: {mine.Count} DN line lock(s) released");
-        return mine.Count;
-    }
-
-    public int ReleaseLines(IReadOnlyCollection<long> dnLineIds)
-    {
-        var db = Db;
-        var set = dnLineIds.ToHashSet();
-        var mine = db.All<MatDnInvoiceLock>().Where(k => set.Contains(k.DnLineId)).ToList();
-        if (mine.Count == 0) return 0;
-        db.Batch(w => { foreach (var k in mine) w.Delete(k); }, $"{mine.Count} DN line lock(s) released");
-        return mine.Count;
-    }
+    public override List<T> All<T>() => Db.All<T>();
+    public override T Insert<T>(T entity, string? summary = null) => Db.Insert(entity, summary);
+    public override T Update<T>(T entity, string? summary = null) => Db.Update(entity, summary);
+    public override void Delete<T>(T entity, string? summary = null) => Db.Delete(entity, summary);
+    public override void Batch(Action<IStoreBatch> work, string summary) => Db.Batch(work, summary);
+    protected override DateTime Now() => Db.Clock();
+    protected override bool IsLockConflict(Exception ex) => ex is SqliteException { SqliteErrorCode: 19 };
 
     internal static string Inv(double d) => d.ToString(CultureInfo.InvariantCulture);
 }

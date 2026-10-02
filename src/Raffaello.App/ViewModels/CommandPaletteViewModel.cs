@@ -42,6 +42,7 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
             new("GO TO", "Invoices", "Build, revise, approve, export the subcontractor invoice", "Ctrl+8", () => nav.Go("Invoices")),
             new("GO TO", "Site statements", "Issue / import site statements", "Ctrl+9", () => nav.Go("SiteStatements")),
             new("GO TO", "Reports", "Weekly report, print", "Ctrl+0", () => nav.Go("Reports")),
+            new("HELP", "Keyboard shortcuts", "All shortcuts and tips", "F1", () => System.Windows.MessageBox.Show(MainViewModel.ShortcutsText, "Raffaello - keyboard shortcuts")),
             new("GO TO", "Settings", "Theme, data file, API key", "", () => nav.Go("Settings")),
             // [phase3] begin
             new("GO TO", "Owner MOS", "Materials on site valuation for the owner", "", () => nav.Go("OwnerMos")),

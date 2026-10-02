@@ -1,6 +1,6 @@
 @echo off
 REM ============================================================
-REM  RAFFAELLO - one click: restore, build, test, publish, launch
+REM  RAFFAELLO - one click: restore, build, ALL tests, publish app + server, launch
 REM  Needs the .NET 8 SDK (https://dotnet.microsoft.com/download/dotnet/8.0)
 REM  Writes everything to build_log.txt (send this file if it fails)
 REM ============================================================
@@ -27,6 +27,8 @@ dotnet test tests\Raffaello.Core.Tests\Raffaello.Core.Tests.csproj -c Release --
 REM [phase5] begin: server tests (PostgreSQL integration tests skip themselves when no test database is reachable)
 dotnet test tests\Raffaello.Server.Tests\Raffaello.Server.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
 REM [phase5] end
+REM [phase6] Aconex browser tests against the local mock site (use Microsoft Edge; skipped when no browser can start)
+dotnet test tests\Raffaello.Automation.Tests\Raffaello.Automation.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
 
 echo [4/5] Publishing self-contained win-x64 single file to publish\ ...
 dotnet publish src\Raffaello.App\Raffaello.App.csproj -c Release -r win-x64 --self-contained true ^
@@ -37,6 +39,13 @@ REM [phase5] begin: server build for the office server PC (copy server-publish +
 echo      Publishing Raffaello.Server to server-publish\ ...
 dotnet publish src\Raffaello.Server\Raffaello.Server.csproj -c Release -r win-x64 --self-contained true -p:DebugType=None -o server-publish >> "%LOG%" 2>&1 || goto :fail
 REM [phase5] end
+
+REM [phase6] the Playwright driver (.playwright\node) must sit next to Raffaello.exe for the Aconex automation
+if not exist "publish\.playwright\node" (
+  echo WARNING: publish\.playwright\node missing - Aconex automation will not start >> "%LOG%"
+  echo WARNING: Playwright driver not found next to Raffaello.exe - see build_log.txt
+)
+echo      Tests and publish finished: %DATE% %TIME% >> "%LOG%"
 
 echo [5/5] Launching Raffaello...
 echo BUILD OK >> "%LOG%"

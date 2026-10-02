@@ -50,6 +50,8 @@ public sealed partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private string _lengthRoundingDecimals = "1";
     [ObservableProperty] private string _packageOutputFolder = "";
     [ObservableProperty] private string _wirFolder = "";
+    [ObservableProperty] private string _documentsRoot = "";
+    [ObservableProperty] private string _foldersText = "";
     [ObservableProperty] private string _packageNamePattern = "";
     [ObservableProperty] private string _trackerPassword = "";
     // [phase4] begin
@@ -85,6 +87,8 @@ public sealed partial class SettingsViewModel : PageViewModel
         LengthRoundingDecimals = s.LengthRoundingDecimals.ToString(CultureInfo.InvariantCulture);
         PackageOutputFolder = s.PackageOutputFolder;
         WirFolder = s.WirFolder;
+        DocumentsRoot = s.DocumentsRoot;
+        FoldersText = string.Join("\n", Raffaello.Core.Settings.ProjectFolders.From(s).All.Select(f => $"{f.Name,-20} {f.Path}"));
         PackageNamePattern = s.PackageNamePattern;
         TrackerPassword = s.TrackerPassword;
         // [phase4] begin
@@ -119,6 +123,7 @@ public sealed partial class SettingsViewModel : PageViewModel
         if (int.TryParse(LengthRoundingDecimals, out var lr)) s.LengthRoundingDecimals = Math.Clamp(lr, 0, 3);
         s.PackageOutputFolder = PackageOutputFolder.Trim();
         s.WirFolder = WirFolder.Trim();
+        s.DocumentsRoot = DocumentsRoot.Trim();
         s.PackageNamePattern = string.IsNullOrWhiteSpace(PackageNamePattern) ? Raffaello.Core.Packaging.PackageNames.DefaultPattern : PackageNamePattern.Trim();
         s.TrackerPassword = string.IsNullOrWhiteSpace(TrackerPassword) ? "RAFFAELLO" : TrackerPassword.Trim();
         // [phase4] begin

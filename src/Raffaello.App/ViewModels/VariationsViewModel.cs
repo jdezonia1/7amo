@@ -306,7 +306,7 @@ public sealed partial class VariationsViewModel : PageViewModel
         var f = Ctx.Dialogs.OpenFile("Consultant document (EI / SI / VO / drawing)", "Documents|*.pdf;*.txt;*.png;*.jpg;*.jpeg;*.docx;*.xlsx|All files|*.*");
         if (f is null) return;
         var id = _current.Id;
-        var folder = Project.Settings.VariationDocsFolder is { Length: > 0 } vf ? Path.Combine(vf, DocumentRegister.Safe(_current.Number)) : null;
+        var folder = Path.Combine(Project.Workflow.Folders().VariationDocs, DocumentRegister.Safe(_current.Number));   // [phase6] shared documents folder
         try
         {
             var doc = await Task.Run(() => VariationDocuments.Prepare(id, f, folder));

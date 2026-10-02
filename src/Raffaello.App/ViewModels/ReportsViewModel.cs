@@ -16,11 +16,70 @@ namespace Raffaello.App.ViewModels;
 
 public sealed record ReportCard(string Name, string Description, string Kind);
 public sealed record SummaryLine(string Label, string Value, string Status);
+public sealed record ProjectReportCard(Raffaello.Core.Reports.ReportDefinition Def)
+{
+    public string Name => Def.Name;
+    public string Description => Def.Description;
+    public string XlsxParam => Def.Key + "|XLSX";
+    public string PdfParam => Def.Key + "|PDF";
+}
 
 /// <summary>Weekly progress report (Excel) and a printable one-page summary.</summary>
 public sealed partial class ReportsViewModel : PageViewModel
 {
-    public ReportsViewModel(PageContext ctx) : base(ctx) { }
+    private readonly Raffaello.Core.Materials.IMaterialsStore _materials;
+    private readonly Raffaello.Core.Materials.MaterialsSettings _materialsSettings;
+    private readonly AconexAutomationService _aconex;
+
+    public ReportsViewModel(PageContext ctx, Raffaello.Core.Materials.IMaterialsStore materials, Raffaello.Core.Materials.MaterialsSettings materialsSettings, AconexAutomationService aconex) : base(ctx)
+    {
+        _materials = materials; _materialsSettings = materialsSettings; _aconex = aconex;
+    }
+
+    /// <summary>[phase6] Management reports from the real data (ledger, invoices, materials, variations, Aconex).</summary>
+    public ProjectReportCard[] ProjectCards { get; } = Raffaello.Core.Reports.ProjectReports.All.Select(d => new ProjectReportCard(d)).ToArray();
+
+    private Raffaello.Core.Reports.ReportInputs Inputs()
+    {
+        Raffaello.Core.Materials.MaterialsSnapshot? mats = null;
+        try { mats = _materials.Load(); } catch (Exception) { /* materials not available */ }
+        List<Raffaello.Core.Variations.Variation> vos = new(); List<Raffaello.Core.Variations.VariationLine> voLines = new();
+        List<Raffaello.Core.AconexWeb.StatusBoardRow> board;
+        try { vos = _aconex.Variations.Variations(); voLines = _aconex.Variations.AllLines(); } catch (Exception) { }
+        try { board = Raffaello.Core.AconexWeb.StatusBoard.Build(Project.Snapshot.SubInvoices, _aconex.Store.ActiveLinks(), _aconex.Store.LatestChecks(), Today, includeClosed: false); }
+        catch (Exception) { board = Raffaello.Core.AconexWeb.StatusBoard.Build(Project.Snapshot.SubInvoices, Array.Empty<Raffaello.Core.AconexWeb.AconexWorkflowLink>(), new Dictionary<string, Raffaello.Core.AconexWeb.AconexWorkflowCheck>(), Today, false); }
+        return new Raffaello.Core.Reports.ReportInputs
+        {
+            Project = Project.Snapshot, Materials = mats, MaterialsSettings = _materialsSettings, Variations = vos, VariationLines = voLines, InvoiceBoard = board, Building = BuildingFilter, AsOf = DateTime.Today,
+        };
+    }
+
+    /// <summary>Parameter "KEY|XLSX" or "KEY|PDF".</summary>
+    [RelayCommand]
+    private async Task ProjectReport(string? param)
+    {
+        var parts = (param ?? "").Split('|');
+        if (parts.Length != 2) return;
+        var def = Raffaello.Core.Reports.ProjectReports.All.First(r => r.Key == parts[0]);
+        var pdf = parts[1] == "PDF";
+        var name = $"RAFFAELLO_{def.Key}_{DateTime.Now:yyyyMMdd}" + (pdf ? ".pdf" : ".xlsx");
+        var path = Ctx.Dialogs.SaveFile($"{def.Name} ({(pdf ? "PDF" : "Excel")})", name, pdf ? "PDF|*.pdf" : "Excel workbook|*.xlsx");
+        if (path is null) return;
+        try
+        {
+            var inputs = Inputs();
+            await Task.Run(() =>
+            {
+                var sheets = Raffaello.Core.Reports.ProjectReports.Build(def.Key, inputs);
+                if (pdf) Raffaello.Core.Reports.ProjectReports.ExportPdf(path, $"Raffles Hotel & Branded Residence - {def.Name}", sheets);
+                else ExcelExporter.Export(path, sheets);
+            });
+            Ctx.Toasts.Show("REPORT READY", System.IO.Path.GetFileName(path), ToastKind.Good);
+            DialogService.OpenWithShell(path);
+        }
+        catch (System.IO.IOException ex) { Ctx.Toasts.Show("REPORT FAILED", ex.Message + " (is the file open?)", ToastKind.Error); }
+        catch (Exception ex) { Ctx.Toasts.Show("REPORT FAILED", ex.Message, ToastKind.Error); }
+    }
 
     public override string Key => "Reports";
     public override string Title => "REPORTS";

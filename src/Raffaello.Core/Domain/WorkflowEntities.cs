@@ -156,6 +156,24 @@ public sealed class MappingRule : Entity
     public int UseCount { get; set; }
 }
 
+/// <summary>[phase6] What an invoice in the invoice tables is.</summary>
+public static class InvoiceKinds
+{
+    public const string Subcontractor = "SUBCONTRACTOR";
+    public const string Supplier = "SUPPLIER";
+    public const string OwnerMos = "OWNER_MOS";
+    public static readonly string[] All = { Subcontractor, Supplier, OwnerMos };
+
+    /// <summary>The kind, also for rows saved before the field existed (supplier invoices carry the marker in Notes).</summary>
+    public static string Of(SubInvoice i) =>
+        !string.IsNullOrEmpty(i.Kind) && i.Kind != Subcontractor ? i.Kind
+        : i.Notes.StartsWith("SUPPLIER INVOICE", StringComparison.OrdinalIgnoreCase) ? Supplier
+        : i.Notes.StartsWith("OWNER MOS", StringComparison.OrdinalIgnoreCase) ? OwnerMos
+        : Subcontractor;
+
+    public static bool IsSubcontractor(SubInvoice i) => Of(i) == Subcontractor;
+}
+
 public static class SubInvoiceStatus
 {
     public const string Draft = "DRAFT";
@@ -186,6 +204,9 @@ public sealed class SubInvoice : Entity
     public bool Locked { get; set; }
 
     public string Title => $"{Subcontractor} INV-{InvoiceNo:00} Rev {Revision}";
+
+    /// <summary>[phase6] SUBCONTRACTOR (built from the room ledger), SUPPLIER (from DN lines) or OWNER_MOS. Empty on old rows - see <see cref="InvoiceKinds.Of"/>.</summary>
+    public string Kind { get; set; } = InvoiceKinds.Subcontractor;
 
     // last head-office package built for this revision
     public string PackageFile { get; set; } = "";

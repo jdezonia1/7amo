@@ -136,6 +136,73 @@ Keep `--db` and `--out` outside the repository when running against real company
   (attached scans), 07_Tracker_<SUB>_INV-<n>.xlsx, 08_Checks.pdf. Same inputs give the same bytes (fixed dates, entry order and
   timestamps); file and SHA-256 are recorded on the invoice revision. Needs-today flags a missing signed invoice and missing WIRs.
 
+<!-- [phase6] begin -->
+## User guide (every screen)
+
+**Start.** The first start opens a wizard: your name; the data source (a data file - put it on the shared drive - or the
+office server); the shared **documents folder** (WIR, MIR, packages, variation documents, Aconex screenshots get
+sub-folders under it; Settings > Shared documents folder); optional first imports (tracker, contract link workbook);
+the Aconex configuration; DEMO MODE (a sample project for training - Settings > RESET DEMO / START EMPTY switch later).
+**BUILDING** at the top (BRANDED / HOTEL / ALL) drives the ledger, plans, checks, site statements, contracts, invoices
+and reports. F1 lists every shortcut; Ctrl+K jumps anywhere.
+
+| Screen | What it is for | Main buttons |
+|---|---|---|
+| DASHBOARD | "Needs you today" from every module: over-cap keys, pending height / length checks, cumulative invoice waiting for its files, invoices rejected / in Aconex / missing the signed copy or WIRs, Aconex overdue steps, DNs without MIR, PO lines over PO + tolerance, PO tolerance conflicts, VOs ageing | click an item to go there |
+| ROOMS & LEDGER | rooms of the building, balance per room x stage x item (PROJECT QTY - all subcontractors), append-only claim lines, plan with coloured rooms | IMPORT TRACKER, IMPORT ROOM LIST (any building, columns by header), POST CLAIM LINE (WIR NO, >4.5 M QTY, 15 M CLAIMED), REVERSE, SAVE ROOM (area type) |
+| PLAN VIEW | every level plan with the room shapes; colour by status / subcontractor / % used / pending checks; filters stage, item, subcontractor, invoice | wheel = zoom, drag = pan, FIT, labels, EXPORT PNG, ADD CLAIM / OPEN IN LEDGER |
+| CHECKS | HEIGHT (>4.5 m: accept / partly / reject) and LENGTH (15 m: groups like 10x20;5x35, total route length, override; accept / revise / reject). Pending lines are never invoiced | per-line decision |
+| QUANTITIES / STATEMENTS / MATERIALS OVERVIEW | the original chain views (QS -> GIVEN -> DONE -> CLAIMED -> DELIVERED) | filters |
+| MATERIALS | PURCHASE ORDERS (read PDF / Excel, PO total and tolerance checks, auto-coding of BOQ / cost code / budget resource with confidence), DELIVERY NOTES, MIR (DNs, certificates, drum labels), 3-WAY MATCH (only exceptions need you), SUPPLIER INVOICES (from DN lines; a DN line can be invoiced once), DN LOOKUP, SETTINGS | REVIEW window: page image left, extracted lines right, failed checks highlighted |
+| OWNER MOS / BOQ | materials on site to the owner (BOQ rate x MOS %, release when installed); owner BOQ categorised by system | build, export Excel / PDF |
+| ACONEX | status board, workflow lookup (screenshots attached to the invoice revision), document downloads, script runner, setup. An APPROVED / REJECTED workflow asks whether to record it on the linked invoice revision (approve, or reject + prepare the next revision) - never silently | LOOK UP, REFRESH ALL, LINK TO INVOICE, DOWNLOAD |
+| CONTRACTS & BOQ | import the contract link workbook (contract no. / subcontractor / building typed in), the invoice template (INV sheet), the E-Promise BOQ list; item attributes editable; contract documents (go into packages) | SAVE + CONFIRM ATTRIBUTES, ATTACH |
+| SITE STATEMENTS | issue a protected statement workbook per subcontractor (WIR NO column included), read it back (duplicates refused, over-remaining needs a reason), attach the signed scan | GENERATE, OPEN FILLED STATEMENT, POST TO LEDGER, ATTACH SCAN |
+| VARIATIONS / EI | register, documents, BOQ suggestions, omission / addition / new item lines, submission Excel / PDF | see phase 4 section |
+| INVOICES | list by kind (SUBCONTRACTOR / SUPPLIER / OWNER_MOS); build a subcontractor invoice from the ledger (previous = last approved), confirm / learn mappings, revisions, submit (Aconex no.), reject, approve + lock, diff; past invoice files split a cumulative block | BUILD FROM LEDGER (subcontractor kind only), PAST INVOICE FILES, SAVE DRAFT, NEW REVISION, ATTACH SIGNED INVOICE, DRAFT / FINAL PACKAGE, EXPORT HEAD-OFFICE TRACKER, EXCEL / PDF |
+| REPORTS | weekly progress, subcontractor scorecards (incl. >4.5 m and 15 m rejected, over-cap keys), cash flow (claimed vs certified), materials status (PO delivered %, DNs without MIR, MIR status, exceptions), VO register, invoice status board - Excel (#A6A6A6 bold headers) and PDF | EXCEL, PDF |
+| SETTINGS | data source (local file / server, migrate local -> server), invoice header, package / WIR folders, documents root, tracker password, Aconex config, AI key | SAVE |
+
+## Daily workflow (Mohamed)
+
+1. **Statement** - SITE STATEMENTS > GENERATE for the subcontractor; he fills qty, SITE %, WIR %, WIR NO, >4.5 m and 15 m
+   columns; OPEN FILLED STATEMENT > preview > POST TO LEDGER (lines above the remaining need a reason; duplicates refused).
+2. **Ledger** - ROOMS & LEDGER: check balances and the plan; single corrections with POST CLAIM LINE / REVERSE.
+3. **Checks** - CHECKS: decide the >4.5 m and 15 m claims (pending ones stay out of the invoice).
+4. **Invoice** - INVOICES: BUILD FROM LEDGER; confirm the NEEDS CONFIRMATION groups (learned for next time); SAVE DRAFT.
+5. **Package** - ATTACH SIGNED INVOICE, then FINAL PACKAGE (index with SHA-256, Excel, PDF, signed scan, contract, WIRs found
+   by number in the WIR folder or the Aconex downloads, statements, head-office tracker, checks report).
+6. **Aconex** - SUBMIT with the workflow no.; ACONEX > REFRESH ALL daily; when the workflow is approved / rejected Raffaello
+   asks to approve (locks, becomes "previous") or to reject and prepare the next revision.
+
+## What to verify on Windows (cannot be run in the Linux build)
+
+- [ ] RUN_ONE_CLICK.bat completes; build_log.txt ends with BUILD OK; `publish\Raffaello.exe` starts; `publish\.playwright\node` exists.
+- [ ] First-run wizard: local file on the shared drive; documents folder created; tracker + contract imports from the wizard.
+- [ ] Every page opens without a XAML error (none of the WPF screens has been opened on Linux): Ledger, Plan view, Checks,
+      Invoices, Site statements, Contracts, Reports, Materials, Owner MOS, BOQ, Aconex, Variations, Settings.
+- [ ] Plan view: zoom / pan / fit, room click, PNG export; Rooms & Ledger plan polygons line up with the image.
+- [ ] Building switcher BRANDED / HOTEL / ALL changes the room list, plans, checks, contracts and reports.
+- [ ] Head-office tracker in Excel: sheets protected, room shapes clickable (link to ROOM DETAILS and back), images sharp
+      enough after compression (~1.2 MB for 5 levels).
+- [ ] Invoice package: open each file in the ZIP; build twice -> same SHA-256.
+- [ ] Windows OCR / PDF rendering in the Materials REVIEW window (scanned DN / MIR).
+- [ ] Aconex: real login (persistent profile), workflow lookup selectors in aconex.config.json, approval / rejection prompt.
+- [ ] Server: SETUP_SERVER.bat on the office PC, Windows sign-in, Materials / Aconex / Variations in server mode,
+      sign-in lockout after 5 wrong passwords, optional HTTPS (docs/SERVER.md), LOCAL -> SERVER migration incl. module tables.
+- [ ] Printing (Reports > PRINTABLE SUMMARY) and the shell opening exported files.
+
+## Phase 6 notes
+
+- Server support for the phase-3 / phase-4 stores (`MaterialsServerModule` with the DN-line lock guard, `AconexServerModule`,
+  `VariationsServerModule`; client `Remote*Store` chosen per call). Reset and migration include their tables.
+- Invoices carry `Kind` (SUBCONTRACTOR / SUPPLIER / OWNER_MOS); packages and the tracker export are kind-aware.
+- Plan images in the head-office tracker are recompressed with a small managed PNG codec (`Raffaello.Core/Imaging`) to
+  ~1.2 MB for the five levels (was 6 MB); shapes stay aligned (normalised coordinates, same frame).
+- Server sign-in rate limit and optional HTTPS: see docs/SERVER.md.
+- CLI: `import-rooms FILE --building HOTEL`, `map-sample --contract NO`, `reports --out DIR [--building B]`, plus the earlier commands.
+<!-- [phase6] end -->
+
 ## House rules (Core/Rules, all unit tested)
 
 | Rule | Where |
@@ -239,7 +306,7 @@ Barlow Condensed, IBM Plex Sans, IBM Plex Mono and Cinzel (SIL Open Font License
 
 Ctrl+K / Ctrl+F command palette, Ctrl+Shift+A ask, Ctrl+1..9 / Ctrl+0 modules (1 Dashboard, 2 Ledger, 3 Checks, 4 Quantities,
 5 Statements, 6 Materials, 7 Contracts, 8 Invoices, 9 Site statements, 0 Reports), Ctrl+H welcome, Ctrl+I import,
-Ctrl+E export current view, Ctrl+Shift+L light/dark, F5 reload, Esc close panels.
+Ctrl+E export current view, Ctrl+Shift+L light/dark, F5 reload, Esc close panels, **F1 the full list**.
 
 ## Building on Linux (CI / cloud sessions)
 

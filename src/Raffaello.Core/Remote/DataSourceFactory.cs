@@ -32,6 +32,7 @@ public static class DataSourceFactory
         }
         // the server is shared: never seed demo data into it
         s.SeedDemoData = false;
+        ModuleEntities.RegisterAll();   // [phase6] module tables in the offline cache / sync
         var store = new RemoteProjectStore(remote, s.EffectiveUserName);
         _current = store;
         old?.Dispose();

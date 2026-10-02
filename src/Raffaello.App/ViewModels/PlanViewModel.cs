@@ -47,7 +47,7 @@ public sealed partial class PlanViewModel : PageViewModel
     public override string Title => "PLAN VIEW";
     public override string Subtitle => "Every room on its level plan - colour by status, subcontractor, % used or pending checks; click a room for its balance";
     public override bool ShowFilterBar => false;
-    protected override bool UsesFilter => false;
+    protected override bool UsesFilter => true;   // [phase6] the building switcher drives it
 
     public ObservableCollection<PlanLevelTab> Levels { get; } = new();
     public ObservableCollection<PlanRoomShape> Shapes { get; } = new();
@@ -75,6 +75,8 @@ public sealed partial class PlanViewModel : PageViewModel
     [ObservableProperty] private string _roomCaption = "";
     [ObservableProperty] private string _roomChecks = "";
     [ObservableProperty] private string _countText = "";
+    /// <summary>[phase6] Empty state: what to do when there is nothing to draw.</summary>
+    [ObservableProperty] private string _emptyHint = "";
 
     private List<PlanImage>? _plans;
     private Dictionary<string, RoomPlanInfo> _info = new(StringComparer.OrdinalIgnoreCase);
@@ -91,7 +93,7 @@ public sealed partial class PlanViewModel : PageViewModel
     protected override void Refresh()
     {
         var s = Project.Snapshot;
-        try { _plans = Project.LoadPlans().Where(p => p.Png != null).OrderBy(p => p.Plan).ToList(); } catch { _plans = new(); }
+        try { _plans = Project.LoadPlans().Where(p => p.Png != null && InBuilding(p.Building)).OrderBy(p => p.Plan).ToList(); } catch { _plans = new(); }
         var keep = Level?.Plan.Plan;
         Levels.Clear();
         foreach (var p in _plans) Levels.Add(new PlanLevelTab { Plan = p });
@@ -101,8 +103,11 @@ public sealed partial class PlanViewModel : PageViewModel
         Sync(InvoiceOptions, new[] { All }.Concat(s.Claims.Select(c => c.InvoiceNo).Where(n => n > 0).Distinct().OrderBy(n => n).Select(n => n.ToString(CultureInfo.InvariantCulture))));
         RoomsWithoutShape.Clear();
         var shaped = s.RoomShapes.Select(r => r.Room).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var r in s.Rooms.Where(r => !shaped.Contains(r.Code)).OrderBy(r => r.Code)) RoomsWithoutShape.Add(r.Code);
+        foreach (var r in s.Rooms.Where(r => InBuilding(r.Building) && !shaped.Contains(r.Code)).OrderBy(r => r.Code)) RoomsWithoutShape.Add(r.Code);
         Level = Levels.FirstOrDefault(l => l.Plan.Plan == keep) ?? Levels.FirstOrDefault();
+        EmptyHint = Levels.Count > 0 ? "" : s.Rooms.Count == 0
+            ? "No rooms yet. Import the tracker on ROOMS & LEDGER (the PLANS sheet gives the level images and room shapes)."
+            : $"No plan images for {(BuildingFilter ?? "this building")}. The tracker's PLANS sheet provides them; rooms are still listed on the right.";
         Recompute();
     }
 

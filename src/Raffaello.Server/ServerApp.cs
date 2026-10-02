@@ -36,6 +36,7 @@ public static class ServerApp
         builder.Services.AddSingleton(sp => new UserStore(sp.GetRequiredService<NpgsqlDataSource>()) { BcryptWorkFactor = Math.Clamp(opt.BcryptWorkFactor, 4, 16) });
         builder.Services.AddSingleton(sp => new DocumentStore(sp.GetRequiredService<NpgsqlDataSource>(), opt.ResolveDocumentsRoot(contentRoot), opt.MaxDocumentBytes));
         builder.Services.AddSingleton(_ => new BackupRunner(cs, opt, contentRoot));
+        builder.Services.AddSingleton(_ => new Auth.LoginThrottle(opt));   // [phase6] sign-in rate limit
         builder.Services.AddHostedService<NightlyBackupService>();
         builder.Services.AddSignalR().AddJsonProtocol(o =>
         {

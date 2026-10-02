@@ -1,3 +1,4 @@
+using Raffaello.Core.Materials;
 using System.Diagnostics;
 using System.Globalization;
 using Raffaello.Core;
@@ -29,7 +30,7 @@ namespace Raffaello.Cli;
 public static class Program
 {
     private static MappingOptions MapOptions = MappingOptions.Default;
-    private static readonly HashSet<string> Commands = new() { "import-tracker", "import-contract", "import-epromise", "import-template", "map", "build-invoice", "export", "statement", "report", "approve", "analyze-sub", "split", "tracker-export", "package" };
+    private static readonly HashSet<string> Commands = new() { "import-tracker", "import-contract", "import-epromise", "import-template", "map", "build-invoice", "export", "statement", "report", "approve", "analyze-sub", "split", "tracker-export", "package", "import-rooms", "map-sample", "reports" };
 
     public static int Main(string[] args)
     {
@@ -63,6 +64,9 @@ public static class Program
                 case "report": Report(store); break;
                 case "tracker-export": TrackerExport(store, opts.GetValueOrDefault("contract", ""), opts.GetValueOrDefault("sub"), opts.TryGetValue("invoice", out var ti) ? int.Parse(ti) : null, Req(opts, "out"), opts.ContainsKey("all")); break;
                 case "package": Package(store, Req(opts, "contract"), Req(opts, "sub"), int.Parse(Req(opts, "invoice")), Req(opts, "out"), opts.ContainsKey("final"), opts.GetValueOrDefault("wir-folder", "")); break;
+                case "reports": Reports(store, Req(opts, "out"), opts.GetValueOrDefault("building")); break;
+                case "import-rooms": ImportRooms(store, positional[0], opts.GetValueOrDefault("building", Buildings.Hotel)); break;
+                case "map-sample": MapSample(store, Req(opts, "contract"), opts.GetValueOrDefault("building", Buildings.Hotel)); break;
                 case "analyze-sub": AnalyzeSub(store, Req(opts, "sub"), Req(opts, "contract")); break;
                 case "split": SplitCumulative(store, Req(opts, "contract"), Req(opts, "sub"), positional, opts.ContainsKey("commit")); break;
                 case "approve": Approve(store, Req(opts, "contract"), Req(opts, "sub"), int.Parse(Req(opts, "invoice")), opts.GetValueOrDefault("aconex", "")); break;
@@ -258,6 +262,59 @@ public static class Program
         Console.WriteLine("  BOQ codes cited in the notes vs mapping (lines agree / disagree / no citation):");
         foreach (var ((stage, item), v) in agree.OrderBy(kv => kv.Key.Item1).ThenBy(kv => kv.Key.Item2))
             Console.WriteLine($"    {stage,-13} {item,-18} {v.Agree,4} / {v.Disagree,4} / {v.NoCite,4}   cited [{string.Join(" ", v.Cited)}]   picked [{string.Join(" ", v.Picked)}]");
+    }
+
+    /// <summary>All project reports (Excel + PDF) from the data file.</summary>
+    private static void Reports(IProjectStore store, string outDir, string? building)
+    {
+        Directory.CreateDirectory(outDir);
+        var db = (Db)store;
+        var mats = new SqliteMaterialsStore(db);
+        var vos = new Raffaello.Core.Variations.SqliteVariationStore(db.Path, "cli"); vos.EnsureSchema();
+        var ac = new Raffaello.Core.AconexWeb.SqliteAconexStore(db.Path, "cli"); ac.EnsureSchema();
+        var s = Snap(store);
+        var inputs = new Raffaello.Core.Reports.ReportInputs
+        {
+            Project = s, Materials = mats.Load(), MaterialsSettings = new MaterialsSettings(), Variations = vos.Variations(), VariationLines = vos.AllLines(),
+            InvoiceBoard = Raffaello.Core.AconexWeb.StatusBoard.Build(s.SubInvoices, ac.ActiveLinks(), ac.LatestChecks(), DateTime.Today, false), Building = building,
+        };
+        foreach (var def in Raffaello.Core.Reports.ProjectReports.All)
+        {
+            var sheets = Raffaello.Core.Reports.ProjectReports.Build(def.Key, inputs);
+            var x = Path.Combine(outDir, $"REPORT_{def.Key}.xlsx");
+            var p = Path.Combine(outDir, $"REPORT_{def.Key}.pdf");
+            Raffaello.Core.Export.ExcelExporter.Export(x, sheets);
+            Raffaello.Core.Reports.ProjectReports.ExportPdf(p, def.Name, sheets);
+            Console.WriteLine($"  {def.Name,-28} {string.Join(", ", sheets.Select(sh => $"{sh.Name} {sh.Rows.Count}"))}  ({new FileInfo(x).Length / 1024} KB xlsx, {new FileInfo(p).Length / 1024} KB pdf)");
+        }
+    }
+
+    private static void ImportRooms(IProjectStore store, string file, string building)
+    {
+        var r = RoomListImporter.Read(file, building);
+        Console.WriteLine(r.Summary);
+        Console.WriteLine($"  columns: {string.Join(", ", r.ColumnsFound.Select(kv => $"{kv.Key}={kv.Value}"))}");
+        foreach (var i in r.Issues.Take(10)) Console.WriteLine($"  {i.LevelText} {i.Message}");
+        var (a, u, q) = RoomListImporter.Commit(r, store);
+        Console.WriteLine($"Committed: {a} added, {u} updated, {q} PROJECT QTY");
+    }
+
+    /// <summary>Maps one synthetic claim per stage x system x area type against a contract (smoke test for a new contract, e.g. the HOTEL).</summary>
+    private static void MapSample(IProjectStore store, string contract, string building)
+    {
+        var s = Snap(store);
+        var ctx = new MappingContext(contract, s.ContractItems, s.ItemBoqs, s.BoqItems, s.MappingRules) { Options = MapOptions };
+        var areas = building == Buildings.Hotel ? new[] { AreaTypes.Guestroom, AreaTypes.Foh, AreaTypes.Boh } : new[] { AreaTypes.Apartment, AreaTypes.Foh, AreaTypes.Boh };
+        var claims = new List<ClaimLine>();
+        foreach (var area in areas)
+            foreach (var (stage, item) in new[] { ("1ST FIX", "POWER"), ("1ST FIX", "LIGHT"), ("1ST FIX", "DATA"), ("1ST FIX", "GRMS"), ("CEILING", "LIGHT"), ("EMT", "LIGHT"), ("FLEXIBLE", "LIGHT"),
+                         ("2ND FIX", "POWER"), ("2ND FIX", "LIGHT"), ("2ND FIX", "DATA"), ("2ND FIX", "FIRE"), ("2ND FIX", "EMERGENCY LIGHT"), ("1ST FIX", "CCTV"), ("1ST FIX", "AV"),
+                         ("DB PANELS", "PANEL 24"), ("CABLE PULLING", "4X16"), ("CABLE TRAY", "300 MM") })
+                claims.Add(new ClaimLine { Building = building, Subcontractor = "SAMPLE", InvoiceNo = 1, Room = "SAMPLE-" + area, Stage = stage, Item = item, Qty = 1, AreaType = area });
+        var m = new MappingEngine().Map(claims, ctx, claims.ToDictionary(c => c.Room + c.Stage + c.Item, c => c.AreaType));
+        Console.WriteLine($"{contract} ({building}): {claims.Count} sample claims, mapped {m.CoveragePct:P1}, automatic {m.AutoPct:P1}");
+        foreach (var p in m.Parts.OrderBy(p => p.Area).ThenBy(p => p.Line.Stage).ThenBy(p => p.Line.Item))
+            Console.WriteLine($"    {p.Area,-10} {p.Line.Stage,-13} {p.Line.Item,-16} -> item {p.Item?.ItemNo ?? "-",-4} {p.BoqCode,-24} {Trunc(p.BoqDescription, 40),-40} {p.Confidence}");
     }
 
     private static void TrackerExport(IProjectStore store, string contract, string? sub, int? invoice, string outPath, bool all)

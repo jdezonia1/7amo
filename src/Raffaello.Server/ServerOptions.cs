@@ -31,6 +31,11 @@ public sealed class ServerOptions
     /// <summary>BCrypt cost for app-account passwords (11 = ~0.2 s per sign-in).</summary>
     public int BcryptWorkFactor { get; set; } = 11;
 
+    /// <summary>[phase6] Sign-in rate limit: wrong passwords allowed per user / address within the window, then a lockout.</summary>
+    public int LoginMaxFailures { get; set; } = 5;
+    public int LoginWindowMinutes { get; set; } = 15;
+    public int LoginLockoutMinutes { get; set; } = 5;
+
     public string ResolveDocumentsRoot(string contentRoot) =>
         string.IsNullOrWhiteSpace(DocumentsRoot) ? Path.Combine(contentRoot, "Documents") : DocumentsRoot;
 

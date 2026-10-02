@@ -207,6 +207,7 @@ public static class InvoiceWorkflow
             {
                 existing.RetentionPct = h.RetentionPct; existing.AdvancePct = h.AdvancePct; existing.Discount = h.Discount; existing.AdvanceRecovery = h.AdvanceRecovery;
                 existing.Notes = h.Notes;
+                existing.Kind = h.Kind;
                 w.Update(existing);
                 foreach (var l in oldLines) w.Delete(l);
                 h.Id = existing.Id; h.RowVersion = existing.RowVersion; h.Status = existing.Status;

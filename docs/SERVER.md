@@ -111,3 +111,40 @@ connection string without `Database`. Each test creates and drops its own databa
 Without PostgreSQL the integration tests are reported as skipped with that reason.
 
 Not testable on Linux: Windows (Negotiate) sign-in, the Windows service and SETUP_SERVER.bat - verify on the office server.
+
+## Sign-in rate limit (phase 6)
+
+`POST /api/v1/auth/login`: after `LoginMaxFailures` (5) wrong passwords for the same user name, or from the same address,
+within `LoginWindowMinutes` (15), sign-in is refused with **429 `too_many_attempts`** and a `Retry-After` header for
+`LoginLockoutMinutes` (5). A correct password clears the user's counter. Windows (Negotiate) sign-in is not affected.
+Settings live in `appsettings.json` section `Raffaello`.
+
+## Optional HTTPS with a certificate from IT
+
+Kestrel serves HTTPS when the URL starts with `https` and a certificate is configured. Ask IT for a certificate (PFX) issued to
+the server PC's name (e.g. `raffaello.mobco.local`), copy it next to the service (e.g. `C:\Raffaello\Server\raffaello.pfx`) and set,
+in `appsettings.json`:
+
+```json
+{
+  "Raffaello": { "Urls": "https://0.0.0.0:5443" },
+  "Kestrel": {
+    "Certificates": {
+      "Default": { "Path": "C:\\Raffaello\\Server\\raffaello.pfx", "Password": "<from IT>" }
+    }
+  }
+}
+```
+
+Open the firewall port (5443), restart the service (`sc stop RaffaelloServer` / `sc start RaffaelloServer`) and set the
+client's server address to `https://raffaello.mobco.local:5443` in Settings > Data source. The certificate must be trusted by
+the client PCs (domain CA certificates are). Keep the password out of source control: on the server it can also be given as
+the environment variable `Kestrel__Certificates__Default__Password`.
+
+## Module stores with server support (phase 6)
+
+`MaterialsServerModule` (phase-3 tables + `DnLineLockGuard`: one invoice per DN line, 409 `locked`), `AconexServerModule` and
+`VariationsServerModule` are listed in `ServerModules.All`. The client uses `RemoteMaterialsStore`, `RemoteAconexStore` and
+`RemoteVariationStore` (`src/Raffaello.Core/Remote/RemoteModuleStores.cs`) when `DataSourceFactory.Current` is set; the app picks
+the implementation per call (`MaterialsStoreSelector`). `ModuleEntities.RegisterAll()` makes the migration and the offline
+cache include these tables; a data reset clears them on both sides.

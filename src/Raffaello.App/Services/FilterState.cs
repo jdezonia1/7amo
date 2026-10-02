@@ -74,7 +74,9 @@ public sealed partial class FilterState : ObservableObject
     public void RebuildOptions()
     {
         var lines = _data.Project.Snapshot.Lines;
-        Sync(Buildings, new[] { All }.Concat(lines.Select(l => l.Building).Distinct().OrderBy(x => x)));
+        // [phase6] BRANDED and HOTEL always, plus any building of the rooms / demo lines
+        Sync(Buildings, new[] { All }.Concat(lines.Select(l => l.Building).Concat(_data.Project.Snapshot.Rooms.Select(r => r.Building))
+            .Concat(new[] { Raffaello.Core.Domain.Buildings.Branded, Raffaello.Core.Domain.Buildings.Hotel }).Where(b => !string.IsNullOrEmpty(b)).Distinct().OrderBy(x => x)));
         Sync(Levels, new[] { All }.Concat(lines.Select(l => l.Level).Distinct().OrderBy(ProjectAnalytics.LevelRank)));
         Sync(Systems, new[] { All }.Concat(lines.Select(l => l.System).Distinct().OrderBy(s => Array.IndexOf(Raffaello.Core.Domain.Systems.Main, s) is var i && i < 0 ? 99 : i)));
         Sync(Stages, new[] { All }.Concat(Raffaello.Core.Domain.Stages.All));

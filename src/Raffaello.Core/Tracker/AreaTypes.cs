@@ -30,4 +30,16 @@ public static class AreaTypes
         if (u.Contains("GUEST") || u.StartsWith("ER-")) return Guestroom;
         return Apartment;
     }
+
+    /// <summary>[phase6] Building-aware guess: in the HOTEL a key / guest room (KING, TWIN, SUITE, room numbers) is GUESTROOM, not APARTMENT.</summary>
+    public static string GuessFor(string building, string unitType, string level, string location)
+    {
+        var g = Guess(unitType, level, location);
+        if (!string.Equals(building, Raffaello.Core.Domain.Buildings.Hotel, StringComparison.OrdinalIgnoreCase) || g != Apartment) return g;
+        var u = (unitType ?? "").ToUpperInvariant();
+        if (u.Contains("RESIDENCE") || u.Contains("APARTMENT")) return Apartment;
+        if (u.Contains("CORRIDOR") || u.Contains("LOBBY") || u.Contains("RESTAURANT") || u.Contains("BALLROOM") || u.Contains("SPA") || u.Contains("POOL") || u.Contains("GYM") || u.Contains("BAR")) return Foh;
+        if (u.Contains("KITCHEN") || u.Contains("STORE") || u.Contains("LAUNDRY") || u.Contains("OFFICE") || u.Contains("STAFF") || u.Contains("ELEC") || u.Contains("MEP")) return Boh;
+        return Guestroom;
+    }
 }

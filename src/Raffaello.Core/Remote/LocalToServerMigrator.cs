@@ -77,6 +77,7 @@ public static class LocalToServerMigrator
     {
         if (!server.CheckNow()) throw new ServerUnavailableException($"The server {server.Location} is not reachable - the migration needs a connection.");
         local.EnsureSchema();
+        ModuleEntities.RegisterAll();   // [phase6] materials / Aconex / variation tables are copied too
         var key = SourceKeyOf(local);
         var serverSource = server.Api.GetMeta(ServerSourceKey);
         var report = new MigrationReport { DryRun = dryRun, Source = local.Location, SourceKey = key, ServerSource = serverSource };

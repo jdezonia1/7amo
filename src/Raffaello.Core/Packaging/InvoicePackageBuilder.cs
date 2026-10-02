@@ -26,6 +26,12 @@ public sealed class PackageRequest
     public bool Final { get; init; }
     /// <summary>Date written into every generated file (defaults to the invoice revision's creation date) - same inputs, same bytes.</summary>
     public DateTime? Stamp { get; init; }
+    /// <summary>[phase6] Documents registered from the Aconex document register (doc no., path): WIRs are found here first.</summary>
+    public List<(string DocumentNo, string Path)> RegisteredDocuments { get; init; } = new();
+    /// <summary>[phase6] Extra files (e.g. 07_MIR_tracker.xlsx for a supplier invoice): name inside the ZIP, path, note.</summary>
+    public List<(string Name, string Path, string Note)> ExtraFiles { get; init; } = new();
+    /// <summary>[phase6] Plan images in the tracker are recompressed to stay under this total.</summary>
+    public long MaxPlanImageBytes { get; init; } = TrackerExportScope.DefaultMaxImageBytes;
 }
 
 public sealed record PackageEntry(string Name, long Bytes, string Sha256, string Note);
@@ -105,8 +111,10 @@ public static class InvoicePackageBuilder
             }
             if (!files.Any(f => f.Name.StartsWith("04_Contract/"))) res.Warnings.Add($"No contract document attached to {h.ContractNo} (Contracts page).");
 
+            var ledgerKind = InvoiceKinds.IsSubcontractor(h);   // [phase6] supplier / owner MOS invoices have no room ledger
+            if (!ledgerKind) res.Warnings.Add($"{InvoiceKinds.Of(h)} invoice: no room ledger, WIRs, site statements, tracker or checks report in this package.");
             // WIRs referenced by this invoice's ledger lines
-            var lines = LedgerRules.Effective(s.Claims.Where(c => c.Subcontractor.Equals(h.Subcontractor, StringComparison.OrdinalIgnoreCase) && c.InvoiceNo <= h.InvoiceNo))
+            var lines = !ledgerKind ? new List<ClaimLine>() : LedgerRules.Effective(s.Claims.Where(c => c.Subcontractor.Equals(h.Subcontractor, StringComparison.OrdinalIgnoreCase) && c.InvoiceNo <= h.InvoiceNo))
                 .Where(c => c.InvoiceNo == h.InvoiceNo || (c.IsCumulative && !c.ReplacedBySplit)).ToList();
             var wirNos = lines.SelectMany(c => Regex.Split(c.WirNo ?? "", @"[;,/\s]+")).Where(w => w.Trim().Length > 0).Select(w => w.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(w => w, StringComparer.OrdinalIgnoreCase).ToList();
             var pdfs = Directory.Exists(req.WirFolder) ? Directory.EnumerateFiles(req.WirFolder, "*.pdf", SearchOption.AllDirectories).OrderBy(p => p, StringComparer.Ordinal).ToList() : new List<string>();
@@ -114,23 +122,30 @@ public static class InvoicePackageBuilder
             foreach (var w in wirNos)
             {
                 var key = PackageNames.NormalizeWir(w);
-                var hit = pdfs.FirstOrDefault(p => PackageNames.NormalizeWir(Path.GetFileNameWithoutExtension(p)).Contains(key, StringComparison.Ordinal));
+                var hit = req.RegisteredDocuments.Where(d => File.Exists(d.Path) && PackageNames.NormalizeWir(d.DocumentNo).Contains(key, StringComparison.Ordinal))
+                              .Select(d => d.Path).OrderBy(p => p, StringComparer.Ordinal).FirstOrDefault()
+                          ?? pdfs.FirstOrDefault(p => PackageNames.NormalizeWir(Path.GetFileNameWithoutExtension(p)).Contains(key, StringComparison.Ordinal));
                 if (hit is null) { res.MissingWirs.Add(w); continue; }
                 files.Add(($"05_WIRs/{PackageNames.Safe(Path.GetFileName(hit))}", File.ReadAllBytes(hit), $"WIR {w}"));
             }
 
-            var statementNos = s.Statements.Where(st => st.Subcontractor.Equals(h.Subcontractor, StringComparison.OrdinalIgnoreCase)).Select(st => st.StatementNo).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var statementNos = !ledgerKind ? new HashSet<string>() : s.Statements.Where(st => st.Subcontractor.Equals(h.Subcontractor, StringComparison.OrdinalIgnoreCase)).Select(st => st.StatementNo).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var a in s.Attachments.Where(a => a.OwnerKind == AttachmentKinds.Statement && statementNos.Contains(a.OwnerKey)).OrderBy(a => a.OwnerKey).ThenBy(a => a.FileName))
                 if (File.Exists(a.FilePath)) files.Add(($"06_Site_statements/{PackageNames.Safe(a.FileName)}", File.ReadAllBytes(a.FilePath), $"site statement {a.OwnerKey}"));
 
-            var trackerName = $"07_Tracker_{PackageNames.Safe(h.Subcontractor)}_INV-{h.InvoiceNo}.xlsx";
-            var tracker = Tmp(trackerName);
-            TrackerExporter.Export(tracker, s, req.Plans, new TrackerExportScope { Subcontractor = h.Subcontractor, InvoiceNo = h.InvoiceNo, ContractNo = h.ContractNo, AsOf = stamp }, b);
-            files.Add((trackerName, File.ReadAllBytes(tracker), "head-office tracker (values, protected)"));
+            if (ledgerKind)
+            {
+                var trackerName = $"07_Tracker_{PackageNames.Safe(h.Subcontractor)}_INV-{h.InvoiceNo}.xlsx";
+                var tracker = Tmp(trackerName);
+                TrackerExporter.Export(tracker, s, req.Plans, new TrackerExportScope { Subcontractor = h.Subcontractor, InvoiceNo = h.InvoiceNo, ContractNo = h.ContractNo, AsOf = stamp, MaxImageBytes = req.MaxPlanImageBytes }, b);
+                files.Add((trackerName, File.ReadAllBytes(tracker), "head-office tracker (values, protected)"));
 
-            var checks = Tmp("08_Checks.pdf");
-            ChecksReport(checks, s, h, stamp);
-            files.Add(("08_Checks.pdf", File.ReadAllBytes(checks), "height / length check decisions"));
+                var checks = Tmp("08_Checks.pdf");
+                ChecksReport(checks, s, h, stamp);
+                files.Add(("08_Checks.pdf", File.ReadAllBytes(checks), "height / length check decisions"));
+            }
+            foreach (var extra in req.ExtraFiles.Where(f => File.Exists(f.Path)))
+                files.Add((extra.Name, File.ReadAllBytes(extra.Path), extra.Note));
 
             foreach (var f in files) res.Entries.Add(new PackageEntry(f.Name, f.Data.Length, Deterministic.Sha256(f.Data), f.Note));
 
@@ -185,8 +200,9 @@ public static class InvoicePackageBuilder
                 {
                     tb.ColumnsDefinition(cd => { cd.ConstantColumn(150); cd.RelativeColumn(); });
                     void Row(string k, string v) { tb.Cell().Text(k).Bold(); tb.Cell().Text(v); }
-                    Row("Subcontractor", h.Subcontractor);
-                    Row("Subcontract no.", h.ContractNo);
+                    Row(InvoiceKinds.IsSubcontractor(h) ? "Subcontractor" : InvoiceKinds.Of(h) == InvoiceKinds.Supplier ? "Supplier" : "Invoice to owner", h.Subcontractor);
+                    Row("Invoice kind", InvoiceKinds.Of(h));
+                    Row(InvoiceKinds.Of(h) == InvoiceKinds.Supplier ? "PO no." : "Subcontract no.", h.ContractNo);
                     Row("Invoice", $"INV-{h.InvoiceNo:00}  Rev {h.Revision}  ({h.Status})");
                     Row("Period", h.PeriodTo is { } p ? $"to {p:dd MMM yyyy}" : req.Info.CoveredPeriod);
                     Row("Aconex workflow", string.IsNullOrEmpty(h.AconexWorkflowNo) ? "-" : h.AconexWorkflowNo);

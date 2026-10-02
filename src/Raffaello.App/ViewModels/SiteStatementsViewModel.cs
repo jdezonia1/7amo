@@ -33,7 +33,7 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
     public override string Title => "SITE STATEMENTS";
     public override string Subtitle => "Issue a statement sheet per subcontractor, import it back into the room ledger (duplicates and over-remaining are caught)";
     public override bool ShowFilterBar => false;
-    protected override bool UsesFilter => false;
+    protected override bool UsesFilter => true;   // [phase6] the building switcher drives it
 
     public ObservableCollection<string> Subcontractors { get; } = new();
     public ObservableCollection<ToggleOption> Stages { get; } = new();
@@ -85,7 +85,7 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
         var stages = Stages.Where(x => x.IsOn).Select(x => x.Name).ToList();
         var systems = Systems.Where(x => x.IsOn).Select(x => x.Name).ToList();
         var rooms = 0;
-        if (await Ctx.Data.WriteAsync(p => rooms = p.Workflow.GenerateStatement(path, sub, no, Buildings.Branded, stages, systems), Ctx.Toasts))
+        if (await Ctx.Data.WriteAsync(p => rooms = p.Workflow.GenerateStatement(path, sub, no, WorkingBuilding, stages, systems), Ctx.Toasts))
         {
             Ctx.Toasts.Show("STATEMENT ISSUED", $"{no}: {rooms} rooms, {stages.Count} stages x {systems.Count} systems", ToastKind.Good);
             DialogService.OpenWithShell(path);
@@ -100,7 +100,7 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
         var inv = int.TryParse(InvoiceNo, out var n) ? n : 0;
         try
         {
-            var res = await Task.Run(() => Project.Workflow.PreviewStatement(path, inv, Buildings.Branded));
+            var res = await Task.Run(() => Project.Workflow.PreviewStatement(path, inv, WorkingBuilding));
             _preview = res;
             PreviewFile = path;
             HasPreview = true;

@@ -27,6 +27,8 @@ public sealed class ProjectService
     public IReadOnlyList<ChainRow> Chain { get; private set; } = Array.Empty<ChainRow>();
     public IReadOnlyDictionary<long, ChainRow> ChainById { get; private set; } = new Dictionary<long, ChainRow>();
     public IReadOnlyList<QueueItem> Queue { get; private set; } = Array.Empty<QueueItem>();
+    /// <summary>[phase6] Extra "Needs you today" sources (modules with their own stores), evaluated on every reload.</summary>
+    public List<Func<ProjectService, IEnumerable<QueueItem>>> QueueSources { get; } = new();
     public DateTime ProjectStart { get; private set; } = DateTime.Today.AddDays(-7 * 38);
     public DateTime PlannedFinish { get; private set; } = DateTime.Today.AddDays(7 * 28);
     public DateTime LastLoad { get; private set; }
@@ -89,6 +91,13 @@ public sealed class ProjectService
         Chain = ChainBuilder.Build(Snapshot, Engine);
         ChainById = Chain.ToDictionary(c => c.Id);
         Queue = NeedsTodayQueue.Build(Snapshot, Chain, Options);
+        if (QueueSources.Count > 0)   // [phase6] materials, Aconex, variations add their own items
+        {
+            var extra = new List<QueueItem>();
+            foreach (var src in QueueSources.ToList())
+                try { extra.AddRange(src(this)); } catch (Exception) { /* a module that cannot load must not break the queue */ }
+            Queue = Queue.Concat(extra).OrderByDescending(i => i.Severity).ThenByDescending(i => i.Score).ToList();
+        }
         if (DateTime.TryParse(Store.GetMeta("ProjectStart"), CultureInfo.InvariantCulture, DateTimeStyles.None, out var ps)) ProjectStart = ps;
         else if (Snapshot.Wirs.Count > 0) ProjectStart = Snapshot.Wirs.Min(w => w.SubmittedAt).AddDays(-14);
         if (DateTime.TryParse(Store.GetMeta("PlannedFinish"), CultureInfo.InvariantCulture, DateTimeStyles.None, out var pf)) PlannedFinish = pf;

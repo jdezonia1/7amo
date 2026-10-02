@@ -25,6 +25,8 @@
                 <Button Style="{StaticResource BtnGhost}" Content="FIT" Click="OnFit" VerticalAlignment="Bottom" Margin="0,0,6,0" ToolTip="Fit the plan to the window (wheel = zoom, drag = pan)"/>
                 <Button Style="{StaticResource BtnGhost}" Content="EXPORT PNG" Click="OnExportPng" VerticalAlignment="Bottom"/>
             </WrapPanel>
+            <TextBlock Grid.Row="2" Text="{Binding EmptyHint}" Style="{StaticResource Body}" TextWrapping="Wrap" Margin="20" Panel.ZIndex="1"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding EmptyHint, Converter={StaticResource NullToVis}}"/>
             <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
                 <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                               PreviewMouseWheel="OnWheel" PreviewMouseLeftButtonDown="OnDragStart" PreviewMouseMove="OnDragMove" PreviewMouseLeftButtonUp="OnDragEnd">

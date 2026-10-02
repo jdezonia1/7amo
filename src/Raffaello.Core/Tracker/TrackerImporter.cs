@@ -155,6 +155,7 @@ public static class TrackerImporter
                 Building = res.Building, Subcontractor = sub.Trim().ToUpperInvariant(), InvoiceNo = I(invoiceText), Stage = stage, Floor = H(r, h, "FLOOR"),
                 Room = loc, Item = item, Unit = H(r, h, "UNIT") is { Length: > 0 } u ? u : "no", Qty = qty.Value,
                 SitePct = HN(r, h, "SITE %") ?? 1, WirPct = HN(r, h, "WIR %") ?? 1, Notes = H(r, h, "NOTES"),
+                WirNo = H(r, h, "WIR NO", "WIR NO.", "WIR NUMBER", "WIR REF", "WIR"),   // [phase6] optional column
                 Rework = H(r, h, "REWORK?").StartsWith("Y", StringComparison.OrdinalIgnoreCase), WorkType = H(r, h, "WORK TYPE"),
                 AreaType = rooms.TryGetValue(loc, out var room) ? room.AreaType : "", Source = "TRACKER",
                 SourceKey = string.Join('|', "TRK", r.Number, sub, invoiceText, stage, loc, item, qty.Value.ToString(CultureInfo.InvariantCulture)),

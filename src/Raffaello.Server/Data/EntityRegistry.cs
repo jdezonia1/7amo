@@ -70,5 +70,8 @@ public static class ServerModules
     public static readonly List<IServerModule> All = new()
     {
         // [phase-N] new SomethingServerModule(),
+        new Modules.MaterialsServerModule(),     // [phase6]
+        new Modules.AconexServerModule(),        // [phase6]
+        new Modules.VariationsServerModule(),    // [phase6]
     };
 }

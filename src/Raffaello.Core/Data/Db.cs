@@ -299,6 +299,10 @@ public sealed class Db : IProjectStore
         using var c = Open();
         using var tx = c.BeginTransaction();
         foreach (var t in EntityTypes) Exec(c, tx, $"DELETE FROM [{TableOf(t)}];");
+        // [phase6] module tables (materials, MOS, BOQ, coding memory, Aconex, variations) live in the same file
+        var existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using (var cmd = c.CreateCommand()) { cmd.Transaction = tx; cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table'"; using var r = cmd.ExecuteReader(); while (r.Read()) existing.Add(r.GetString(0)); }
+        foreach (var t in Remote.ModuleEntities.All.Where(t => existing.Contains(TableOf(t)))) Exec(c, tx, $"DELETE FROM [{TableOf(t)}];");
         Exec(c, tx, "DELETE FROM AuditLog;");
         Exec(c, tx, "DELETE FROM sqlite_sequence;");
         tx.Commit();

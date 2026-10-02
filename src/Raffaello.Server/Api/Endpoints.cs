@@ -50,12 +50,23 @@ public static class Endpoints
             return JsonResult(new { ok = true, server = "Raffaello.Server", version = typeof(Endpoints).Assembly.GetName().Version?.ToString() ?? "", time = DateTime.Now });
         }).AllowAnonymous();
 
-        app.MapPost(ApiRoutes.Login, (LoginRequest req, UserStore users) =>
+        app.MapPost(ApiRoutes.Login, (LoginRequest req, UserStore users, Auth.LoginThrottle throttle, HttpContext ctx) =>
         {
-            var r = users.Login(req.UserName ?? "", req.Password ?? "", req.Machine ?? "");
-            return r is null
-                ? Results.Json(new ErrorDto { Code = "unauthorized", Message = "Wrong user name or password, or the account is disabled." }, Json, statusCode: 401)
-                : JsonResult(r);
+            var user = req.UserName ?? "";
+            var address = ctx.Connection.RemoteIpAddress?.ToString() ?? "";
+            if (throttle.RetryAfter(user, address) is { } wait)
+            {
+                ctx.Response.Headers.RetryAfter = wait.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                return Results.Json(new ErrorDto { Code = "too_many_attempts", Message = $"Too many wrong sign-ins. Try again in {Math.Max(1, wait / 60)} minute(s) or ask the administrator." }, Json, statusCode: 429);
+            }
+            var r = users.Login(user, req.Password ?? "", req.Machine ?? "");
+            if (r is null)
+            {
+                throttle.Failed(user, address);
+                return Results.Json(new ErrorDto { Code = "unauthorized", Message = "Wrong user name or password, or the account is disabled." }, Json, statusCode: 401);
+            }
+            throttle.Succeeded(user);
+            return JsonResult(r);
         }).AllowAnonymous();
 
         var api = app.MapGroup("").RequireAuthorization();

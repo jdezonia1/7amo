@@ -27,6 +27,9 @@ public sealed class TrackerExportScope
     /// <summary>Stamp written in the file (also the document properties) - fixed so the same inputs give the same file.</summary>
     public DateTime AsOf { get; init; } = DateTime.Today;
     public string Password { get; init; } = "RAFFAELLO";
+    /// <summary>[phase6] Total budget for the plan images (re-encoded greyscale / smaller when over it). 0 = keep the originals.</summary>
+    public long MaxImageBytes { get; init; } = DefaultMaxImageBytes;
+    public const long DefaultMaxImageBytes = 1_400_000;
     public string Title => Subcontractor is null ? "ALL SUBCONTRACTORS" : $"{Subcontractor}{(InvoiceNo is { } n ? $" INV-{n:00}" : "")}";
 }
 
@@ -105,7 +108,8 @@ public static class TrackerExporter
             wb.SaveAs(path);
         }
 
-        var (planCount, shapeCount) = AddPlanDrawing(path, plans, shapesByPlan, info);
+        var drawPlans = ShrinkPlans(plans, scope.MaxImageBytes);
+        var (planCount, shapeCount) = AddPlanDrawing(path, drawPlans, shapesByPlan, info);
         var noShapes = s.Rooms.Count(r => !s.RoomShapes.Any(x => x.Room.Equals(r.Code, StringComparison.OrdinalIgnoreCase)));
         Packaging.Deterministic.NormalizeZip(path, scope.AsOf);
         return new TrackerExportResult(path, new FileInfo(path).Length, planCount, shapeCount, noShapes, roomRows.Count, ledgerLines, controlIssues);
@@ -345,6 +349,19 @@ public static class TrackerExporter
             r++;
         }
         ws.Column(1).Width = 22; ws.Column(2).Width = 26; ws.Column(3).Width = 50; ws.Columns(4, 11).Width = 13;
+    }
+
+    /// <summary>[phase6] Same plans with their PNGs recompressed to share <paramref name="budget"/> (extent / aspect kept: shapes stay aligned).</summary>
+    public static List<PlanImage> ShrinkPlans(IReadOnlyList<PlanImage> plans, long budget)
+    {
+        var withPng = plans.Where(p => p.Png != null && p.Width > 0 && p.Height > 0).ToList();
+        if (budget <= 0 || withPng.Sum(p => (long)p.Png!.Length) <= budget) return plans.ToList();
+        var each = budget / Math.Max(1, withPng.Count);
+        return plans.Select(p => p.Png is null ? p : new PlanImage
+        {
+            Id = p.Id, Building = p.Building, Plan = p.Plan, Name = p.Name, Caption = p.Caption, X = p.X, Y = p.Y, Width = p.Width, Height = p.Height,
+            Png = Imaging.PngLite.Shrink(p.Png, each),
+        }).ToList();
     }
 
     // ------------------------------------------------------------------ DrawingML plans

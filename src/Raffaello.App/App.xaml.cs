@@ -112,8 +112,8 @@ public partial class App : Application
                 // [phase4] end
                 // [phase3] begin - the Materials nav item is the phase-3 hub; the earlier PO vs DN screen is its OVERVIEW tab
                 s.AddSingleton(_ => Raffaello.Core.Materials.MaterialsSettings.Load());
-                s.AddSingleton<Raffaello.Core.Materials.IMaterialsStore>(sp => new Raffaello.Core.Materials.SqliteMaterialsStore(
-                    () => sp.GetRequiredService<ProjectService>().Store as Raffaello.Core.Data.Db ?? throw new InvalidOperationException("Materials need the SQLite data file.")));
+                // [phase6] SQLite data file or the server, chosen per call by the current data source
+                s.AddSingleton<Raffaello.Core.Materials.IMaterialsStore>(sp => new Raffaello.Core.Remote.MaterialsStoreSelector(() => sp.GetRequiredService<ProjectService>().Store));
                 s.AddSingleton<Raffaello.Core.Materials.MaterialsService>();
                 s.AddSingleton<Raffaello.Core.Documents.IOcrEngine, WindowsOcrEngine>();
                 s.AddSingleton<Raffaello.Core.Documents.IPageRenderer, WindowsPdfRenderer>();
@@ -132,14 +132,36 @@ public partial class App : Application
                 s.AddSingleton<ImportViewModel>();
                 s.AddSingleton<MainViewModel>();
                 s.AddSingleton<MainWindow>();
+                s.AddTransient<FirstRunViewModel>();   // [phase6]
             })
             .Build();
 
         var sp = _host.Services;
+        // [phase6] "Needs you today" from every module (each source is skipped when its data cannot be read)
+        {
+            var mats = sp.GetRequiredService<Raffaello.Core.Materials.IMaterialsStore>();
+            var matSettings = sp.GetRequiredService<Raffaello.Core.Materials.MaterialsSettings>();
+            var aconex = sp.GetRequiredService<AconexAutomationService>();
+            project.QueueSources.Add(p => Raffaello.Core.Queue.ModuleQueue.Materials(mats.Load(), matSettings, DateTime.Today));
+            project.QueueSources.Add(p => Raffaello.Core.Queue.ModuleQueue.Aconex(Raffaello.Core.AconexWeb.StatusBoard.Build(p.Snapshot.SubInvoices, aconex.Store.ActiveLinks(), aconex.Store.LatestChecks(), DateTime.Today, false)));
+            project.QueueSources.Add(p => Raffaello.Core.Queue.ModuleQueue.Variations(aconex.Variations.Variations(), DateTime.Today));
+            try { project.Reload(); } catch (Exception ex) { Log(ex); }
+        }
         var main = sp.GetRequiredService<MainViewModel>();
         sp.GetRequiredService<NavigatorProxy>().Target = main;
         sp.GetRequiredService<FilterState>().RebuildOptions();
         main.UpdateBadges();
+
+        // [phase6] first-run wizard (data source, documents folder, first imports, Aconex, demo mode)
+        if (!settings.FirstRunCompleted)
+        {
+            splash.Hide();
+            var wizard = new FirstRunWindow(sp.GetRequiredService<FirstRunViewModel>());
+            wizard.ShowDialog();
+            if (wizard.DataContext is FirstRunViewModel { NeedsRestart: true })
+                MessageBox.Show("The data source changed. Raffaello will use it from the next start - close and open the app again.", "Raffaello", MessageBoxButton.OK, MessageBoxImage.Information);
+            sp.GetRequiredService<DataService>().RaiseChanged();
+        }
 
         var window = sp.GetRequiredService<MainWindow>();
         MainWindow = window;

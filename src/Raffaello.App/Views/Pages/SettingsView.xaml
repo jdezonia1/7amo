@@ -46,6 +46,9 @@
                         </Grid>
                         <TextBlock Text="SIGNATURE NAMES (separated by ;)" Style="{StaticResource Label}" FontSize="10" Margin="0,10,0,0"/>
                         <TextBox Text="{Binding InvoiceSignatureNames}" Margin="0,3,0,0"/>
+                        <TextBlock Text="SHARED DOCUMENTS FOLDER (root on the shared partition; module folders below default to sub-folders)" Style="{StaticResource Label}" Margin="0,14,0,4"/>
+                        <TextBox Text="{Binding DocumentsRoot}" FontFamily="{StaticResource FontMono}"/>
+                        <TextBlock Text="{Binding FoldersText}" Style="{StaticResource Small}" FontFamily="{StaticResource FontMono}" Margin="0,4,0,0"/>
                         <TextBlock Text="HEAD-OFFICE PACKAGE" Style="{StaticResource Label}" Margin="0,14,0,4"/>
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>

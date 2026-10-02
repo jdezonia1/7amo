@@ -117,6 +117,15 @@ public sealed class WorkflowService
         return $"{rooms} rooms, {qty} PROJECT QTY, {claims} new ledger lines ({skipped} already imported)";
     }
 
+    /// <summary>[phase6] Room list of a building (e.g. HOTEL) by header text.</summary>
+    public RoomListImportResult PreviewRoomList(string path, string building) => RoomListImporter.Read(path, building);
+    public string CommitRoomList(RoomListImportResult r)
+    {
+        var (added, updated, qty) = RoomListImporter.Commit(r, _p.Store);
+        _p.Reload();
+        return $"{added} rooms added, {updated} updated, {qty} PROJECT QTY";
+    }
+
     public ContractImportResult PreviewContract(string path, string contractNo, string sub, string? building) => ContractLinkImporter.Read(path, contractNo, sub, building);
     public void CommitContract(ContractImportResult r) { ContractLinkImporter.Commit(r, _p.Store); _p.Reload(); }
 
@@ -143,6 +152,26 @@ public sealed class WorkflowService
     public void Submit(SubInvoice inv, string aconexNo) { InvoiceWorkflow.Submit(_p.Store, inv, aconexNo); _p.Reload(); }
     public void Reject(SubInvoice inv, string reason) { InvoiceWorkflow.Reject(_p.Store, inv, reason); _p.Reload(); }
     public void Approve(SubInvoice inv) { InvoiceWorkflow.Approve(_p.Store, inv); _p.Reload(); }
+    /// <summary>[phase6] Applies a confirmed Aconex outcome: approve, or reject + (subcontractor invoices) a new draft revision from the ledger.</summary>
+    public string ApplyAconexOutcome(AconexWeb.OutcomeProposal p)
+    {
+        var inv = p.Invoice;
+        if (p.Action == AconexWeb.OutcomeProposal.Approve)
+        {
+            if (inv.Status == SubInvoiceStatus.Draft) Submit(inv, p.WorkflowNo);
+            Approve(inv);
+            return $"{inv.Title} approved (Aconex {p.WorkflowNo})";
+        }
+        Reject(inv, p.Reason);
+        if (!InvoiceKinds.IsSubcontractor(inv)) return $"{inv.Title} rejected";
+        var rev = NextRevision(inv.ContractNo, inv.Subcontractor, inv.InvoiceNo);
+        var build = BuildInvoice(inv.ContractNo, inv.Subcontractor, inv.InvoiceNo, rev);
+        build.Header.RetentionPct = inv.RetentionPct;
+        build.Header.Notes = $"Revision after Aconex rejection: {p.Reason}";
+        var saved = SaveInvoice(build);
+        return $"{inv.Title} rejected; {saved.Title} prepared as a draft";
+    }
+
     public int NextRevision(string contractNo, string sub, int invoiceNo) => InvoiceWorkflow.NextRevision(_p.Snapshot.SubInvoices, contractNo, sub, invoiceNo);
     public List<SubInvoiceLine> LinesOf(SubInvoice inv) => _p.Snapshot.SubInvoiceLines.Where(l => l.SubInvoiceId == inv.Id).OrderBy(l => l.RowOrder).ToList();
 
@@ -222,8 +251,27 @@ public sealed class WorkflowService
             Subcontractor = sub, InvoiceNo = invoiceNo, ContractNo = contractNo, LedgerAllSubcontractors = ledgerAll, AsOf = DateTime.Today, Password = _p.Settings.TrackerPassword,
         }, invoice);
 
-    public string PackageFolder() => string.IsNullOrWhiteSpace(_p.Settings.PackageOutputFolder)
-        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Raffaello", "Packages") : _p.Settings.PackageOutputFolder;
+    /// <summary>[phase6] WIR / MIR documents downloaded through the Aconex document register (they go into packages).</summary>
+    public List<(string DocumentNo, string Path)> RegisteredDocuments()
+    {
+        try
+        {
+            AconexWeb.IAconexStore? ac = _p.Store switch
+            {
+                Remote.RemoteProjectStore r => new Remote.RemoteAconexStore(r),
+                Data.Db db when File.Exists(db.Path) => new AconexWeb.SqliteAconexStore(db.Path, _p.CurrentUser),
+                _ => null,
+            };
+            if (ac is AconexWeb.SqliteAconexStore sq) sq.EnsureSchema();
+            return ac?.Downloads().Select(d => (d.DocumentNo, d.Path)).ToList() ?? new();
+        }
+        catch (Exception) { return new(); }
+    }
+
+    /// <summary>[phase6] The shared data / documents folders (WIR, MIR, packages, variation docs, Aconex screenshots).</summary>
+    public Settings.ProjectFolders Folders() => Settings.ProjectFolders.From(_p.Settings);
+
+    public string PackageFolder() => Folders().Packages;
 
     /// <summary>Builds the head-office ZIP for a saved invoice revision and records file + SHA-256 on it.</summary>
     public Packaging.PackageResult BuildPackage(SubInvoice inv, bool final)
@@ -231,7 +279,7 @@ public sealed class WorkflowService
         var res = Packaging.InvoicePackageBuilder.Build(new Packaging.PackageRequest
         {
             Snapshot = _p.Snapshot, Plans = _p.LoadPlans(), Build = Stored(inv), Info = HeaderInfo(), OutputFolder = PackageFolder(),
-            WirFolder = _p.Settings.WirFolder, NamePattern = _p.Settings.PackageNamePattern, Final = final,
+            WirFolder = Folders().Wir, NamePattern = _p.Settings.PackageNamePattern, Final = final, RegisteredDocuments = RegisteredDocuments(),
         });
         inv.PackageFile = res.ZipPath; inv.PackageSha256 = res.Sha256; inv.PackageKind = res.Kind; inv.PackageBuiltAt = DateTime.Now; inv.PackageMissingWirs = res.MissingWirs.Count;
         _p.Store.Update(inv, $"{inv.Title} {res.Kind} package built: {Path.GetFileName(res.ZipPath)} SHA-256 {res.Sha256}");

@@ -149,6 +149,33 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
     };
 
     [RelayCommand] private void Navigate(string key) => Go(key);
+
+    /// <summary>[phase6] F1: keyboard shortcuts and where things are.</summary>
+    [RelayCommand]
+    private void ShowShortcuts() => System.Windows.MessageBox.Show(ShortcutsText, "Raffaello - keyboard shortcuts (F1)", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+
+    public const string ShortcutsText =
+        "F1                 this list\n" +
+        "Ctrl+K / Ctrl+F    command palette (jump to any screen or action)\n" +
+        "Ctrl+1             Dashboard - needs you today\n" +
+        "Ctrl+2             Rooms & Ledger (claims per room x stage x item)\n" +
+        "Ctrl+3             Checks (>4.5 m and 15 m)\n" +
+        "Ctrl+4             Quantities\n" +
+        "Ctrl+5             Statements\n" +
+        "Ctrl+6             Materials\n" +
+        "Ctrl+7             Contracts & BOQ\n" +
+        "Ctrl+8             Invoices\n" +
+        "Ctrl+9             Site statements\n" +
+        "Ctrl+0             Reports\n" +
+        "Ctrl+H             Welcome screen\n" +
+        "Ctrl+I             Import a file\n" +
+        "Ctrl+E             Export the current screen to Excel\n" +
+        "Ctrl+Shift+A       Ask Raffaello\n" +
+        "Ctrl+Shift+L       Light / dark\n" +
+        "F5                 Reload the data\n" +
+        "Esc                Close panels\n\n" +
+        "Plan view: mouse wheel = zoom, drag = pan, click a room = details.\n" +
+        "BUILDING at the top switches every module between BRANDED, HOTEL and ALL.";
     [RelayCommand] private void GoWelcome() => Go("Welcome");
     [RelayCommand] private void OpenPalette() => Palette.Open();
     [RelayCommand] private void ToggleAsk() { if (Ask.IsOpen) Ask.IsOpen = false; else OpenAsk(); }
