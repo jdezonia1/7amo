@@ -72,6 +72,13 @@ The app must be multi-user (several people editing at once).
     (apartment / BOH / FOH / balcony); manual override always possible and learned. (Invoice 1 put branded lighting on
     "to BOH" — default is "to apartment" unless Mohamed says BOH is intended.)
 
+14. **Phase-1 answers** (02-Oct): DB panels honour site % (INV 1 panel 5.6 was a mistake); DATA / GRMS 1st fix →
+    WALL items (183 / 200), INV 1 ceiling use was a mistake; lighting → "to apartment"; GAS = gas meter items
+    (Metering section); DATA RACK = extra data points from the 15 m rule (length check, not room cap); ROOTS contract
+    no. SUB-ELE-028-2026. CONCRETE PLUS INV-9 in the tracker is cumulative (INV 1–9) → split per invoice from their
+    Excel invoices (current = cum(n) − cum(n−1), allocated to rooms by PROJECT QTY share). Open: 2nd-fix GRMS (81) has
+    no ROOTS contract item.
+
 ## Findings from the sample files
 - **Subcontractor contract (Excel)** `contract_excel.xlsx`: Arabic labour-only rate schedule, one sheet,
   ~323 items in 23 sections (Lighting & Power, Façade, LED strip, Cable tray, Terminations, Cable pulling,
