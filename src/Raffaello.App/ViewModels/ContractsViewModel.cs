@@ -1,9 +1,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView;
 using Raffaello.App.Services;
+using Raffaello.Core.Contracts;
 using Raffaello.Core.Domain;
 using Raffaello.Core.Export;
 
@@ -40,73 +39,183 @@ public sealed partial class BoqRow : ObservableObject
     partial void OnRateChanged(double value) { IsDirty = true; OnPropertyChanged(nameof(Value)); }
 }
 
-/// <summary>Subcontracts and the BOQ: rates and PROJECT QTY (the cap on subcontractor claims), editable with concurrency checks.</summary>
+public sealed class ContractItemRow
+{
+    public required ContractItem Item { get; init; }
+    public int Links { get; init; }
+    public string Status => Item.AttributesConfirmed ? "OK" : Item.ParseNotes.Length > 0 || Links == 0 ? "CHECK" : "DUE";
+}
+
+/// <summary>
+/// Contracts: import the contract link workbook (items + BOQ links), the E-Promise budget list and the invoice template;
+/// review and confirm item attributes; BOQ rates and PROJECT QTY.
+/// </summary>
 public sealed partial class ContractsViewModel : PageViewModel
 {
+    public const int BoqPageSize = 400;
+
     public ContractsViewModel(PageContext ctx) : base(ctx) { }
 
     public override string Key => "Contracts";
     public override string Title => "CONTRACTS & BOQ";
-    public override string Subtitle => "Rates and PROJECT QTY - the cap on every subcontractor claim";
-    protected override bool HasCharts => true;
+    public override string Subtitle => "Contract items with their rate-driving attributes and BOQ links; E-Promise BOQ codes; rates and PROJECT QTY";
+    public override bool ShowFilterBar => false;
+    protected override bool UsesFilter => false;
 
     public ObservableCollection<ContractRow> Contracts { get; } = new();
     public ObservableCollection<BoqRow> Boq { get; } = new();
+    public ObservableCollection<ContractItemRow> Items { get; } = new();
+    public ObservableCollection<ContractItemBoq> ItemLinks { get; } = new();
+    public ObservableCollection<string> ContractNos { get; } = new();
+    public string[] Tabs { get; } = { "CONTRACT ITEMS", "BOQ" };
+    public static string[] FixStageOptions { get; } = { "", FixStages.First, FixStages.Second, FixStages.Third };
+    public static string[] ConduitOptions { get; } = { "", Conduits.Pvc, Conduits.Emt, Conduits.Rs, Conduits.Flex, Conduits.None };
+    public static string[] MountOptions { get; } = { "", Mounts.Wall, Mounts.Ceiling, Mounts.Both };
+    public static string[] HeightOptions { get; } = { HeightBands.Any, HeightBands.Low, HeightBands.High };
+    public string[] BuildingOptions { get; } = { "", Buildings.Branded, Buildings.Hotel };
 
+    [ObservableProperty] private string _tab = "CONTRACT ITEMS";
     [ObservableProperty] private string _coverage = "";
     [ObservableProperty] private string _search = "";
-    [ObservableProperty] private ISeries[] _coverageSeries = Array.Empty<ISeries>();
-    [ObservableProperty] private ISeries[] _boqSeries = Array.Empty<ISeries>();
-    [ObservableProperty] private Axis[] _boqX = Array.Empty<Axis>();
-    [ObservableProperty] private Axis[] _boqY = Array.Empty<Axis>();
+    [ObservableProperty] private string _itemSearch = "";
+    [ObservableProperty] private string _selectedContractNo = "";
+    [ObservableProperty] private ContractItemRow? _selectedItem;
+    [ObservableProperty] private string _itemsText = "";
 
-    partial void OnSearchChanged(string value) => Refresh();
+    // import fields
+    [ObservableProperty] private string _importContractNo = "";
+    [ObservableProperty] private string _importSub = "";
+    [ObservableProperty] private string _importBuilding = "";
+
+    public bool IsItems => Tab == "CONTRACT ITEMS";
+    public bool IsBoq => Tab == "BOQ";
+
+    partial void OnTabChanged(string value) { OnPropertyChanged(nameof(IsItems)); OnPropertyChanged(nameof(IsBoq)); }
+    partial void OnSearchChanged(string value) => FillBoq();
+    partial void OnItemSearchChanged(string value) => FillItems();
+    partial void OnSelectedContractNoChanged(string value) { FillItems(); var c = Project.Snapshot.Contracts.FirstOrDefault(x => x.ContractNo == value); if (c != null) { ImportContractNo = c.ContractNo; ImportSub = c.Subcontractor; ImportBuilding = c.Building; } }
+    partial void OnSelectedItemChanged(ContractItemRow? value)
+    {
+        ItemLinks.Clear();
+        if (value is null) return;
+        foreach (var l in Project.Snapshot.ItemBoqs.Where(l => l.ContractNo == value.Item.ContractNo && l.ItemNo == value.Item.ItemNo).OrderBy(l => l.Order)) ItemLinks.Add(l);
+    }
 
     protected override void Refresh()
     {
         var p = Project;
         var s = p.Snapshot;
+        var chainBySub = p.Chain.SelectMany(r => r.Subcontractors.Split(", ", StringSplitOptions.RemoveEmptyEntries).Select(sub => (sub, r))).GroupBy(x => x.sub).ToDictionary(g => g.Key, g => (Claimed: g.Sum(x => x.r.ClaimedValue), Certified: g.Sum(x => x.r.CertifiedValue)));
         Contracts.Clear();
         foreach (var c in s.Contracts.OrderBy(c => c.ContractNo))
         {
-            var mine = p.Chain.Where(r => r.Subcontractors.Contains(c.Subcontractor)).ToList();
-            Contracts.Add(new ContractRow { Contract = c, Claimed = mine.Sum(r => r.ClaimedValue), Certified = mine.Sum(r => r.CertifiedValue) });
+            var t = chainBySub.GetValueOrDefault(c.Subcontractor);
+            Contracts.Add(new ContractRow { Contract = c, Claimed = t.Claimed, Certified = t.Certified });
         }
+        var nos = s.ContractItems.Select(i => i.ContractNo).Distinct().OrderBy(x => x).ToList();
+        if (!ContractNos.SequenceEqual(nos)) { ContractNos.Clear(); foreach (var n in nos) ContractNos.Add(n); }
+        if (!ContractNos.Contains(SelectedContractNo)) SelectedContractNo = ContractNos.FirstOrDefault() ?? "";
+        else FillItems();
+        FillBoq();
+    }
 
-        var spec = Spec;
-        var rows = Scoped();
+    private void FillItems()
+    {
+        var keep = SelectedItem?.Item.ItemNo;
+        var s = Project.Snapshot;
+        var links = s.ItemBoqs.Where(l => l.ContractNo == SelectedContractNo).GroupBy(l => l.ItemNo).ToDictionary(g => g.Key, g => g.Count());
+        Items.Clear();
+        var all = s.ContractItems.Where(i => i.ContractNo == SelectedContractNo).OrderBy(i => i.Order).ToList();
+        foreach (var i in all.Where(i => string.IsNullOrWhiteSpace(ItemSearch) || i.ItemNo.Equals(ItemSearch.Trim(), StringComparison.OrdinalIgnoreCase)
+                                          || i.Description.Contains(ItemSearch, StringComparison.OrdinalIgnoreCase) || i.Systems.Contains(ItemSearch, StringComparison.OrdinalIgnoreCase)))
+            Items.Add(new ContractItemRow { Item = i, Links = links.GetValueOrDefault(i.ItemNo) });
+        ItemsText = all.Count == 0 ? "No contract items - import the contract link workbook." :
+            $"{all.Count} ITEMS  |  {all.Count(i => i.AttributesConfirmed)} CONFIRMED  |  {all.Count(i => !links.ContainsKey(i.ItemNo))} WITHOUT BOQ CODE  |  VALUE SAR {all.Sum(i => i.Qty * i.Rate):N0}";
+        SelectedItem = Items.FirstOrDefault(r => r.Item.ItemNo == keep) ?? Items.FirstOrDefault();
+    }
+
+    private void FillBoq()
+    {
+        var p = Project;
+        var s = p.Snapshot;
+        var chain = p.Chain.GroupBy(r => (r.Building, r.ItemCode)).ToDictionary(g => g.Key, g => (Qs: g.Sum(r => r.Qs), Claimed: g.Sum(r => r.Claimed)));
+        var q = s.BoqItems.Where(b => string.IsNullOrWhiteSpace(Search) || b.ItemCode.Contains(Search, StringComparison.OrdinalIgnoreCase) || b.Description.Contains(Search, StringComparison.OrdinalIgnoreCase)
+                                      || b.CostCode.Contains(Search, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(b => b.ItemCode).ToList();
         Boq.Clear();
-        foreach (var b in s.BoqItems.Where(b => (spec.System is null || b.System == spec.System) && (spec.Stage is null || b.Stage == spec.Stage)
-                                                && (spec.Building is null || b.ItemCode.StartsWith(spec.Building == Buildings.Hotel ? "H-" : "B-")))
-                     .Where(b => string.IsNullOrWhiteSpace(Search) || b.ItemCode.Contains(Search, StringComparison.OrdinalIgnoreCase) || b.Description.Contains(Search, StringComparison.OrdinalIgnoreCase))
-                     .OrderBy(b => b.ItemCode))
+        foreach (var b in q.Take(BoqPageSize))
         {
-            var building = b.ItemCode.StartsWith("H-") ? Buildings.Hotel : Buildings.Branded;
-            var code = b.ItemCode[2..];
-            var lines = p.Chain.Where(r => r.Building == building && r.ItemCode == code).ToList();
-            var row = new BoqRow { Item = b, QsTotal = lines.Sum(r => r.Qs), Claimed = lines.Sum(r => r.Claimed) };
+            var (building, code) = SplitCode(b.ItemCode);
+            var t = chain.GetValueOrDefault((building, code));
+            var row = new BoqRow { Item = b, QsTotal = t.Qs, Claimed = t.Claimed };
             row.ProjectQty = b.ProjectQty;
             row.Rate = b.Rate;
             row.IsDirty = false;
             Boq.Add(row);
         }
-        var filled = rows.Count(r => r.ProjectQty.HasValue);
-        Coverage = $"PROJECT QTY FILLED ON {filled:N0} OF {rows.Count:N0} LINES ({(rows.Count == 0 ? 0 : (double)filled / rows.Count):P0})  |  BOQ ITEMS WITH PROJECT QTY {s.BoqItems.Count(b => b.ProjectQty.HasValue)}/{s.BoqItems.Count}";
-        CoverageSeries = new ISeries[]
-        {
-            ChartKit.Slice("FILLED", filled, ChartKit.Accent, 46),
-            ChartKit.Slice("EMPTY (QS USED)", rows.Count - filled, ChartKit.Graphite, 46),
-        };
-        var bySys = Boq.GroupBy(b => b.System).OrderBy(g => Array.IndexOf(Raffaello.Core.Domain.Systems.Main, g.Key)).ToList();
-        BoqSeries = new ISeries[]
-        {
-            ChartKit.Columns("BOQ VALUE", bySys.Select(g => g.Sum(b => b.BoqQty * b.Rate)), ChartKit.Graphite, 18),
-            ChartKit.Columns("PROJECT VALUE", bySys.Select(g => g.Sum(b => b.Value)), ChartKit.Accent, 18),
-            ChartKit.Columns("CLAIMED", bySys.Select(g => g.Sum(b => b.Claimed * b.Rate)), ChartKit.Yellow, 18),
-        };
-        BoqX = new[] { ChartKit.XLabels(bySys.Select(g => g.Key)) };
-        BoqY = new[] { ChartKit.YValues(v => $"{v / 1000:N0}K") };
+        Coverage = $"{s.BoqItems.Count:N0} BOQ CODES  |  SHOWING {Boq.Count:N0} OF {q.Count:N0}{(q.Count > BoqPageSize ? " - TYPE TO SEARCH" : "")}  |  WITH PROJECT QTY {s.BoqItems.Count(b => b.ProjectQty.HasValue):N0}";
     }
+
+    private static (string Building, string Code) SplitCode(string itemCode) =>
+        itemCode.StartsWith("H-") ? (Buildings.Hotel, itemCode[2..]) : itemCode.StartsWith("B-") ? (Buildings.Branded, itemCode[2..]) : (Buildings.Branded, itemCode);
+
+    [RelayCommand]
+    private async Task ConfirmItem()
+    {
+        if (SelectedItem is null) return;
+        var item = SelectedItem.Item;
+        await Ctx.Data.WriteAsync(p => p.Workflow.ConfirmItem(item), Ctx.Toasts, $"ITEM {item.ItemNo} CONFIRMED");
+    }
+
+    [RelayCommand]
+    private async Task ImportLinkWorkbook()
+    {
+        if (string.IsNullOrWhiteSpace(ImportContractNo) || string.IsNullOrWhiteSpace(ImportSub)) { Ctx.Toasts.Show("CONTRACT NO AND SUBCONTRACTOR NEEDED", "The link workbook does not carry them.", ToastKind.Warn); return; }
+        var file = Ctx.Dialogs.OpenFile("Contract link workbook (contract sheet + LINK TABLE)");
+        if (file is null) return;
+        var (no, sub, bld) = (ImportContractNo.Trim(), ImportSub.Trim().ToUpperInvariant(), string.IsNullOrWhiteSpace(ImportBuilding) ? null : ImportBuilding);
+        try
+        {
+            var r = await Task.Run(() => Project.Workflow.PreviewContract(file, no, sub, bld));
+            if (!Ctx.Dialogs.Confirm("Import contract", $"{no} - {sub}\n\n{r.Summary}\nValue SAR {r.Items.Sum(i => i.Qty * i.Rate):N0}\n\n{Issues(r.Issues)}\n\nReplace this contract's items and links? Confirmed attributes are kept.")) return;
+            if (await Ctx.Data.WriteAsync(p => p.Workflow.CommitContract(r), Ctx.Toasts, "CONTRACT IMPORTED")) SelectedContractNo = no;
+        }
+        catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ WORKBOOK", ex.Message, ToastKind.Error); }
+    }
+
+    [RelayCommand]
+    private async Task ImportEPromise()
+    {
+        var file = Ctx.Dialogs.OpenFile("Workbook with the 'E promise' budget sheet");
+        if (file is null) return;
+        try
+        {
+            var r = await Task.Run(() => Project.Workflow.PreviewEPromise(file));
+            if (!Ctx.Dialogs.Confirm("Import E-Promise", $"{r.Summary}\n\nAdd / update these BOQ codes?")) return;
+            var n = 0;
+            if (await Ctx.Data.WriteAsync(p => n = p.Workflow.CommitEPromise(r), Ctx.Toasts)) Ctx.Toasts.Show("BOQ CODES IMPORTED", $"{n:N0} added / updated", ToastKind.Good);
+        }
+        catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ WORKBOOK", ex.Message, ToastKind.Error); }
+    }
+
+    [RelayCommand]
+    private async Task ImportTemplate()
+    {
+        if (string.IsNullOrWhiteSpace(ImportContractNo)) { Ctx.Toasts.Show("CONTRACT NO NEEDED", kind: ToastKind.Warn); return; }
+        var file = Ctx.Dialogs.OpenFile("Invoice workbook (INV sheet = template layout)");
+        if (file is null) return;
+        var no = ImportContractNo.Trim();
+        try
+        {
+            var r = await Task.Run(() => Project.Workflow.PreviewTemplate(file, no));
+            if (!Ctx.Dialogs.Confirm("Import invoice template", $"{no}\n\n{r.Summary}\n\n{Issues(r.Issues)}\n\nUse this as the invoice layout for {no}? Stage % comes from the template.")) return;
+            await Ctx.Data.WriteAsync(p => p.Workflow.CommitTemplate(r, no), Ctx.Toasts, "INVOICE TEMPLATE IMPORTED");
+        }
+        catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ WORKBOOK", ex.Message, ToastKind.Error); }
+    }
+
+    private static string Issues(IEnumerable<Raffaello.Core.Import.ImportIssue> issues) =>
+        string.Join("\n", issues.GroupBy(i => System.Text.RegularExpressions.Regex.Replace(i.Message, @"\d+", "#")).Take(8).Select(g => $"- {g.First().Message}{(g.Count() > 1 ? $" (x{g.Count()})" : "")}"));
 
     [RelayCommand]
     private async Task Save()
@@ -131,8 +240,7 @@ public sealed partial class ContractsViewModel : PageViewModel
         var updates = new List<QtyLine>();
         foreach (var b in targets)
         {
-            var building = b.ItemCode.StartsWith("H-") ? Buildings.Hotel : Buildings.Branded;
-            var code = b.ItemCode[2..];
+            var (building, code) = SplitCode(b.ItemCode);
             foreach (var r in Project.Chain.Where(r => r.Building == building && r.ItemCode == code && !r.ProjectQty.HasValue))
             {
                 r.Line.ProjectQty = Math.Floor(r.Qs * b.ProjectQty!.Value / b.QsTotal);
@@ -152,6 +260,14 @@ public sealed partial class ContractsViewModel : PageViewModel
             Columns = new() { new("ITEM"), new("BILL"), new("DESCRIPTION", Width: 40), new("SYSTEM"), new("STAGE"), new("UNIT"), new("BOQ QTY", ColumnKind.Integer), new("QS (LINES)", ColumnKind.Integer), new("PROJECT QTY", ColumnKind.Integer), new("CLAIMED", ColumnKind.Integer), new("RATE", ColumnKind.Money), new("VALUE", ColumnKind.Money), new("STATUS") },
             Rows = Boq.Select(b => new object?[] { b.ItemCode, b.Bill, b.Description, b.System, b.Stage, b.Unit, b.BoqQty, b.QsTotal, b.ProjectQty, b.Claimed, b.Rate, b.Value, b.Status }).ToList(),
             TotalRow = new object?[] { "TOTAL", null, null, null, null, null, null, null, null, null, null, Boq.Sum(b => b.Value), null },
+        };
+        yield return new ExportSheet
+        {
+            Name = "CONTRACT ITEMS", Title = $"CONTRACT ITEMS - {SelectedContractNo}",
+            Columns = new() { new("ITEM"), new("SECTION"), new("DESCRIPTION", Width: 60), new("UNIT"), new("QTY", ColumnKind.Number), new("RATE", ColumnKind.Money), new("STAGE"), new("CONDUIT"), new("MOUNT"),
+                new("HEIGHT"), new("SYSTEMS"), new("CATEGORY"), new("SIZE"), new("STAGE %", ColumnKind.Percent), new("BOQ LINKS", ColumnKind.Integer), new("CONFIRMED"), new("PARSE NOTES", Width: 50) },
+            Rows = Items.Select(r => new object?[] { r.Item.ItemNo, r.Item.Section, r.Item.Description, r.Item.Unit, r.Item.Qty, r.Item.Rate, r.Item.FixStage, r.Item.ConduitType, r.Item.Mount,
+                r.Item.HeightBand, r.Item.Systems, r.Item.Category, r.Item.SizeKey, r.Item.StagePct, r.Links, r.Item.AttributesConfirmed ? "YES" : "", r.Item.ParseNotes }).ToList(),
         };
         yield return new ExportSheet
         {

@@ -47,6 +47,13 @@ src/Raffaello.Core          net8.0, no WPF: domain, store, rules, chain, analyti
   Ai/                       AnthropicClient (HttpClient, SSE streaming) + AskContextBuilder
   Aconex/                   ExternalScriptRunner (runs aconex_downloader.py, streams the log)
   Seed/                     DemoSeeder
+  Tracker/                  TrackerImporter (BRANDED_MEP_TRACKER v19: ROOMS, PROJECT QTY, LEDGER, PLANS + room shapes), AreaTypes
+  Contracts/                ContractAttributeParser (EN + AR), ContractLinkImporter, EPromiseImporter, InvoiceTemplateImporter
+  Ledger/                   LedgerRules (remaining per room x stage x item), HeightCheck (>4.5 m), LengthCheck (15 m), Invoiceable
+  Mapping/                  MappingEngine + IItemResolver / IBoqResolver (pluggable), learned MappingRules, explanations
+  Invoicing/                InvoiceBuilder (prev = last approved), InvoiceWorkflow, InvoiceExcelExporter, InvoicePdfExporter (QuestPDF)
+  Statements/               SiteStatementService (generate / read back / duplicate detection)
+  Workflow/                 WorkflowService - audited operations the screens call
   ProjectService.cs         the only entry point the UI uses
 src/Raffaello.App           net8.0-windows WPF, MVVM (CommunityToolkit.Mvvm), DI (Microsoft.Extensions.Hosting)
   Themes/                   Tokens.xaml, Light.xaml, Dark.xaml (generated from design-system tokens), Icons.xaml, Controls.xaml
@@ -54,8 +61,42 @@ src/Raffaello.App           net8.0-windows WPF, MVVM (CommunityToolkit.Mvvm), DI
   Controls/                 LogoMark, IconView, ChainPanel, converters
   Services/                 ThemeService, FilterState, DataService, Toasts, Dialogs, Export, Presence, ChartKit
   ViewModels/ Views/        one per module + shell, Ask panel, command palette, import wizard
-tests/Raffaello.Core.Tests  xUnit
+tests/Raffaello.Core.Tests  xUnit (synthetic fixtures generated in code - no company files in the repo)
+tools/Raffaello.Cli         raffaello-cli: the same importers / mapping / invoice builder from the command line
 ```
+
+## Workflow (Phase 1)
+
+1. **Contracts & BOQ**: import the contract link workbook (enter contract no / subcontractor / building - the file
+   does not carry them), the invoice template (INV sheet) and the E-Promise BOQ list. Item attributes (stage,
+   conduit, wall/ceiling, height band, systems, size) are parsed from the English / Arabic text; correct them in
+   the grid and SAVE + CONFIRM.
+2. **Rooms & Ledger**: IMPORT TRACKER, then post claims per room x stage x item. Remaining = PROJECT QTY - all
+   subcontractors; claims above remaining are blocked unless an OVER reason is given. Area type per room selects
+   the lighting BOQ row. `>4.5 M QTY` and `15 M CLAIMED QTY` open a HEIGHT / LENGTH check.
+3. **Checks**: decide pending HEIGHT (accept / partly / reject) and LENGTH (accept / revise from groups or total
+   route length / reject) checks. Pending lines are never invoiced.
+4. **Invoices**: BUILD FROM LEDGER (claims up to the invoice no, previous = last approved invoice), confirm or
+   re-map the AMBIGUOUS / GUESS / UNMAPPED groups (each choice is learned as a rule), SAVE DRAFT, SUBMIT with the
+   Aconex workflow no, REJECT / NEW REVISION, APPROVE (locks). Export Excel in the template layout (+ QTY BACKUP)
+   or a filtered PDF.
+5. **Site statements**: generate a protected statement workbook for a subcontractor, read it back (duplicates
+   by statement no / file hash are refused, over-remaining lines need a reason).
+
+```
+raffaello-cli import-tracker  <tracker.xlsm>  [--db file]
+raffaello-cli import-contract <links.xlsx> --contract NO --sub NAME [--building BRANDED|HOTEL]
+raffaello-cli import-epromise <invoice.xlsx>
+raffaello-cli import-template <invoice.xlsx> --contract NO
+raffaello-cli map             --contract NO --sub NAME [--invoice N]
+raffaello-cli build-invoice   --contract NO --sub NAME --invoice N [--save]
+raffaello-cli approve         --contract NO --sub NAME --invoice N [--aconex WF]
+raffaello-cli export          --contract NO --sub NAME --invoice N --out FOLDER
+raffaello-cli statement       --sub NAME --no ST-01 --out FILE.xlsx
+raffaello-cli report
+```
+
+Keep `--db` and `--out` outside the repository when running against real company files.
 
 ## House rules (Core/Rules, all unit tested)
 
@@ -101,7 +142,8 @@ Barlow Condensed, IBM Plex Sans, IBM Plex Mono and Cinzel (SIL Open Font License
 
 ## Keyboard
 
-Ctrl+K / Ctrl+F command palette, Ctrl+Shift+A ask, Ctrl+1..9 modules, Ctrl+H welcome, Ctrl+I import,
+Ctrl+K / Ctrl+F command palette, Ctrl+Shift+A ask, Ctrl+1..9 / Ctrl+0 modules (1 Dashboard, 2 Ledger, 3 Checks, 4 Quantities,
+5 Statements, 6 Materials, 7 Contracts, 8 Invoices, 9 Site statements, 0 Reports), Ctrl+H welcome, Ctrl+I import,
 Ctrl+E export current view, Ctrl+Shift+L light/dark, F5 reload, Esc close panels.
 
 ## Building on Linux (CI / cloud sessions)

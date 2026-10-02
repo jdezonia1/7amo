@@ -36,6 +36,20 @@
                 </Border>
                 <Border Style="{StaticResource Card}" Margin="0,16,0,0">
                     <StackPanel>
+                        <TextBlock Text="INVOICE HEADER" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition Width="110"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="PROJECT CODE" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding InvoiceProjectCode}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="PROJECT DIRECTOR" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding InvoiceProjectDirector}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="4"><TextBlock Text="VENDOR NO" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding InvoiceVendorNo}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="6"><TextBlock Text="15 M ROUNDING (DP)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding LengthRoundingDecimals}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
+                        </Grid>
+                        <TextBlock Text="SIGNATURE NAMES (separated by ;)" Style="{StaticResource Label}" FontSize="10" Margin="0,10,0,0"/>
+                        <TextBox Text="{Binding InvoiceSignatureNames}" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                    <StackPanel>
                         <TextBlock Text="RULES" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>

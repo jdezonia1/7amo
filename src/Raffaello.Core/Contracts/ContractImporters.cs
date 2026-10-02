@@ -217,7 +217,7 @@ public sealed class TemplateImportResult
 }
 
 /// <summary>
-/// The subcontract invoice template ('ROOTS INV 1' layout): header rows 1-12, lines from row 15 (B item, C BOQ code, D cost code,
+/// The subcontract invoice template ('ROOTS INV 1' layout): header rows 1-12, lines from row 14 (B item, C BOQ code, D cost code,
 /// E budget resource code, F description, G unit, H qty, I rate, J stage %, Q executed cum) up to the 'Subcontract Value' row.
 /// </summary>
 public static class InvoiceTemplateImporter

@@ -27,9 +27,12 @@ namespace Raffaello.Cli;
 /// </summary>
 public static class Program
 {
+    private static readonly HashSet<string> Commands = new() { "import-tracker", "import-contract", "import-epromise", "import-template", "map", "build-invoice", "export", "statement", "report", "approve" };
+
     public static int Main(string[] args)
     {
         if (args.Length == 0 || args[0] is "-h" or "--help") { Help(); return 0; }
+        if (!Commands.Contains(args[0])) { Console.Error.WriteLine($"Unknown command {args[0]}"); Help(); return 2; }
         var opts = Options(args.Skip(1).ToArray(), out var positional);
         var dbPath = opts.GetValueOrDefault("db", Path.Combine(Environment.CurrentDirectory, "raffaello-cli.db"));
         var store = new Db(dbPath, "cli");

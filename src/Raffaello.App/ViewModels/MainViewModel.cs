@@ -38,9 +38,11 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         _pages = pages.ToDictionary(p => p.Key);
         Groups = new[]
         {
-            new NavGroup("TRACK", new[] { Item("Dashboard", "DASHBOARD", "IconDashboard", "Ctrl+1"), Item("Quantities", "QUANTITIES", "IconQuantities", "Ctrl+2"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+3"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+4") }),
-            new NavGroup("DOCUMENTS", new[] { Item("Aconex", "ACONEX", "IconAconex", "Ctrl+5"), Item("Wir", "WIR / MIR", "IconWir", "Ctrl+6"), Item("Contracts", "CONTRACTS & BOQ", "IconContracts", "Ctrl+7") }),
-            new NavGroup("OUTPUT", new[] { Item("Invoices", "INVOICES", "IconInvoices", "Ctrl+8"), Item("Reports", "REPORTS", "IconReports", "Ctrl+9") }),
+            new NavGroup("TRACK", new[] { Item("Dashboard", "DASHBOARD", "IconDashboard", "Ctrl+1"), Item("Ledger", "ROOMS & LEDGER", "IconLedger", "Ctrl+2"), Item("Quantities", "QUANTITIES", "IconQuantities", "Ctrl+4"),
+                Item("Checks", "CHECKS", "IconChecks", "Ctrl+3"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+5"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+6") }),
+            new NavGroup("DOCUMENTS", new[] { Item("Aconex", "ACONEX", "IconAconex", ""), Item("Wir", "WIR / MIR", "IconWir", ""), Item("Contracts", "CONTRACTS & BOQ", "IconContracts", "Ctrl+7"),
+                Item("SiteStatements", "SITE STATEMENTS", "IconSend", "Ctrl+9") }),
+            new NavGroup("OUTPUT", new[] { Item("Invoices", "INVOICES", "IconInvoices", "Ctrl+8"), Item("Reports", "REPORTS", "IconReports", "Ctrl+0") }),
         };
         SettingsItem = Item("Settings", "SETTINGS", "IconSettings", "");
         palette.SetNavigator(this);
@@ -112,7 +114,8 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 "Materials" => B(p.Queue.Count(q => q.Category == "MATERIAL")),
                 "Wir" => B(s.Wirs.Count(w => w.Kind == "WIR" && w.Status == WirStatus.Open && (p.Options.Today - w.SubmittedAt.Date).TotalDays > p.Options.WirDueDays)),
                 "Aconex" => B(s.AconexDocs.Count(d => d.Queued)),
-                "Invoices" => B(s.Invoices.Count(x => x.Status == InvoiceStatus.Received)),
+                "Invoices" => B(s.SubInvoices.Count(x => x.Status is SubInvoiceStatus.Rejected or SubInvoiceStatus.Submitted)),
+                "Checks" => B(s.Claims.Count(c => Raffaello.Core.Ledger.HeightCheck.IsPending(c) || Raffaello.Core.Ledger.LengthCheck.IsPending(c))),
                 _ => "",
             };
         }
@@ -164,8 +167,8 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
     [RelayCommand]
     private void GoIndex(string index)
     {
-        var keys = new[] { "Dashboard", "Quantities", "Statements", "Materials", "Aconex", "Wir", "Contracts", "Invoices", "Reports" };
-        if (int.TryParse(index, out var i) && i >= 1 && i <= keys.Length) Go(keys[i - 1]);
+        var keys = new[] { "Reports", "Dashboard", "Ledger", "Checks", "Quantities", "Statements", "Materials", "Contracts", "Invoices", "SiteStatements" };
+        if (int.TryParse(index, out var i) && i >= 0 && i < keys.Length) Go(keys[i]);
     }
 
     [RelayCommand]

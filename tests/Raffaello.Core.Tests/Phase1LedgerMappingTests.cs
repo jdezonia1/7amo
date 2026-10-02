@@ -186,6 +186,25 @@ public class MappingTests
     }
 
     [Fact]
+    public void PartRuleKeys_RoundTripThroughLearnedRules()
+    {
+        var first = new MappingEngine().Map(new[] { L("1ST FIX", "TERRACE LIGHT", 2), L("1ST FIX", "DATA", 1) }, Ctx()).Parts;
+        var terrace = first.Single(p => p.Line.Item == "TERRACE LIGHT");
+        Assert.Equal("LIGHT", terrace.System);
+        Assert.Equal(AreaTypes.Balcony, terrace.Area);
+        var data = first.Single(p => p.Line.Item == "DATA");
+        // what the invoice screen stores when the user confirms a different item / BOQ code
+        var rules = new[]
+        {
+            MappingEngine.Learn("ITEM", Phase1Fixtures.Contract, data.ItemRuleKey, "182"),
+            MappingEngine.Learn("BOQ", Phase1Fixtures.Contract, terrace.BoqRuleKey(terrace.Item!.ItemNo), terrace.BoqCode),
+        };
+        var again = new MappingEngine().Map(new[] { L("1ST FIX", "TERRACE LIGHT", 2), L("1ST FIX", "DATA", 1) }, Ctx(rules)).Parts;
+        Assert.Equal("182", again.Single(p => p.Line.Item == "DATA").Item?.ItemNo);
+        Assert.Contains("learned rule", again.Single(p => p.Line.Item == "TERRACE LIGHT").Explanation);
+    }
+
+    [Fact]
     public void PendingChecks_AreHeldOutOfMapping()
     {
         var line = L("1ST FIX", "POWER", 10);

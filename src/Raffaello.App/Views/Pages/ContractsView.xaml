@@ -1,78 +1,160 @@
 <UserControl x:Class="Raffaello.App.Views.Pages.ContractsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
+             xmlns:vm="clr-namespace:Raffaello.App.ViewModels">
     <Grid Margin="24,0,24,20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
+        <!-- imports + subcontracts -->
         <Grid>
-            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="230"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.1*"/></Grid.ColumnDefinitions>
-            <Border Style="{StaticResource Card}" Padding="12">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="1.3*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="14">
                 <StackPanel>
-                    <TextBlock Text="SUBCONTRACTS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
-                    <ItemsControl ItemsSource="{Binding Contracts}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Style="{StaticResource Well}" Margin="0,0,0,4">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Contract.Subcontractor}" Style="{StaticResource BodyStrong}" FontSize="13"/>
-                                            <TextBlock Text="{Binding Contract.ContractNo}" Style="{StaticResource Small}" FontSize="10"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Margin="8,0">
-                                            <TextBlock Text="{Binding Contract.Scope}" Style="{StaticResource Small}" FontSize="11" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
-                                            <ProgressBar Style="{StaticResource SlimProgress}" Value="{Binding CertifiedPct, Mode=OneWay}" Margin="0,5,0,0"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2">
-                                            <TextBlock Text="{Binding Contract.Value, StringFormat=SAR {0:N0}}" Style="{StaticResource NumTotal}" FontSize="12"/>
-                                            <TextBlock Text="{Binding CertifiedPct, StringFormat={}{0:P0} certified}" Style="{StaticResource Num}" FontSize="10" Foreground="{DynamicResource MutedBrush}"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <TextBlock Text="IMPORT" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="120"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="CONTRACT NO" Style="{StaticResource Label}"/>
+                            <TextBox Text="{Binding ImportContractNo, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="SUBCONTRACTOR" Style="{StaticResource Label}"/>
+                            <TextBox Text="{Binding ImportSub, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="BUILDING" Style="{StaticResource Label}"/>
+                            <ComboBox ItemsSource="{Binding BuildingOptions}" SelectedItem="{Binding ImportBuilding, Mode=TwoWay}" ToolTip="Empty = take B5/B6 codes as BRANDED, others as they come"/>
+                        </StackPanel>
+                    </Grid>
+                    <WrapPanel Margin="0,10,0,0">
+                        <Button Style="{StaticResource BtnPrimary}" Content="CONTRACT LINK WORKBOOK" Command="{Binding ImportLinkWorkbookCommand}" Margin="0,0,6,6"
+                                ToolTip="Contract items (English / Arabic), attributes parsed from the text, LINK TABLE item -> BOQ codes"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="INVOICE TEMPLATE (INV SHEET)" Command="{Binding ImportTemplateCommand}" Margin="0,0,6,6"
+                                ToolTip="The subcontractor's invoice layout: item x BOQ rows, stage %, sections"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="E-PROMISE BOQ LIST" Command="{Binding ImportEPromiseCommand}" Margin="0,0,6,6"
+                                ToolTip="BOQ codes with cost code / budget resource"/>
+                    </WrapPanel>
                 </StackPanel>
             </Border>
             <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PROJECT QTY COVERAGE" Style="{StaticResource Label}"/>
-                    <lvc:PieChart Series="{Binding CoverageSeries}" Height="150" LegendPosition="Hidden" TooltipPosition="Center" InitialRotation="-90"/>
-                </DockPanel>
-            </Border>
-            <Border Grid.Column="4" Style="{StaticResource Card}" Padding="12">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="VALUE BY SYSTEM  |  BOQ / PROJECT / CLAIMED" Style="{StaticResource Label}"/>
-                    <lvc:CartesianChart Series="{Binding BoqSeries}" XAxes="{Binding BoqX}" YAxes="{Binding BoqY}" Height="150" LegendPosition="Hidden" TooltipPosition="Top"/>
+                    <TextBlock DockPanel.Dock="Top" Text="SUBCONTRACTS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Contracts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource Well}" Margin="0,0,0,4" Padding="10,6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Contract.Subcontractor}" Style="{StaticResource BodyStrong}" FontSize="12"/>
+                                                <TextBlock Text="{Binding Contract.ContractNo}" Style="{StaticResource Small}" FontSize="10"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding Contract.Scope}" Style="{StaticResource Small}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="8,0"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Contract.Value, StringFormat=SAR {0:N0}}" Style="{StaticResource NumTotal}" FontSize="12" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </DockPanel>
             </Border>
         </Grid>
-        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="12">
+
+        <ListBox Grid.Row="2" Style="{StaticResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding Tab, Mode=TwoWay}" HorizontalAlignment="Left" Margin="0,0,0,8"/>
+
+        <!-- contract items -->
+        <Grid Grid.Row="3" Visibility="{Binding IsItems, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="380"/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="200"/><ColumnDefinition/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding ContractNos}" SelectedItem="{Binding SelectedContractNo, Mode=TwoWay}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding ItemsText}" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBox Grid.Column="2" Text="{Binding ItemSearch, UpdateSourceTrigger=PropertyChanged, Delay=250}" ToolTip="Item no, description, system"/>
+                    </Grid>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" IsReadOnly="False"
+                              VirtualizingPanel.IsVirtualizing="True">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="STATUS" Width="62" SortMemberPath="Status" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Status}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="ITEM" Binding="{Binding Item.ItemNo}" Width="46" IsReadOnly="True" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Item.Description}" Width="*" MinWidth="220" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="RATE" Binding="{Binding Item.Rate, StringFormat=N2}" Width="64" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridComboBoxColumn Header="STAGE" SelectedItemBinding="{Binding Item.FixStage}" Width="76"
+                                                    ItemsSource="{x:Static vm:ContractsViewModel.FixStageOptions}"/>
+                            <DataGridComboBoxColumn Header="CONDUIT" SelectedItemBinding="{Binding Item.ConduitType}" Width="70"
+                                                    ItemsSource="{x:Static vm:ContractsViewModel.ConduitOptions}"/>
+                            <DataGridComboBoxColumn Header="MOUNT" SelectedItemBinding="{Binding Item.Mount}" Width="76"
+                                                    ItemsSource="{x:Static vm:ContractsViewModel.MountOptions}"/>
+                            <DataGridComboBoxColumn Header="HEIGHT" SelectedItemBinding="{Binding Item.HeightBand}" Width="62"
+                                                    ItemsSource="{x:Static vm:ContractsViewModel.HeightOptions}"/>
+                            <DataGridTextColumn Header="SYSTEMS" Binding="{Binding Item.Systems}" Width="130" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="SIZE" Binding="{Binding Item.SizeKey}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="STAGE %" Binding="{Binding Item.StagePct}" Width="58" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="LINKS" Binding="{Binding Links}" Width="46" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="14">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock Style="{StaticResource PanelTitle}"><Run Text="ITEM "/><Run Text="{Binding SelectedItem.Item.ItemNo, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Text="{Binding SelectedItem.Item.Description}" Style="{StaticResource Body}" TextWrapping="Wrap" Margin="0,6,0,6" MaxHeight="120"/>
+                        <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap">
+                            <Run Text="QTY"/> <Run Text="{Binding SelectedItem.Item.Qty, StringFormat=N2, Mode=OneWay}" FontWeight="Bold"/> <Run Text="{Binding SelectedItem.Item.Unit, Mode=OneWay}"/>
+                            <Run Text="  RATE"/> <Run Text="{Binding SelectedItem.Item.Rate, StringFormat=N2, Mode=OneWay}" FontWeight="Bold"/>
+                            <Run Text="  CATEGORY"/> <Run Text="{Binding SelectedItem.Item.Category, Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <TextBlock Text="PARSER NOTES" Style="{StaticResource Label}" Margin="0,8,0,2"/>
+                        <TextBlock Text="{Binding SelectedItem.Item.ParseNotes}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="SAVE + CONFIRM ATTRIBUTES" Command="{Binding ConfirmItemCommand}" HorizontalAlignment="Stretch" Margin="0,10,0,10"
+                                ToolTip="Edit STAGE / CONDUIT / MOUNT / HEIGHT / SYSTEMS / SIZE / STAGE % in the grid, then confirm. Confirmed attributes survive re-imports."/>
+                        <TextBlock Text="BOQ CODES LINKED TO THIS ITEM" Style="{StaticResource Label}" Margin="0,0,0,4"/>
+                    </StackPanel>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding ItemLinks}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="BOQ CODE" Binding="{Binding BoqCode}" Width="120" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding BoqDescription}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="SRC" Binding="{Binding Source}" Width="60" ElementStyle="{StaticResource CellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- BOQ -->
+        <Border Grid.Row="3" Style="{StaticResource Card}" Padding="12" Visibility="{Binding IsBoq, Converter={StaticResource BoolToVis}}">
             <DockPanel>
                 <Grid DockPanel.Dock="Top" Margin="2,0,0,8">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="200"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="220"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <TextBlock Text="BOQ  |  RATES AND PROJECT QTY" Style="{StaticResource PanelTitle}"/>
                     <TextBlock Grid.Column="1" Text="{Binding Coverage}" Style="{StaticResource Label}" Margin="12,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                    <TextBox Grid.Column="2" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=300}"/>
+                    <TextBox Grid.Column="2" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=300}" ToolTip="BOQ code, description, cost code"/>
                     <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="8,0,0,0">
                         <Button Style="{StaticResource BtnGhost}" Content="FILL EMPTY LINES FROM BOQ" Command="{Binding ApplyToLinesCommand}" Margin="0,0,6,0"/>
                         <Button Style="{StaticResource BtnPrimary}" Content="SAVE CHANGES" Command="{Binding SaveCommand}"/>
                     </StackPanel>
                 </Grid>
-                <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Boq}" IsReadOnly="False">
+                <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Boq}" IsReadOnly="False" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="STATUS" Width="64" SortMemberPath="Status" IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Status}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="ITEM" Binding="{Binding ItemCode}" Width="100" IsReadOnly="True" ElementStyle="{StaticResource CellKey}"/>
-                        <DataGridTextColumn Header="BILL" Binding="{Binding Bill}" Width="170" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="BOQ CODE" Binding="{Binding ItemCode}" Width="130" IsReadOnly="True" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="BILL" Binding="{Binding Bill}" Width="60" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
                         <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="COST CODE" Binding="{Binding Item.CostCode}" Width="100" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
                         <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="44" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
-                        <DataGridTextColumn Header="BOQ QTY" Binding="{Binding BoqQty, StringFormat=N0}" Width="70" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>
                         <DataGridTextColumn Header="QS LINES" Binding="{Binding QsTotal, StringFormat=N0}" Width="70" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>
                         <DataGridTextColumn Header="PROJECT QTY (EDIT)" Binding="{Binding ProjectQty, TargetNullValue='', UpdateSourceTrigger=LostFocus}" Width="110" ElementStyle="{StaticResource CellNumStrong}"/>
                         <DataGridTextColumn Header="CLAIMED" Binding="{Binding Claimed, StringFormat=N0}" Width="70" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>

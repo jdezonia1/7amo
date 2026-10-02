@@ -22,6 +22,9 @@
         <DataTemplate DataType="{x:Type vm:InvoicesViewModel}"><pages:InvoicesView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ReportsViewModel}"><pages:ReportsView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><pages:SettingsView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LedgerViewModel}"><pages:LedgerView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ChecksViewModel}"><pages:ChecksView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SiteStatementsViewModel}"><pages:SiteStatementsView/></DataTemplate>
 
         <Style x:Key="FilterCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="MinWidth" Value="104"/>
@@ -49,6 +52,7 @@
         <KeyBinding Key="D7" Modifiers="Control" Command="{Binding GoIndexCommand}" CommandParameter="7"/>
         <KeyBinding Key="D8" Modifiers="Control" Command="{Binding GoIndexCommand}" CommandParameter="8"/>
         <KeyBinding Key="D9" Modifiers="Control" Command="{Binding GoIndexCommand}" CommandParameter="9"/>
+        <KeyBinding Key="D0" Modifiers="Control" Command="{Binding GoIndexCommand}" CommandParameter="0"/>
     </Window.InputBindings>
 
     <Grid>

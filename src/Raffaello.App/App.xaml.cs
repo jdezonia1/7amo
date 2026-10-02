@@ -96,6 +96,9 @@ public partial class App : Application
                 });
                 s.AddSingleton<PageViewModel, WelcomeViewModel>();
                 s.AddSingleton<PageViewModel, DashboardViewModel>();
+                s.AddSingleton<PageViewModel, LedgerViewModel>();
+                s.AddSingleton<PageViewModel, ChecksViewModel>();
+                s.AddSingleton<PageViewModel, SiteStatementsViewModel>();
                 s.AddSingleton<PageViewModel, QuantitiesViewModel>();
                 s.AddSingleton<PageViewModel, StatementsViewModel>();
                 s.AddSingleton<PageViewModel, MaterialsViewModel>();

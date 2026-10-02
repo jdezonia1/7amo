@@ -146,6 +146,32 @@ public sealed partial class DashboardViewModel : PageViewModel
             Spark = new ISeries[] { ChartKit.Spark(ProjectAnalytics.CashFlow(s.Invoices).Select(m => m.Claimed), ChartKit.Good) },
         });
 
+        // ---------------- real workflow data (room ledger, checks, subcontractor invoices)
+        if (s.Claims.Count > 0 || s.RoomQtys.Count > 0)
+        {
+            var bal = Raffaello.Core.Ledger.LedgerRules.Balances(s.RoomQtys, s.Claims);
+            var overCap = bal.Values.Count(b => b.HasCap && b.IsOver);
+            var noCap = bal.Values.Count(b => !b.HasCap && b.Claimed > 0);
+            var pendingChecks = s.Claims.Count(c => Raffaello.Core.Ledger.HeightCheck.IsPending(c) || Raffaello.Core.Ledger.LengthCheck.IsPending(c));
+            var used = bal.Values.Where(b => b.HasCap).Sum(b => Math.Min(b.Claimed, b.ProjectQty));
+            var cap = bal.Values.Where(b => b.HasCap).Sum(b => b.ProjectQty);
+            Kpis.Insert(0, new KpiTile
+            {
+                Label = "ROOM LEDGER (CLAIMED / PROJECT QTY)", Value = cap <= 0 ? "-" : $"{used / cap:P1}",
+                Detail = $"{s.Claims.Count:N0} lines  |  {overCap} over cap  |  {noCap} without PROJECT QTY", Status = overCap > 0 ? "OVER" : noCap > 0 ? "CHECK" : "OK",
+                Spark = new ISeries[] { ChartKit.Spark(s.Claims.Where(c => c.InvoiceNo > 0).GroupBy(c => c.InvoiceNo).OrderBy(g => g.Key).Select(g => g.Sum(c => c.Qty)), ChartKit.Accent) },
+            });
+            var openInv = s.SubInvoices.Count(i => i.Status is SubInvoiceStatus.Submitted or SubInvoiceStatus.Rejected);
+            Kpis.Insert(1, new KpiTile
+            {
+                Label = "CHECKS PENDING / INVOICES OPEN", Value = $"{pendingChecks:N0} / {openInv:N0}",
+                Detail = $"{s.SubInvoices.Count(i => i.Status == SubInvoiceStatus.Approved)} invoices approved", Status = pendingChecks > 0 ? "DUE" : openInv > 0 ? "CHECK" : "OK",
+                Spark = new ISeries[] { ChartKit.Spark(s.SubInvoices.Where(i => i.Status == SubInvoiceStatus.Approved).OrderBy(i => i.InvoiceNo)
+                    .Select(i => Raffaello.Core.Invoicing.InvoiceTotals.Of(i, s.SubInvoiceLines.Where(l => l.SubInvoiceId == i.Id)).CurrGross), ChartKit.Good) },
+            });
+            Kpis.RemoveAt(Kpis.Count - 1);
+        }
+
         // ---------------- chain funnel (per stage, never summed)
         var stages = ChainMath.TotalsByStage(rows);
         var links = new[] { "QS", "GIVEN", "DONE", "CLAIMED", "CERTIFIED", "DELIVERED" };
