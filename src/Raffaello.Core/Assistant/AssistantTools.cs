@@ -237,7 +237,7 @@ public sealed class AssistantTools
             {
                 "string" => kind == JsonValueKind.String,
                 "number" => kind == JsonValueKind.Number,
-                "integer" => kind == JsonValueKind.Number && value.AsValue().TryGetValue<double>(out var d) && Math.Abs(d - Math.Round(d)) < 1e-9,
+                "integer" => kind == JsonValueKind.Number && Number(value) is double d && Math.Abs(d - Math.Round(d)) < 1e-9,
                 "array" => kind == JsonValueKind.Array,
                 "object" => kind == JsonValueKind.Object,
                 _ => true,
@@ -292,9 +292,13 @@ public sealed class AssistantTools
         }
     }
 
-    internal static string? S(JsonObject o, string k) => o[k] is JsonValue v && v.TryGetValue<string>(out var s) && s.Trim().Length > 0 ? s.Trim() : null;
-    internal static int? I(JsonObject o, string k) => o[k] is JsonValue v && v.TryGetValue<double>(out var d) ? (int)Math.Round(d) : null;
-    internal static double? D(JsonObject o, string k) => o[k] is JsonValue v && v.TryGetValue<double>(out var d) ? d : null;
+    internal static string? S(JsonObject o, string k) => o[k] is JsonValue v && v.GetValueKind() == JsonValueKind.String && v.GetValue<string>().Trim().Length > 0 ? v.GetValue<string>().Trim() : null;
+    internal static int? I(JsonObject o, string k) => Number(o[k]) is double d ? (int)Math.Round(d) : null;
+    internal static double? D(JsonObject o, string k) => Number(o[k]);
+
+    /// <summary>A JSON number whatever backs the node (parsed element or a CLR value).</summary>
+    internal static double? Number(JsonNode? n) =>
+        n is JsonValue v && v.GetValueKind() == JsonValueKind.Number && double.TryParse(v.ToJsonString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d : null;
 
     private static ToolOutcome Error(string msg) => new() { Content = msg, IsError = true };
 
@@ -373,23 +377,31 @@ public sealed class AssistantTools
             if (groupBy != "none")
             {
                 var groups = new JsonArray();
-                IEnumerable<IGrouping<string, ClaimLine>> g = groupBy switch
+                Func<ClaimLine, string> keyOf = groupBy switch
                 {
-                    "room" => mineS.GroupBy(c => Up(c.Room)),
-                    "item" => mineS.GroupBy(c => Up(c.Item)),
-                    "subcontractor" => mineS.GroupBy(c => Up(c.Subcontractor)),
-                    _ => mineS.GroupBy(c => "INV " + c.InvoiceNo.ToString("00", CultureInfo.InvariantCulture)),
+                    "room" => c => Up(c.Room),
+                    "item" => c => Up(c.Item),
+                    "subcontractor" => c => Up(c.Subcontractor),
+                    _ => c => "INV " + c.InvoiceNo.ToString("00", CultureInfo.InvariantCulture),
                 };
-                foreach (var grp in g.OrderByDescending(x => x.Sum(c => c.Qty)).Take(limit))
+                var claimGroups = mineS.GroupBy(keyOf).ToDictionary(x => x.Key, x => x.ToList());
+                var capKeys = groupBy switch
                 {
-                    var go = new JsonObject { ["group"] = grp.Key, ["claimed"] = R2(grp.Sum(c => c.Qty)), ["lines"] = grp.Count() };
+                    "room" => caps.Where(c => Up(c.Stage) == stg).Select(c => Up(c.Room)),
+                    "item" => caps.Where(c => Up(c.Stage) == stg).Select(c => Up(c.Item)),
+                    _ => Enumerable.Empty<string>(),
+                };
+                foreach (var key in claimGroups.Keys.Union(capKeys).OrderByDescending(k => claimGroups.TryGetValue(k, out var l) ? l.Sum(c => c.Qty) : 0).ThenBy(k => k).Take(limit))
+                {
+                    var grp = claimGroups.GetValueOrDefault(key) ?? new List<ClaimLine>();
+                    var go = new JsonObject { ["group"] = key, ["claimed"] = R2(grp.Sum(c => c.Qty)), ["lines"] = grp.Count };
                     if (groupBy is "room" or "item")
                     {
-                        var capG = caps.Where(c => Up(c.Stage) == stg && (groupBy == "room" ? Up(c.Room) == grp.Key : Up(c.Item) == grp.Key)).Sum(c => c.Qty);
-                        var allG = all.Where(c => Up(c.Stage) == stg && (groupBy == "room" ? Up(c.Room) == grp.Key : Up(c.Item) == grp.Key)).Sum(c => c.Qty);
+                        var capG = caps.Where(c => Up(c.Stage) == stg && (groupBy == "room" ? Up(c.Room) == key : Up(c.Item) == key)).Sum(c => c.Qty);
+                        var allG = all.Where(c => Up(c.Stage) == stg && (groupBy == "room" ? Up(c.Room) == key : Up(c.Item) == key)).Sum(c => c.Qty);
                         go["project_qty"] = R2(capG); go["remaining"] = R2(capG - allG);
                     }
-                    if (groupBy == "room") { var c = Citation.Room(grp.Key); cites.Add(c); go["cite"] = c.Token; }
+                    if (groupBy == "room") { var c = Citation.Room(key); cites.Add(c); go["cite"] = c.Token; }
                     groups.Add(go);
                 }
                 o["groups"] = groups;

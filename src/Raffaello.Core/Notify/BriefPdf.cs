@@ -1,5 +1,6 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
+using QuestPDF.Drawing;
 using QuestPDF.Infrastructure;
 using Raffaello.Core.Localization;
 
@@ -8,12 +9,38 @@ namespace Raffaello.Core.Notify;
 /// <summary>The morning brief as a one- or two-page A4 PDF in the house style (dark red title, #A6A6A6 section bars). Arabic is laid out right to left.</summary>
 public static class BriefPdf
 {
-    /// <summary>Fonts with Arabic glyphs first on Windows (Segoe UI / Tahoma), DejaVu Sans elsewhere.</summary>
-    public static readonly string[] Fonts = { "Segoe UI", "Tahoma", "DejaVu Sans", "Arial" };
+    private static readonly Lazy<string[]> RegisteredFonts = new(RegisterSystemFonts);
+
+    /// <summary>Font families with Arabic glyphs found on this machine: Segoe UI / Tahoma on Windows, DejaVu Sans elsewhere.</summary>
+    public static string[] Fonts => RegisteredFonts.Value;
+
+    /// <summary>QuestPDF no longer reads the system fonts by itself: register the few with Arabic glyphs that exist on this machine.</summary>
+    private static string[] RegisterSystemFonts()
+    {
+        var win = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        var candidates = new (string Family, string File)[]
+        {
+            ("Segoe UI", Path.Combine(win, "segoeui.ttf")), ("Segoe UI", Path.Combine(win, "segoeuib.ttf")),
+            ("Tahoma", Path.Combine(win, "tahoma.ttf")), ("Tahoma", Path.Combine(win, "tahomabd.ttf")),
+            ("DejaVu Sans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), ("DejaVu Sans", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+            ("DejaVu Sans", "/usr/share/fonts/dejavu/DejaVuSans.ttf"), ("DejaVu Sans", "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"),
+        };
+        var families = new List<string>();
+        foreach (var (family, file) in candidates.Where(c => Path.IsPathRooted(c.File) && File.Exists(c.File)))
+            try
+            {
+                using var s = File.OpenRead(file);
+                FontManager.RegisterFontFromStream(s);
+                if (!families.Contains(family)) families.Add(family);
+            }
+            catch (Exception) { /* a damaged font must not stop the brief */ }
+        return families.ToArray();
+    }
 
     public static byte[] Render(Brief b)
     {
         QuestPDF.Settings.License = LicenseType.Community;
+        var fonts = Fonts;
         var rtl = b.Language == Loc.Arabic;
         var c = Loc.Culture(b.Language);
         return Document.Create(doc => doc.Page(page =>
@@ -21,7 +48,7 @@ public static class BriefPdf
             page.Size(PageSizes.A4);
             page.Margin(28);
             if (rtl) page.ContentFromRightToLeft();
-            page.DefaultTextStyle(x => x.FontFamily(Fonts).FontSize(9.5f));
+            page.DefaultTextStyle(x => fonts.Length > 0 ? x.FontFamily(fonts).FontSize(9.5f) : x.FontSize(9.5f));
             page.Header().Background("#8B0000").Padding(10).Column(col =>
             {
                 col.Item().Text(Loc.Get("Brief_Title", b.Language)).FontSize(16).Bold().FontColor(Colors.White);
