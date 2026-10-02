@@ -8,8 +8,16 @@ using Raffaello.Core.Queue;
 namespace Raffaello.App.ViewModels;
 
 /// <summary>Shared plumbing for every module screen.</summary>
+public interface INavigator
+{
+    void Go(string key, NavTarget? target = null);
+    void OpenImport(string? kind = null);
+    void OpenAsk(string? question = null);
+}
+
 public sealed class PageContext
 {
+    public required INavigator Nav { get; init; }
     public required DataService Data { get; init; }
     public required FilterState Filter { get; init; }
     public required ToastService Toasts { get; init; }
