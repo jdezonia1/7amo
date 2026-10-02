@@ -195,7 +195,7 @@ public static class ImagePrep
             foreach (var c in cs)
             {
                 var r = Cv2.BoundingRect(c);
-                if (r.Width >= w * 0.08 && r.Height <= Math.Max(12, h / 150)) res.Add(new Ruling(true, r.X, r.Y + r.Height / 2.0, r.Right, r.Y + r.Height / 2.0));
+                if (r.Width >= w * 0.08 && r.Height <= Math.Max(12, h / 150) + r.Width * 0.012) res.Add(new Ruling(true, r.X, r.Y + r.Height / 2.0, r.Right, r.Y + r.Height / 2.0));
             }
         }
         using (var vk = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(1, Math.Max(20, h / 60))))
@@ -207,7 +207,7 @@ public static class ImagePrep
             foreach (var c in cs)
             {
                 var r = Cv2.BoundingRect(c);
-                if (r.Height >= h * 0.02 && r.Width <= Math.Max(12, w / 150)) res.Add(new Ruling(false, r.X + r.Width / 2.0, r.Y, r.X + r.Width / 2.0, r.Bottom));
+                if (r.Height >= h * 0.035 && r.Width <= Math.Max(12, w / 150) + r.Height * 0.012) res.Add(new Ruling(false, r.X + r.Width / 2.0, r.Y, r.X + r.Width / 2.0, r.Bottom));
             }
         }
         return res;

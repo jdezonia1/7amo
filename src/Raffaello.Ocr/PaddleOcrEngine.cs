@@ -138,7 +138,7 @@ public sealed class PaddleOcrEngine : ILayoutOcrEngine, IDisposable
 
             // deskew from the angle of long text lines
             var skew = Skew(boxes);
-            if (Math.Abs(skew) is > 0.25 and < 12)
+            if (Math.Abs(skew) is > 0.5 and < 12)
             {
                 img = Track(ImagePrep.Rotate(img, skew));
                 page.SkewDegrees = skew;
