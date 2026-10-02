@@ -58,6 +58,9 @@ public sealed class PermissionGuard : IWriteGuard
     {
         var t = c.Type;
         if (t == typeof(InvoiceTemplateRow)) return new[] { Permissions.ManageTemplates };
+        // [trust] begin: every signed-in user may register a key / sign; TrustGuard checks who may sign what
+        if (t == typeof(Core.Trust.UserSigningKey) || t == typeof(Core.Trust.RecordSignature)) return new[] { Permissions.Read };
+        // [trust] end
         if (t == typeof(SiteStatement)) return new[] { Permissions.UploadStatements };
         if (t == typeof(ClaimLine) && c.Kind == WriteKind.Insert && ((ClaimLine)c.Entity).Source == "STATEMENT") return new[] { Permissions.UploadStatements };
         if (t == typeof(SubInvoice) || t == typeof(Invoice))
