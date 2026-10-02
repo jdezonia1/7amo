@@ -14,7 +14,7 @@ namespace Raffaello.Cli;
 /// </summary>
 public static class CableCommands
 {
-    private static readonly HashSet<string> Names = new() { "cables-import-tracker", "cables-report", "cables-read" };
+    private static readonly HashSet<string> Names = new() { "cables-import-tracker", "cables-report", "cables-read", "cables-dump" };
     public static bool Handles(string cmd) => Names.Contains(cmd);
 
     public static int Run(string[] args)
@@ -47,6 +47,7 @@ public static class CableCommands
                     }
                 case "cables-report": Report(db, opts); return 0;
                 case "cables-read": Read(db, pos[0], opts); return 0;
+                case "cables-dump": Dump(pos[0]); return 0;
             }
         }
         catch (Exception ex)
@@ -95,6 +96,28 @@ public static class CableCommands
             var path = Path.Combine(outDir, "CABLE_REGISTER.xlsx");
             ExcelExporter.Export(path, CableReports.Export(snap, flags));
             Console.WriteLine("Excel: " + path);
+        }
+    }
+
+    /// <summary>Geometry of a drawing page as the SLD analyser sees it (texts, lines, boxes) - for tuning on a real SLD.</summary>
+    private static void Dump(string file)
+    {
+        var pages = new List<SldPage>();
+        if (Path.GetExtension(file).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            using var doc = UglyToad.PdfPig.PdfDocument.Open(file);
+            pages.AddRange(doc.GetPages().Select(CableReaders.PdfPage));
+        }
+        else pages.Add(CadSld.Page(Path.GetExtension(file).Equals(".dwg", StringComparison.OrdinalIgnoreCase) ? ACadSharp.IO.DwgReader.Read(file) : ACadSharp.IO.DxfReader.Read(file)));
+        foreach (var p in pages)
+        {
+            Console.WriteLine($"PAGE {p.Number} {p.Width:0.#} x {p.Height:0.#}: {p.Texts.Count} texts, {p.Segments.Count} segments, {p.Rects.Count} boxes");
+            foreach (var t in p.Texts.Take(30)) Console.WriteLine($"  T '{t.Text}' @ {t.X:0.#},{t.Y:0.#} {t.W:0.#}x{t.H:0.#}");
+            foreach (var s in p.Segments.Take(30)) Console.WriteLine($"  L {s.X1:0.#},{s.Y1:0.#} -> {s.X2:0.#},{s.Y2:0.#}");
+            foreach (var r in p.Rects.Take(30)) Console.WriteLine($"  R {r.X:0.#},{r.Y:0.#} {r.W:0.#}x{r.H:0.#}");
+            var a = SldAnalyzer.Analyze(p);
+            foreach (var n in a.Nodes) Console.WriteLine($"  NODE {n.Name} boxed={n.Boxed} @ {n.Box.X:0.#},{n.Box.Y:0.#} {n.Box.W:0.#}x{n.Box.H:0.#}");
+            foreach (var e in a.Edges) Console.WriteLine($"  EDGE {e.From.Name} -> {e.To.Name} {string.Join(",", e.Sizes.Select(x => x.Key))} {e.How} {e.Confidence:0.00}");
         }
     }
 

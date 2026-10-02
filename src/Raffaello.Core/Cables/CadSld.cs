@@ -85,7 +85,7 @@ public static class CadSld
         // 4 lines forming a box are a box too
         var page = new SldPage
         {
-            Number = 1,
+            Number = 1, HasFrame = false,
             Width = segs.Count + texts.Count == 0 ? 1 : Math.Max(1, segs.Select(s => s.MaxX).Concat(texts.Select(t => t.Right)).Max() - segs.Select(s => s.MinX).Concat(texts.Select(t => t.X)).Min()),
             Height = segs.Count + texts.Count == 0 ? 1 : Math.Max(1, segs.Select(s => s.MaxY).Concat(texts.Select(t => t.Bottom)).Max() - segs.Select(s => s.MinY).Concat(texts.Select(t => t.Y)).Min()),
         };

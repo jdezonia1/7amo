@@ -82,11 +82,25 @@ public sealed record CableSize(string Raw, int Cores, double Mm2, string Key, st
         var s = Normalise(text ?? "");
         if (s.Length == 0) yield break;
         var whole = Parse(s);
+        CableSize? prev = null;
+        var prevEnd = 0;
         foreach (Match m in SizeRx.Matches(s))
         {
             var p = Parse(m.Value);
-            if (p.IsValid) yield return p with { Conductor = whole.Conductor, Insulation = whole.Insulation };
+            if (!p.IsValid) continue;
+            p = p with { Conductor = whole.Conductor, Insulation = whole.Insulation };
+            // "4C x 16mm² CU/XLPE + 1x16 E": a single core after a '+' is the earth of the cable before it
+            if (prev != null && p.Cores == 1 && !p.SingleCoreBundle && prev.Cores > 1 && prev.EarthKey.Length == 0 && s[prevEnd..m.Index].Contains('+'))
+            {
+                prev = prev with { EarthKey = p.Key };
+                prevEnd = m.Index + m.Length;
+                continue;
+            }
+            if (prev != null) yield return prev;
+            prev = p;
+            prevEnd = m.Index + m.Length;
         }
+        if (prev != null) yield return prev;
     }
 
     /// <summary>The text (upper case, normalised) with every size annotation removed - what is left can be a panel name.</summary>

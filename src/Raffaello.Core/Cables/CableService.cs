@@ -306,6 +306,7 @@ public sealed class CableService
                 if (template != null && p.Status == CableStatus.Provisional)
                 {
                     p.Status = confirm ? CableStatus.Confirmed : CableStatus.Proposed;
+                    if (template.Name.Length > 0) p.Name = template.Name;   // the design spelling replaces the statement spelling
                     p.SourceKind = template.SourceKind; p.SourceDoc = template.SourceDoc; p.SourcePage = template.SourcePage;
                     if (template.ParentKey.Length > 0) p.ParentKey = resolver.Canonical(template.ParentKey);
                     if (!changedPanels.Contains(p) && p.Id > 0) changedPanels.Add(p);

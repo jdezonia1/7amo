@@ -41,6 +41,8 @@ public sealed class SldPage
     public List<SldRect> Rects { get; } = new();
     /// <summary>Text that came from block attributes (CAD) with its tag - panel name tags are trusted more.</summary>
     public Dictionary<SldText, string> AttributeTags { get; } = new(ReferenceEqualityComparer.Instance);
+    /// <summary>A sheet with a drawing frame (PDF / scan): lines longer than 90 % of the sheet are the frame, not wiring. CAD model space has none.</summary>
+    public bool HasFrame { get; init; } = true;
     /// <summary>OCR page: geometry is less reliable (confidence lowered).</summary>
     public bool FromScan { get; init; }
 }
@@ -112,7 +114,7 @@ public static class SldAnalyzer
             {
                 var parsed = PanelNames.Parse(name);
                 if (!PanelNames.LooksLikePanel(name) && !(tagged && parsed.Tokens.Count > 0)) continue;
-                var rect = page.Rects.Where(r => r.Contains(p.Cx, p.Cy) && r.W * r.H < page.Width * page.Height * 0.2 && r.W < page.Width * 0.5)
+                var rect = page.Rects.Where(r => r.Contains(p.Cx, p.Cy) && r.W <= Math.Max(hMed * 80, p.W * 1.5) && r.H <= hMed * 40)
                     .OrderBy(r => r.W * r.H).Cast<SldRect?>().FirstOrDefault();
                 var box = rect ?? new SldRect(p.X, p.Y, p.W, p.H);
                 var node = new SldNode(PanelNames.Tidy(name), parsed, box, rect != null, p);
@@ -122,8 +124,18 @@ public static class SldAnalyzer
             }
         }
 
+        // "FED FROM ..." written under / next to a panel label
+        foreach (var p in phrases)
+        {
+            var fed = FedFromRx.Match(p.Text);
+            if (!fed.Success || PanelCandidates(p.Text[..fed.Index]).Any(PanelNames.LooksLikePanel)) continue;
+            var parent = PanelCandidates(fed.Groups[1].Value).FirstOrDefault(PanelNames.LooksLikePanel);
+            var near = res.Nodes.Where(n => n.Label != p).Select(n => (n, d: Dist(n.Box, p.Cx, p.Cy))).Where(x => x.d <= hMed * 6).OrderBy(x => x.d).Select(x => x.n).FirstOrDefault();
+            if (parent != null && near != null && near.Parsed.Key != PanelNames.KeyOf(parent)) res.FedFrom.Add((near, PanelNames.Tidy(parent)));
+        }
+
         // ---- wires
-        var segs = page.Segments.Where(s => s.Length > tol * 0.5 && !OnRectBorder(s, page.Rects, tol) && s.Length < Math.Max(page.Width, page.Height) * 0.9).ToList();
+        var segs = page.Segments.Where(s => s.Length > tol * 0.5 && !OnRectBorder(s, page.Rects, tol) && !(page.HasFrame && s.Length > Math.Max(page.Width, page.Height) * 0.9)).ToList();
         var comp = Components(segs, tol);
         var byComp = new Dictionary<int, List<int>>();
         for (var i = 0; i < segs.Count; i++) { if (!byComp.TryGetValue(comp[i], out var l)) byComp[comp[i]] = l = new(); l.Add(i); }
@@ -174,13 +186,13 @@ public static class SldAnalyzer
         }
         var used = new HashSet<SldText>(ReferenceEqualityComparer.Instance);
         foreach (var (t, s) in sizes)
-            if (Nearest(t, hMed * 4 + t.W * 0.2) is { } e)
+            if (Nearest(t, hMed * 3) is { } e)
             {
                 e.Sizes.AddRange(s);
                 used.Add(t);
             }
-        foreach (var (t, b) in breakers) if (Nearest(t, hMed * 4) is { } e && e.Breaker.Length == 0) e.Breaker = b;
-        foreach (var (t, l) in lengths) if (Nearest(t, hMed * 4) is { } e && e.Length is null) e.Length = l;
+        foreach (var (t, b) in breakers) if (Nearest(t, hMed * 3) is { } e && e.Breaker.Length == 0) e.Breaker = b;
+        foreach (var (t, l) in lengths) if (Nearest(t, hMed * 3) is { } e && e.Length is null) e.Length = l;
         foreach (var e in res.Edges) if (e.Sizes.Count > 0) e.Confidence = Math.Min(0.95, e.Confidence + 0.2);
 
         // ---- table rows: two panel names + a size on one line
@@ -341,10 +353,14 @@ public static class SldAnalyzer
         return Math.Sqrt(qx * qx + qy * qy);
     }
 
+    /// <summary>Shortest distance between a segment and a text box (0 when the segment crosses the box).</summary>
     private static double DistToBox(SldSegment s, SldText t)
     {
-        var d = PointSegDist(t.Cx, t.Cy, s);
-        return Math.Max(0, d - Math.Min(t.W, t.H) / 2);
+        var r = new SldRect(t.X, t.Y, t.W, t.H);
+        if (Touches(s, r)) return 0;
+        var d = Math.Min(Dist(r, s.X1, s.Y1), Dist(r, s.X2, s.Y2));
+        foreach (var (x, y) in new[] { (t.X, t.Y), (t.Right, t.Y), (t.X, t.Bottom), (t.Right, t.Bottom) }) d = Math.Min(d, PointSegDist(x, y, s));
+        return d;
     }
 
     private static double Dist(SldRect r, double x, double y)
