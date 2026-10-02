@@ -50,6 +50,15 @@ The app must be multi-user (several people editing at once).
     formulas) so it stays small and fast; a small VBA module keeps room-click → ROOM detail and recolouring.
     Included in every invoice ZIP. Open question: head office review-only (protected) or editable round-trip.
 
+11. **15 m route-length check** (added 02-Oct): contract clause on 2nd-fix pulling items (e.g. items 11–14, 19, 26–27,
+    32): a point longer than 15 m counts one extra point per additional 15 m. Subcontractors now claim inflated qty
+    (plan 40 data points → claim 150). Each such claim line needs: PLAN QTY, QTY CLAIMED, CHECKED TOTAL ROUTE LENGTH,
+    REVISED QTY (calculated, overridable), STATUS (PENDING / ACCEPTED / REVISED / REJECTED), CHECKED BY / DATE, NOTE
+    ("plan qty 40, total length 2000 m → revised …") + attached marked drawing. Only revised qty is invoiced; the
+    difference is recorded as rejected length claim; room caps / remaining use PLAN QTY only; per-subcontractor report
+    of length extras claimed vs accepted; pending checks held out of the invoice. Rule is a setting:
+    (a) total length ÷ 15, or (b) per point 1 + floor((L − 15) / 15). Open question: which one MOBCO applies.
+
 ## Findings from the sample files
 - **Subcontractor contract (Excel)** `contract_excel.xlsx`: Arabic labour-only rate schedule, one sheet,
   ~323 items in 23 sections (Lighting & Power, Façade, LED strip, Cable tray, Terminations, Cable pulling,
