@@ -73,7 +73,7 @@ public static class ContractAttributeParser
         var raw = description ?? "";
         var d = " " + Regex.Replace(raw.ToLowerInvariant(), @"\s+", " ") + " ";
         // phrases that mention walls / heights without describing the mounting
-        var forMount = Regex.Replace(d, @"wall chasing/?cutting|chasing/cutting|التكسير بالجدران|بالجدران|walls?/floor|trenches or walls", " ");
+        var forMount = Regex.Replace(d, @"wall chasing(?:/?cutting)?|chasing/cutting|التكسير بالجدران|بالجدران|walls?/floor|trenches or walls", " ");
 
         // ---- stage
         var stage = d.Contains("1st fix") || d.Contains("1st-fix") ? FixStages.First

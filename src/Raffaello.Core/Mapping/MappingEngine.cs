@@ -23,8 +23,30 @@ public sealed record ItemMatch(ContractItem? Item, string Confidence, string Exp
 public sealed record BoqMatch(string BoqCode, string BoqDescription, string Confidence, string Explanation);
 
 /// <summary>Everything the resolvers need for one contract: items, BOQ links, BOQ descriptions and learned rules.</summary>
+/// <summary>
+/// Named mapping defaults that may be flipped in one place (Settings). DATA / GRMS 1st fix outlets: the residence contract
+/// has a ceiling item (182 / 199) and a wall item (183 / 200); which one the tracker's 1ST FIX means is still being confirmed.
+/// </summary>
+public sealed record MappingOptions
+{
+    public string Data1stFixMount { get; init; } = Mounts.Wall;
+    public string Grms1stFixMount { get; init; } = Mounts.Wall;
+
+    public static MappingOptions Default { get; } = new();
+
+    /// <summary>Mount to look for at 1ST FIX for this system (null = the stage default).</summary>
+    public string? FirstFixMount(string system) => system.ToUpperInvariant() switch
+    {
+        "DATA" => Data1stFixMount,
+        "GRMS" => Grms1stFixMount,
+        _ => null,
+    };
+}
+
 public sealed class MappingContext
 {
+    public MappingOptions Options { get; init; } = MappingOptions.Default;
+
     public string ContractNo { get; }
     public IReadOnlyList<ContractItem> Items { get; }
     public IReadOnlyDictionary<string, List<ContractItemBoq>> LinksByItem { get; }
@@ -90,12 +112,16 @@ public static class SystemNames
             "EM" or "EMERGENCY" => ("EMERGENCY LIGHT", null),
             "EV" => ("EVACUATION", null),
             "CONTROL" => ("GRMS", null),
+            "GAS" or "GAS METER" or "GAS METERING" => ("METERING", null),   // gas meter points -> Metering System items
             _ => (s, null),
         };
     }
 
     /// <summary>When two item groups cover a system, prefer the one that also lists this system (AV = TV outlet, with data).</summary>
     public static readonly IReadOnlyDictionary<string, string> PreferWith = new Dictionary<string, string> { ["AV"] = "DATA" };
+
+    /// <summary>Description words that make an item the better fit for a system (gas meter items within Metering).</summary>
+    public static readonly IReadOnlyDictionary<string, string[]> PreferWords = new Dictionary<string, string[]> { ["METERING"] = new[] { "gas", "غاز" } };
 }
 
 /// <summary>Rule-based item resolver with learned overrides.</summary>
@@ -113,6 +139,9 @@ public sealed class DefaultItemResolver : IItemResolver
         }
         var profile = StageProfile.For(stage);
         if (profile is null) return ItemMatch.None($"stage '{stage}' is not mapped to the contract");
+        if (profile.Mount == Mounts.Wall && profile.FixStage == FixStages.First && profile.Conduit == Conduits.Pvc
+            && ctx.Options.FirstFixMount(system) is { Length: > 0 } mount && mount != profile.Mount)
+            profile = profile with { Mount = mount };
 
         if (profile.Category is "PANEL" or "CABLE" or "TRAY") return BySize(profile.Category, system, band, ctx);
 
@@ -139,6 +168,7 @@ public sealed class DefaultItemResolver : IItemResolver
             if (profile.Mount != null) s += i.Mount == profile.Mount ? 2 : i.Mount == Mounts.Both ? 1 : 0;
             s += i.HeightBand == band ? 1 : 0;
             if (SystemNames.PreferWith.TryGetValue(system, out var with) && Split(i.Systems).Contains(with)) s += 0.75;
+            if (SystemNames.PreferWords.TryGetValue(system, out var words) && words.Any(w => i.Description.Contains(w, StringComparison.OrdinalIgnoreCase))) s += 0.5;
             s -= Split(i.Systems).Count * 0.01;   // more specific item first
             return s;
         }

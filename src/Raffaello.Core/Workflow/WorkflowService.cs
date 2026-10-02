@@ -101,7 +101,7 @@ public sealed class WorkflowService
     public MappingResult Map(string contractNo, string subcontractor, int upToInvoice)
     {
         var s = _p.Snapshot;
-        var ctx = new MappingContext(contractNo, s.ContractItems, s.ItemBoqs, s.BoqItems, s.MappingRules);
+        var ctx = new MappingContext(contractNo, s.ContractItems, s.ItemBoqs, s.BoqItems, s.MappingRules) { Options = MappingOptions() };
         var areas = s.Rooms.GroupBy(r => r.Code, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().AreaType, StringComparer.OrdinalIgnoreCase);
         return new MappingEngine().Map(s.Claims.Where(c => c.Subcontractor.Equals(subcontractor, StringComparison.OrdinalIgnoreCase) && c.InvoiceNo <= upToInvoice && c.InvoiceNo > 0), ctx, areas);
     }
@@ -127,7 +127,14 @@ public sealed class WorkflowService
 
     // ------------------------------------------------------------------ invoices
 
-    public InvoiceBuild BuildInvoice(string contractNo, string sub, int invoiceNo, int revision) => InvoiceBuilder.Build(_p.Snapshot, contractNo, sub, invoiceNo, revision: revision);
+    public InvoiceBuild BuildInvoice(string contractNo, string sub, int invoiceNo, int revision) => InvoiceBuilder.Build(_p.Snapshot, contractNo, sub, invoiceNo, revision: revision, options: MappingOptions());
+
+    /// <summary>Mapping defaults from Settings (DATA / GRMS 1st fix wall or ceiling).</summary>
+    public MappingOptions MappingOptions() => new()
+    {
+        Data1stFixMount = string.IsNullOrWhiteSpace(_p.Settings.Data1stFixMount) ? Contracts.Mounts.Wall : _p.Settings.Data1stFixMount.ToUpperInvariant(),
+        Grms1stFixMount = string.IsNullOrWhiteSpace(_p.Settings.Grms1stFixMount) ? Contracts.Mounts.Wall : _p.Settings.Grms1stFixMount.ToUpperInvariant(),
+    };
 
     public SubInvoice SaveInvoice(InvoiceBuild build) { var h = InvoiceWorkflow.SaveDraft(_p.Store, build); _p.Reload(); return h; }
     public void Submit(SubInvoice inv, string aconexNo) { InvoiceWorkflow.Submit(_p.Store, inv, aconexNo); _p.Reload(); }

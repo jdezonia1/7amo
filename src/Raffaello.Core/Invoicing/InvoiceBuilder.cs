@@ -50,12 +50,12 @@ public sealed record RevisionDiff(string ItemNo, string BoqCode, string Descript
 /// </summary>
 public static class InvoiceBuilder
 {
-    public static InvoiceBuild Build(ProjectSnapshot s, string contractNo, string subcontractor, int invoiceNo, MappingEngine? engine = null, int revision = 0)
+    public static InvoiceBuild Build(ProjectSnapshot s, string contractNo, string subcontractor, int invoiceNo, MappingEngine? engine = null, int revision = 0, MappingOptions? options = null)
     {
         engine ??= new MappingEngine();
         var contract = s.Contracts.FirstOrDefault(c => c.ContractNo == contractNo);
         var sub = subcontractor.Trim().ToUpperInvariant();
-        var ctx = new MappingContext(contractNo, s.ContractItems, s.ItemBoqs, s.BoqItems, s.MappingRules);
+        var ctx = new MappingContext(contractNo, s.ContractItems, s.ItemBoqs, s.BoqItems, s.MappingRules) { Options = options ?? MappingOptions.Default };
         var areas = s.Rooms.GroupBy(r => r.Code, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().AreaType, StringComparer.OrdinalIgnoreCase);
         var claims = s.Claims.Where(c => c.Subcontractor.Equals(sub, StringComparison.OrdinalIgnoreCase) && c.InvoiceNo <= invoiceNo && c.InvoiceNo > 0).ToList();
         var mapping = engine.Map(claims, ctx, areas);
