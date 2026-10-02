@@ -56,8 +56,10 @@ The app must be multi-user (several people editing at once).
     REVISED QTY (calculated, overridable), STATUS (PENDING / ACCEPTED / REVISED / REJECTED), CHECKED BY / DATE, NOTE
     ("plan qty 40, total length 2000 m → revised …") + attached marked drawing. Only revised qty is invoiced; the
     difference is recorded as rejected length claim; room caps / remaining use PLAN QTY only; per-subcontractor report
-    of length extras claimed vs accepted; pending checks held out of the invoice. Rule is a setting:
-    (a) total length ÷ 15, or (b) per point 1 + floor((L − 15) / 15). Open question: which one MOBCO applies.
+    of length extras claimed vs accepted; pending checks held out of the invoice.
+    **Rule (confirmed by Mohamed): proportional with a minimum of 1 — qty per point = max(1, L / 15)**, e.g. 20 m → 1.3.
+    Entry modes: quick (total length: revised = max(plan qty, total / 15), exact only if every run ≥ 15 m) or
+    by groups (n points × length each, summed). Rounding 1 decimal (setting).
 
 12. **Invoice revisions / Aconex rejection cycle** (added 02-Oct): head office reviews the package and approves or
     rejects the invoice in Aconex; on rejection Mohamed fixes and re-uploads. Each invoice has revisions (INV-01 Rev 0,
