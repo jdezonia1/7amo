@@ -289,13 +289,49 @@ Updating the server: run `RUN_ONE_CLICK.bat` on a build PC, copy the new `server
 `SETUP_SERVER.bat` again (it keeps the settings, upgrades the database and restarts the service).
 <!-- [phase5] end -->
 
-## Ask Raffaello
+<!-- [assistant] begin -->
+## Ask Raffaello, morning brief, notifications, Arabic (roadmap 11-13)
 
-Slide-in assistant (Ctrl+Shift+A). It calls the Claude Messages API over HttpClient with streaming, model
-`claude-opus-5-5` by default (Settings), adaptive thinking, explicit effort (default `medium`) and server-side
-refusal fallbacks (`fallbacks: "default"`, can be switched off in Settings). The system prompt carries the house
-rules, the filter scope with per-stage totals, the selected line's full chain and today's queue. With no API key
-(Settings or `ANTHROPIC_API_KEY`) it answers offline from the rules engine.
+**ASK RAFFAELLO** (Ctrl+Shift+A slide-in, or the full page under ASSISTANT): chat with Claude over the project data, English or
+Arabic. Claude Messages API over HttpClient (`Core/Assistant/ClaudeTurnClient`, same raw-HTTP approach as the rest of the app):
+streaming, manual tool loop, adaptive thinking, explicit effort, server-side refusal fallbacks (`fallbacks: "default"`), prompt
+caching (tool definitions + frozen system prompt + automatic caching of the conversation), eager input streaming with client-side
+schema validation, refusal / max_tokens handling (tools never run on such a turn). Default model `claude-opus-5-5` (Settings).
+- Read tools: search_documents, query_ledger, get_room, get_invoice (revisions + Aconex), list_needs_today, get_contract_terms,
+  find_dn, list_anomalies (built-in checks unless a module provides `AssistantData.Anomalies`), get_report, explain_rule.
+- Action tools (draft only): draft_ledger_claim, draft_invoice_revision, draft_rejection_reply_email (.eml draft, nothing sent),
+  draft_variation, create_reminder. Each shows a card; it runs only on CONFIRM, is re-checked then, and is audited
+  (AssistantActions table + AuditLog). The outcome is told to Claude with the next question.
+- Answers cite records as chips (`[[room:P2-106]]` ...) that navigate (Ledger, Invoices, Materials, Aconex, Variations, WIR, files).
+- The current screen, filter, selected line / record travel in each question (`<app_context>`), never in the system prompt; the
+  history is stored append-only per user (AssistantConversations / AssistantMessages, data file or server).
+- Attach PDF / image / Excel / CSV: text layers and tables are read locally; scans / images go to Claude only with
+  Settings > "Cloud document reading" (off by default), otherwise Windows OCR. The privacy line under the input says what is sent.
+  "Allow assistant to read project data" (on by default) switches the read tools off.
+- No key or no connection: deterministic answers from local data (EN + AR), e.g. "remaining in P2-106 2nd fix light",
+  "where is DN 81064344", "status of ROOTS INV 3", "P2-106", "what needs me today", "explain the 15 m rule".
+- The API key is kept with Windows DPAPI (`%LOCALAPPDATA%\Raffaello\secrets`), or `ANTHROPIC_API_KEY`; a key left in
+  settings.json by an older version is moved into DPAPI at start-up. Never logged.
+
+**MORNING BRIEF** (first screen of the day, Settings): new claims, over-cap keys, checks pending, invoices awaiting you, Aconex
+overdue steps, DNs without MIR, VO ageing, reminders / obligations due - each compared with the previous brief (+n, NEW). EXPORT PDF,
+SEND NOW, optional Claude summary (figures only).
+
+**NOTIFICATIONS**: in-app toasts, Windows notifications, e-mail (SMTP), Microsoft Teams incoming webhook (Adaptive Card), WhatsApp via
+any webhook gateway (body template `{to} {title} {text}`). Per-user rules: event, channel, minimum severity, quiet hours, address;
+each event is sent once per channel (NotificationLogs); the first run records the backlog without sending it. With a local data file the
+desktop sends all channels; in server mode the desktop shows in-app / Windows only and the server sends e-mail / Teams / WhatsApp and
+the scheduled briefs - `appsettings.json` section `Raffaello:Notify` (`Enabled`, `BriefAt`, `Language`, `CheckEveryMinutes`, `Smtp*`,
+`TeamsWebhookUrl`, `WhatsApp*`; secrets also as environment variables such as `Raffaello__Notify__SmtpPassword`);
+`POST /api/v1/assistant/brief/run` (MANAGE_SETTINGS) sends now, `GET /api/v1/assistant/brief` returns the signed-in user's brief.
+
+**ARABIC / ENGLISH**: Settings > LANGUAGE. Strings: `Core/Localization/strings.keys.tsv` (keys) + `strings.ui.tsv` (literal XAML
+texts) -> `python3 tools/localization/build_strings.py --coverage` generates `Strings.resx` / `Strings.ar.resx` (both embedded).
+XAML: `{res:L Key}`; bound English (navigation, page titles) through `TrConverter`; literal texts of the other screens are translated
+at load time (`AutoTranslator`) until converted to keys. Arabic switches the windows to right-to-left and adds an Arabic font fallback
+(IBM Plex Sans Arabic, Segoe UI, Tahoma) at once; number / date display (Gregorian, "." and ",") follows after a restart. Storage
+and parsing stay invariant.
+<!-- [assistant] end -->
 
 ## Fonts
 
@@ -418,3 +454,124 @@ The win-x64 runtimes (`Sdcb.PaddleInference.runtime.win64.mkl`, `OpenCvSharp4.ru
 their native DLLs are kept next to `Raffaello.exe` (outside the single file). Verify on Windows: first OCR of a scanned contract, Windows OCR
 as second engine (install the Arabic OCR language pack for Arabic), the review window and its boxes.
 <!-- [smart-reader] end -->
+
+<!-- [cables] begin -->
+## Cables - panel & cable register (TRACK > CABLES)
+
+Mohamed's rule: read panel names and cable FROM -> TO from drawings / SLDs, so a site statement that claims a FROM-TO already claimed is FLAGGED.
+
+- **Register** (`Raffaello.Core/Cables`): panels (normalised name, type, building, zone, level, fed-from parent, aliases) and cable runs
+  (FROM -> TO, cores x size, CU/AL, XLPE / LSOH / MICA, companion earth e.g. 1x16 with 4x16, design / measured length, breaker, source doc + page,
+  confidence). Name normaliser: spaces / hyphens / case / leading zeros / O-for-0 / token order ('SMDB HT-Z1-LB2- CM 01' = 'SMDB-HT-Z1-LB2-CM-01');
+  names without a building token are scoped by building. Similar names (FAN / FANS) are only suggested: confirm (merge + learned alias) or reject.
+- **Readers**: cable schedule Excel / CSV (header found anywhere, columns by synonyms, mapping remembered per header layout); SLD PDF (PdfPig vector text +
+  lines: boxes, feeder lines joined at junctions, bus bars, size / breaker / length annotations, printed schedule rows); DWG / DXF (ACadSharp 3.8.0, MIT:
+  attributes, TEXT / MTEXT, lines / polylines); scanned SLD through the document reader's layout OCR + rasterizer when registered. Review, edit, save.
+- **Claims**: tracker 'CABLES BRANDED' / 'CABLES HOTEL' (the subcontractors' cable statements) + ledger CABLE PULLING lines (paired with the sheet
+  rows that are the same claim, incl. per-size total lines - nothing counted twice); the site statement has a CABLES sheet (STAGE, SUBCONTRACTOR,
+  INVOICE #, LOCATION, LEVEL, FROM, TO, CABLE SIZE, QTY, SITE %, WIR %, WIR NO, NOTES) + a CABLE RUNS list. Claims without a design run create
+  PROVISIONAL runs ("from statements only - no design length"); a later SLD / schedule confirms them in place.
+- **Flags (warnings, bypass with reason, audited)**: DUPLICATE FROM-TO (same route + size + stage, any sub / invoice, with the earlier claims),
+  OVER LENGTH, CUMULATIVE > 100 %, EARTH COMPANION (info), STAGE BEFORE PULLING, UNKNOWN RUN, DIFFERENT SPELLING. Shown in the statement preview,
+  ledger entry (cable lines), invoice build warnings, Needs-today, 09_Cable_checks.pdf in the invoice package and the Cables page.
+- **Invoicing**: pulling claims are ledger lines (existing mapping: cable item by size -> BOQ code, 70 %); TERMINATION & TEST (20 %) and HANDOVER (10 %)
+  are added by the invoice hook to the same item row (row at that stage % if the layout has one, else converted qty x stage % / row %).
+- Server: `CablesServerModule`; client `RemoteCableStore` / `CableStoreSelector`. CLI: `cables-import-tracker FILE`, `cables-report [--out DIR]`,
+  `cables-read FILE [--save]`, `cables-dump FILE`.
+<!-- [cables] end -->
+
+<!-- [trust] begin -->
+## Trust & integrations (roadmap 14-16)
+
+TRUST & INTEGRATIONS page (OUTPUT group); details in `docs/TRUST.md`, `docs/CAD_EXCHANGE.md`, `tools/cad/README.md`.
+
+- **Tamper-evident audit**: every audit row is hash-chained (desktop: in the write transaction; server: sealed authoritatively,
+  head anchored outside the database). VERIFY INTEGRITY / `raffaello-cli verify-audit` reports edited, deleted or rewritten history.
+- **Approvals**: SIGN an invoice revision, its package (ZIP SHA-256) or a variation as PREPARED / CHECKED / APPROVED with your
+  personal ECDSA key (DPAPI-protected, public key registered); VERIFY says "approved by X at T and unchanged" or CHANGED.
+  SIGNED PDF COPY appends the approvals page and optionally an embedded PAdES-style signature (self-issued; legal-grade needs a
+  company certificate).
+- **E-Promise export**: certified invoice -> ERP import Excel / CSV, column mapping in `%APPDATA%\Raffaello\epromise-export.json`.
+- **Aconex API**: `%APPDATA%\Raffaello\aconex-api.json` (`Enabled: true` once MOBCO has API credentials) replaces the browser.
+- **CAD exchange**: AutoCAD `RAFFEXPORT` / Revit add-in / Dynamo script -> JSON -> rooms, plan shapes and PROJECT QTY.
+- **Subcontractor portal**: `http://<server>:5180/portal` (server mode; English / Arabic). Accounts per company, statement
+  template download, submissions with drawings / photos, claims / invoice status, remaining per room, messages; the QS reviews in
+  PORTAL INBOX and posts to the ledger with the site statement importer.
+
+```
+raffaello-cli verify-audit [--db FILE | --server URL --token T [--independent]]
+raffaello-cli verify-signatures --db FILE --invoice-id N [--package ZIP]      raffaello-cli verify-package ZIP --db FILE
+raffaello-cli sign --db FILE --invoice-id N --purpose APPROVED [--kind PACKAGE] --user U [--passphrase P]
+raffaello-cli signed-pdf PDF --db FILE --invoice-id N --out FILE [--sign --user U]      raffaello-cli verify-pdf PDF
+raffaello-cli epromise-export --db FILE --invoice-id N --out FILE.xlsx|.csv [--force]
+raffaello-cli cad-import FILE.json --db FILE [--building B] [--mode REPLACE|ADD_MISSING] [--commit]    raffaello-cli cad-schema
+raffaello-cli aconex-api-test
+```
+
+What to verify on Windows / real systems: DPAPI key creation and the app page (never opened on Linux); the add-ins inside
+AutoCAD / Revit (compiled only against stubs); the Aconex API against Oracle (mock-tested only); an E-Promise import of an exported
+file by finance; the portal from a phone over HTTPS published by IT; a signed PDF opened in Adobe Reader.
+<!-- [trust] end -->
+
+<!-- [assemblies] begin -->
+## BOQ item breakdown (assembly / rate analysis)
+
+**BOQ BREAKDOWN** (DOCUMENTS group; also BREAKDOWN buttons on CONTRACTS & BOQ, BOQ and VARIATIONS NEW ITEM lines) reads a contract /
+owner BOQ / typed description (English or Arabic) into a spec (item type, conduit type + size, wiring cores x mm², cable cores x size + CPC,
+mount, height band, stages, supply scope, boxes, accessories), applies an editable template (components with quantity formulas, waste %,
+stage, labour basis) and prices every line: manual price > PO line (Materials module, Coding fingerprints, KM / ROLL / PCS converted) >
+supplier price list > template default (flagged DEFAULT) > UNKNOWN. Labour = subcontract rate per stage looked up in the contract items
+(AUTO for BOQ items) or man-hours x rate (AUTO for labour-only subcontract items). Built-up rate = direct x (1 + OH) x (1 + profit), compared
+with the BOQ / contract rate. BULK REQUIREMENTS runs the filtered item list x quantities -> material requirements vs PO / DN / installed
+(last approved invoice). Exports: Excel (house style) and a PDF "Rate analysis" page per item.
+
+- Code: `src/Raffaello.Core/Assemblies` (ItemParser, Formula, DefaultLibrary, AssemblyCalculator, PriceBook, ContractLabour, BulkRequirements,
+  AssemblyStore (SQLite + server), AssemblyExporter, ClaudeAssemblyAssist, AssemblyService), `AssembliesServerModule`, tables `Asm*`.
+- Formulas: `+ - * / ^ ( )`, comparisons, `and / or / not`, `ceil floor round roundup min max abs sqrt if(c,a,b)`; names = global parameters,
+  template parameters, spec values (`conduit_size wire_size wire_cores cable_size cable_cores cpc_size gangs ways amps tray_width is_pvc is_emt
+  is_rs is_flex is_ceiling is_high is_earth ...`) and earlier component keys. Spec text `{placeholders}`: `{conduit} {conduit_size} {box}
+  {wire_size} {cable} {cpc} {gangs_txt} {ways} {amps} {tray_width} {system}`.
+- **All seeded quantities, waste %, man-hours and indicative prices are defaults to be confirmed by Mohamed** (CONFIRMED flags in the
+  template editor). Subcontract labour defaults are the HOTEL SUB-ELE-028-2026 schedule rates.
+- CLI: `raffaello-cli asm-coverage --hotel F --residence F [--arabic F] [--epromise F] --out DIR`, `asm-examples --hotel F --epromise F --po PDF --out DIR`,
+  `asm-bulk --hotel F --po PDF --out DIR`.
+<!-- [assemblies] end -->
+
+<!-- [drawings] begin -->
+## Drawings module (takeoff, statement highlights, revision compare)
+
+DOCUMENTS > **DRAWINGS** (`src/Raffaello.Core/Drawings`, store `IDrawingStore` = SQLite data file or server `DrawingsServerModule`).
+
+- **Sources**: PDF (rasterised with PDFium for symbol matching; vector paths read with PdfPig for lines, `SCALE 1:N` and `H=1350mm` notes),
+  PNG, **DWG / DXF** (ACadSharp: block references + attributes, exploded blocks by geometry signature learned from the block
+  definitions, lengths per layer, rooms = closed polylines + text, units from `$INSUNITS`), **IFC** (in-house STEP reader: IfcSpace
+  footprints, containment, outlets / fixtures / switches, cable carrier / cable segments with Length quantities and Size) and the
+  **Revit add-in JSON** (`rooms` / `counts` / `linear`).
+- **Library**: box one example per symbol (name, system, W/C, light fitting, 2nd-fix factor, excluded); template matching = NCC on
+  blurred ink, 0/90/180/270 + mirrored, multi-scale, coarse-to-fine, stroke agreement check, NMS across symbols. Optional Claude vision
+  check of low-confidence hits (cloud reading on). Legend rows can be OCR'd into proposals (`LegendProposer`).
+- **Rooms**: tracker room shapes aligned by 2-3 clicked point pairs, or a CSV / JSON boundary import, or CAD / IFC rooms.
+- **Counting rules** (settings `%APPDATA%\Raffaello\drawings.json`): CEIL = all, 1ST = wall, 2ND = all (x 2nd-fix factor), FLEX = ceiling,
+  DALI = ceiling light fittings (default key `2ND FIX|DALI` - confirm), H >= 3000 -> ceiling. Results are a **PROJECT QTY diff**; only ticked
+  rows are written, every decision is recorded (append-only on the server).
+- **Lengths**: vector line styles / CAD layers / IFC classes / colour tracing on scans -> runs per room; cable length per point =
+  route (shortest path) + rise/drop (ceiling + half void - mounting height) + DB drop + riser + 2 x termination + spare %, with min / avg / max
+  per item, room type and system, and `n x L` groups for the 15 m check.
+- **Output**: takeoff PDF in the QS markup layout (original PDF page kept as vector, left panel with title bar, rules, SYMBOL / ITEM / C/W /
+  CEIL / 1ST / 2ND / FLEX / DALI table, TOTAL row, numbered circles dark red = wall, amber = ceiling; LENGTHS page) + workbook (DETAIL,
+  SUMMARY, PROPOSED QTY, LENGTHS, RUNS).
+- **Statement check**: highlighter HSV masks, alignment to the clean sheet (FFT phase correlation over scale / rotation, or clicked points),
+  symbols under highlights, highlighted runs, claimed (ledger / CSV) vs highlighted vs drawing total with flags; typical-unit pages apply to a
+  room list.
+- **Revision compare**: added / removed ink and symbols, per-room deltas -> PROJECT QTY diff or a DRAFT variation (variations module).
+
+```
+raffaello-cli takeoff FILE [--page N] [--dpi 150] [--library lib.json] [--box NAME:x,y,w,h[:SYSTEM[:W|C]]] [--rooms rooms.csv] --out DIR
+raffaello-cli verify-statement FILE [--pages 5-8] [--library lib.json] [--clean clean.pdf] [--claimed claims.csv] [--rooms "P2-106,P3-103"] --out DIR
+raffaello-cli compare-revisions OLD NEW [--library lib.json] --out DIR
+raffaello-cli drawings-demo --out DIR      (synthetic drawings with known answers: precision / recall, length errors)
+```
+
+NuGet added: **Docnet.Core 2.6.0** (MIT; bundles PDFium, BSD/Apache - no SkiaSharp, so no clash with the charts) and **ACadSharp 3.8.0** (MIT).
+PdfPig (Apache-2.0) and ClosedXML (MIT) were already referenced. Xbim.Essentials was not used (CDDL, weak copyleft) - IFC is read in-house.
+<!-- [drawings] end -->

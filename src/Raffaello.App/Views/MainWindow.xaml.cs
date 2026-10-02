@@ -27,12 +27,7 @@ public partial class MainWindow : Window
             if (e.PropertyName == nameof(CommandPaletteViewModel.IsOpen) && vm.Palette.IsOpen)
                 Dispatcher.BeginInvoke(DispatcherPriority.Input, () => { PaletteInput.Focus(); Keyboard.Focus(PaletteInput); });
         };
-        vm.Ask.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(AskViewModel.IsOpen) && vm.Ask.IsOpen)
-                Dispatcher.BeginInvoke(DispatcherPriority.Input, () => { AskInput.Focus(); Keyboard.Focus(AskInput); });
-        };
-        ((INotifyCollectionChanged)vm.Ask.Messages).CollectionChanged += (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.Background, () => AskScroll.ScrollToEnd());
+        // [assistant] focus and scrolling of the chat are handled by Views/AssistantPanel
         Closing += OnClosingWindow;
     }
 

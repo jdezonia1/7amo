@@ -39,15 +39,25 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         Groups = new[]
         {
             new NavGroup("TRACK", new[] { Item("Dashboard", "DASHBOARD", "IconDashboard", "Ctrl+1"), Item("Ledger", "ROOMS & LEDGER", "IconLedger", "Ctrl+2"), Item("Quantities", "QUANTITIES", "IconQuantities", "Ctrl+4"), Item("Plan", "PLAN VIEW", "IconPlan", ""),
-                Item("Checks", "CHECKS", "IconChecks", "Ctrl+3"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+5"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+6") }),
+                Item("Checks", "CHECKS", "IconChecks", "Ctrl+3"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+5"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+6"),
+                // [cables] begin
+                Item("Cables", "CABLES", "IconLink", ""),
+                // [cables] end
+            }),
             new NavGroup("DOCUMENTS", new[] { Item("Aconex", "ACONEX", "IconAconex", ""), Item("Wir", "WIR / MIR", "IconWir", ""), Item("Contracts", "CONTRACTS & BOQ", "IconContracts", "Ctrl+7"),
                 Item("SiteStatements", "SITE STATEMENTS", "IconSend", "Ctrl+9"),
                 // [phase4] begin
                 Item("Variations", "VARIATIONS / EI", "IconContracts", ""),
                 // [phase4] end
+                // [drawings] begin
+                Item("Drawings", "DRAWINGS", "IconPlan", ""),
+                // [drawings] end
                 // [phase3] begin
                 Item("Boq", "BOQ", "IconDatabase", ""),
                 // [phase3] end
+                // [assemblies] begin
+                Item("Assemblies", "BOQ BREAKDOWN", "IconQuantities", ""),
+                // [assemblies] end
             }),
             // [insights] begin
             new NavGroup("INSIGHTS", new[] { Item("Anomalies", "ANOMALIES", "IconAlert", ""), Item("MaterialRecon", "MATERIAL RECON", "IconMaterials", ""),
@@ -57,7 +67,13 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 // [phase3] begin
                 Item("OwnerMos", "OWNER MOS", "IconExport", ""),
                 // [phase3] end
+                // [trust] begin
+                Item("Trust", "TRUST & INTEGRATIONS", "IconChecks", ""),
+                // [trust] end
             }),
+            // [assistant] begin
+            new NavGroup("ASSISTANT", new[] { Item("Brief", "MORNING BRIEF", "IconClock", ""), Item("Assistant", "ASK RAFFAELLO", "IconSparkles", "Ctrl+Shift+A") }),
+            // [assistant] end
         };
         SettingsItem = Item("Settings", "SETTINGS", "IconSettings", "");
         palette.SetNavigator(this);
@@ -132,6 +148,7 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 "Invoices" => B(s.SubInvoices.Count(x => x.Status is SubInvoiceStatus.Rejected or SubInvoiceStatus.Submitted)),
                 "Checks" => B(s.Claims.Count(c => Raffaello.Core.Ledger.HeightCheck.IsPending(c) || Raffaello.Core.Ledger.LengthCheck.IsPending(c))),
                 "Anomalies" => B(p.Queue.Count(q => q.Category == "INSIGHT" && q.Severity >= Verdict.Check)),   // [insights]
+                "Cables" => B(p.Queue.Where(q => q.Category == "CABLES" && q.Severity >= Verdict.Check).Sum(q => int.TryParse(q.Title.Split(' ')[0], out var n) ? n : 1)),   // [cables]
                 _ => "",
             };
         }
@@ -147,10 +164,24 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         new PaletteEntry("ACTION", "Toggle light / dark", "", "Ctrl+Shift+L", ToggleTheme),
         new PaletteEntry("ACTION", "Reload data", "Read the shared data file again", "F5", () => _ = ReloadAsync()),
         new PaletteEntry("ACTION", "Weekly report", "Export the weekly progress workbook", "", () => Go("Reports")),
+        // [assistant] begin
+        new PaletteEntry("ACTION", "Morning brief", "What changed since yesterday, what needs you today", "", () => Go("Brief")),
+        new PaletteEntry("ACTION", "Ask Raffaello (full page)", "Chat with history, sources and confirm cards", "", () => Go("Assistant")),
+        // [assistant] end
         // [phase4] begin
         new PaletteEntry("ACTION", "Aconex: where is each invoice", "Invoice status board (workflow step, who, due)", "", () => Go("Aconex")),
         new PaletteEntry("ACTION", "Variations / EI", "Register, suggestions, submission export", "", () => Go("Variations")),
+        // [drawings] begin
+        new PaletteEntry("ACTION", "Drawing takeoff", "Count symbols / measure lines on PDF, DWG, DXF, IFC; statement highlights; revision compare", "", () => Go("Drawings")),
+        // [drawings] end
         // [phase4] end
+        // [cables] begin
+        new PaletteEntry("ACTION", "Cables: duplicate FROM-TO claims", "Cable claims that repeat a route already claimed", "", () => Go("Cables", new NavTarget("Cables", Key: "FLAGS|" + Raffaello.Core.Cables.CableFlagCodes.Duplicate))),
+        new PaletteEntry("ACTION", "Cables: read SLD / cable schedule", "Panels and FROM -> TO runs from PDF, DWG / DXF, Excel", "", () => Go("Cables")),
+        // [cables] end
+        // [assemblies] begin
+        new PaletteEntry("ACTION", "BOQ item breakdown", "Components, quantities, prices and built-up rate of a BOQ / contract item", "", () => Go("Assemblies")),
+        // [assemblies] end
     };
 
     [RelayCommand] private void Navigate(string key) => Go(key);

@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Raffaello AutoCAD add-in (command RAFFEXPORT). NOT part of Raffaello.sln: it needs the AutoCAD .NET API.
+    Real build (Windows, AutoCAD 2025 or later = .NET 8):
+        dotnet build -c Release -p:AutoCADDir="C:\Program Files\Autodesk\AutoCAD 2025"
+    Compile check without AutoCAD (CI / Linux) against the stubs:
+        dotnet build -c Release -p:UseStubs=true
+    AutoCAD 2024 and older run .NET Framework 4.8: add -p:TargetFramework=net48 (see tools/cad/README.md).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Raffaello.CadExport.AutoCad</AssemblyName>
+    <RootNamespace>Raffaello.CadExport</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <AutoCADDir Condition="'$(AutoCADDir)' == ''">C:\Program Files\Autodesk\AutoCAD 2025</AutoCADDir>
+  </PropertyGroup>
+  <!-- the exchange model, geometry, block rules and exploded-symbol heuristics are shared with Raffaello (linked source) -->
+  <ItemGroup>
+    <Compile Include="..\..\..\src\Raffaello.Core\Integrations\CadExchange\CadGeometry.cs" Link="Shared\CadGeometry.cs" />
+    <Compile Include="..\..\..\src\Raffaello.Core\Integrations\CadExchange\CadExchangeModel.cs" Link="Shared\CadExchangeModel.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseStubs)' == 'true'">
+    <ProjectReference Include="..\stubs\AutoCadStubs\AutoCadStubs.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseStubs)' != 'true'">
+    <Reference Include="AcCoreMgd"><HintPath>$(AutoCADDir)\AcCoreMgd.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="AcDbMgd"><HintPath>$(AutoCADDir)\AcDbMgd.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="AcMgd"><HintPath>$(AutoCADDir)\AcMgd.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\blockmap.json" CopyToOutputDirectory="PreserveNewest" Link="blockmap.json" />
+  </ItemGroup>
+</Project>

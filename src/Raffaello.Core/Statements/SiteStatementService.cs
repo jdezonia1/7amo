@@ -18,6 +18,9 @@ public sealed class StatementImportResult
     public List<ClaimLine> Claims { get; } = new();
     public List<ImportIssue> Issues { get; } = new();
     public List<(ClaimLine Line, ClaimCheck Check)> Checks { get; } = new();
+    // [cables] begin: CABLES sheet rows (FROM / TO / size / qty / stage) read with the statement
+    public List<Cables.CableClaim> CableClaims { get; } = new();
+    // [cables] end
     public bool IsDuplicate { get; set; }
     public int Blocked => Checks.Count(c => !c.Check.CanPost);
     public string Summary => $"{Subcontractor} statement {StatementNo}: {Claims.Count} claim lines, {Blocked} over remaining" + (IsDuplicate ? " - DUPLICATE" : "");
@@ -48,7 +51,7 @@ public static class SiteStatementService
     }
 
     public static void Generate(string path, string subcontractor, string statementNo, IEnumerable<Room> rooms, IEnumerable<string>? stages = null, IEnumerable<string>? systems = null,
-        IReadOnlyDictionary<string, RoomBalance>? balances = null)
+        IReadOnlyDictionary<string, RoomBalance>? balances = null, IReadOnlyList<Cables.CableRun>? cableRuns = null)
     {
         var sys = (systems ?? DefaultSystems).ToList();
         var stg = (stages ?? DefaultStages).ToList();
@@ -107,6 +110,7 @@ public static class SiteStatementService
         meta.Cell("A4").Value = "GENERATED"; meta.Cell("B4").Value = DateTime.Now.ToString("s", CultureInfo.InvariantCulture);
         meta.Cell("A5").Value = "FORMAT"; meta.Cell("B5").Value = "RAFFAELLO-STATEMENT-1";
         meta.Visibility = XLWorksheetVisibility.VeryHidden;
+        Cables.CableHooks.AddStatementSheets(wb, subcontractor, statementNo, cableRuns);   // [cables]
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
         wb.SaveAs(path);
     }
@@ -168,6 +172,10 @@ public static class SiteStatementService
                 res.Claims.Add(line);
             }
         }
+        // [cables] begin: CABLES sheet (part of the content hash, so cable-only statements are told apart)
+        res.CableClaims.AddRange(Cables.CableSheets.ReadStatement(x, res.Subcontractor, res.StatementNo, invoiceNo, building, res.Issues));
+        hashInput.Append(Cables.CableSheets.HashInput(res.CableClaims));
+        // [cables] end
         res.Hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(res.Subcontractor + "#" + hashInput)));
         var dupNo = s.Statements.FirstOrDefault(t => t.Direction == "IN" && t.Subcontractor == res.Subcontractor && t.StatementNo == res.StatementNo);
         var dupHash = s.Statements.FirstOrDefault(t => t.Direction == "IN" && t.ContentHash == res.Hash);
@@ -202,6 +210,8 @@ public static class SiteStatementService
             }
             post.Add(line);
         }
+        var cableLines = Cables.CableHooks.CommitStatementCables(res, store);   // [cables] cable claims first (idempotent), their PULLING ledger lines below
+        post.AddRange(cableLines);   // [cables]
         store.Batch(w =>
         {
             w.InsertMany(post);

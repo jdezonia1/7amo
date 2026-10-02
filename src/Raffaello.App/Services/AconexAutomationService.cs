@@ -103,6 +103,15 @@ public sealed class AconexAutomationService : IAsyncDisposable, IDisposable
         await _gate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
+            // [trust] begin: Oracle Aconex REST API instead of the browser when aconex-api.json says Enabled
+            var apiCfg = Raffaello.Core.Integrations.AconexApi.AconexApiConfig.LoadSafe();
+            if (apiCfg.Enabled)
+            {
+                await using var api = new Raffaello.Core.Integrations.AconexApi.AconexApiClient(apiCfg, Config);
+                api.Log += Relay;
+                return await work(api).ConfigureAwait(false);
+            }
+            // [trust] end
             var headless = Config.Headless && !visible;
             if (_client != null && _clientHeadless != headless) await CloseCoreAsync().ConfigureAwait(false);
             if (_client == null)

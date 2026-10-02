@@ -75,5 +75,15 @@ public static class ServerModules
         new Modules.VariationsServerModule(),    // [phase6]
         new Modules.DocumentsServerModule(),     // smart document reader + contract intelligence
         new Modules.InsightsServerModule(),      // [insights]
+        new Modules.CablesServerModule(),        // [cables]
+        new Modules.AssistantServerModule(),     // [assistant]
+        // [trust] begin
+        new Trust.TrustServerModule(),
+        new Portal.PortalServerModule(),
+        // [trust] end
+        // [assemblies] begin
+        new Modules.AssembliesServerModule(),
+        // [assemblies] end
+        new Modules.DrawingsServerModule(),      // [drawings]
     };
 }

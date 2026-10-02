@@ -58,6 +58,9 @@ public sealed class PermissionGuard : IWriteGuard
     {
         var t = c.Type;
         if (t == typeof(InvoiceTemplateRow)) return new[] { Permissions.ManageTemplates };
+        // [trust] begin: every signed-in user may register a key / sign; TrustGuard checks who may sign what
+        if (t == typeof(Core.Trust.UserSigningKey) || t == typeof(Core.Trust.RecordSignature)) return new[] { Permissions.Read };
+        // [trust] end
         if (t == typeof(SiteStatement)) return new[] { Permissions.UploadStatements };
         if (t == typeof(ClaimLine) && c.Kind == WriteKind.Insert && ((ClaimLine)c.Entity).Source == "STATEMENT") return new[] { Permissions.UploadStatements };
         if (t == typeof(SubInvoice) || t == typeof(Invoice))
@@ -68,6 +71,9 @@ public sealed class PermissionGuard : IWriteGuard
             return new[] { Permissions.PrepareInvoices };
         }
         if (t == typeof(SubInvoiceLine) || t == typeof(InvoiceLine)) return new[] { Permissions.PrepareInvoices };
+        // [assistant] begin: every signed-in user keeps his own chat history, reminders and notification rules (owner checked by AssistantOwnerGuard)
+        if (Raffaello.Core.Assistant.AssistantEntityTypes.All.Contains(t)) return new[] { Permissions.Read };
+        // [assistant] end
         return new[] { Permissions.EditData };
     }
 

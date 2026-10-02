@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raffaello.mobco.local/schemas/raffaello-cad-exchange-1.json",
+  "title": "Raffaello CAD exchange file (version 1)",
+  "description": "Room boundaries and electrical point counts per room, written by the Raffaello AutoCAD add-in, the Revit add-in or the Dynamo script and imported by Raffaello (TRUST & INTEGRATIONS > CAD EXCHANGE, or raffaello-cli cad-import). Coordinates are drawing units (source.units), Y up.",
+  "type": "object",
+  "required": ["format", "version", "rooms", "counts"],
+  "properties": {
+    "format": { "const": "raffaello-cad-exchange" },
+    "version": { "type": "integer", "minimum": 1, "maximum": 1 },
+    "source": {
+      "type": "object",
+      "properties": {
+        "application": { "type": "string", "examples": ["AutoCAD 2025", "Revit 2024 / Dynamo"] },
+        "addin": { "type": "string" },
+        "drawing": { "type": "string" },
+        "exportedAt": { "type": "string", "description": "ISO 8601 UTC" },
+        "user": { "type": "string" },
+        "units": { "enum": ["mm", "cm", "m", "ft"], "default": "mm" }
+      }
+    },
+    "building": { "type": "string", "examples": ["BRANDED", "HOTEL"] },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "elevation": { "type": ["number", "null"] },
+          "plan": { "type": "string", "description": "plan sheet code used by the plan view; default = id" },
+          "frame": {
+            "description": "drawing extents covered by the plan image (places the room shapes on the PDF plan); default = extents of the level's rooms + 2 %",
+            "type": ["object", "null"],
+            "required": ["minX", "minY", "maxX", "maxY"],
+            "properties": { "minX": { "type": "number" }, "minY": { "type": "number" }, "maxX": { "type": "number" }, "maxY": { "type": "number" } }
+          }
+        }
+      }
+    },
+    "rooms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "level", "polygon"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "description": "room code used in the ledger, e.g. P2-106" },
+          "name": { "type": "string" },
+          "level": { "type": "string", "minLength": 1 },
+          "type": { "type": "string", "description": "unit / room type, e.g. 2BR-A" },
+          "areaType": { "type": "string", "examples": ["APARTMENT", "BOH", "FOH", "BALCONY"] },
+          "polygon": { "$ref": "#/$defs/ring" },
+          "holes": { "type": "array", "items": { "$ref": "#/$defs/ring" } },
+          "area": { "type": ["number", "null"], "description": "m2 as reported by the CAD tool (checked against the polygon)" }
+        }
+      }
+    },
+    "counts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["room", "system", "item", "qty"],
+        "properties": {
+          "room": { "type": "string", "minLength": 1 },
+          "system": { "type": "string", "minLength": 1, "examples": ["POWER", "LIGHT", "DATA", "GRMS", "AV", "EMERGENCY LIGHT"] },
+          "item": { "type": "string", "minLength": 1, "examples": ["TWIN SOCKET", "DOWNLIGHT"] },
+          "qty": { "type": "number", "minimum": 0 },
+          "stage": { "type": "string", "description": "optional; empty = every stage chosen at import" },
+          "block": { "type": "string" },
+          "layer": { "type": "string" },
+          "method": { "enum": ["BLOCK", "ATTRIBUTE", "EXPLODED", "FAMILY"] }
+        }
+      }
+    },
+    "unassigned": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "system": { "type": "string" }, "item": { "type": "string" }, "qty": { "type": "number" }, "level": { "type": "string" },
+          "reason": { "type": "string" }, "points": { "type": "array", "items": { "$ref": "#/$defs/point" } }
+        }
+      }
+    },
+    "blockMap": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "block": { "type": "string" }, "layer": { "type": "string" }, "system": { "type": "string" }, "item": { "type": "string" },
+          "qty": { "type": "number" }, "stage": { "type": "string" }, "qtyAttribute": { "type": "string" }, "ignore": { "type": "boolean" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "point": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 },
+    "ring": { "type": "array", "items": { "$ref": "#/$defs/point" }, "minItems": 3 }
+  }
+}

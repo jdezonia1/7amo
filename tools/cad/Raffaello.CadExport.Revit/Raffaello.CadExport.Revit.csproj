@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Raffaello Revit add-in (External Command "Export rooms + devices to Raffaello"). NOT part of Raffaello.sln.
+    Real build (Revit 2025 or later = .NET 8):  dotnet build -c Release -p:RevitDir="C:\Program Files\Autodesk\Revit 2025"
+    Compile check without Revit:                dotnet build -c Release -p:UseStubs=true
+    Revit 2024 (.NET Framework 4.8, the version on the work PC): use tools/cad/dynamo/raffaello_rooms_export.py in Dynamo instead.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Raffaello.CadExport.Revit</AssemblyName>
+    <RootNamespace>Raffaello.CadExport</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <RevitDir Condition="'$(RevitDir)' == ''">C:\Program Files\Autodesk\Revit 2025</RevitDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\src\Raffaello.Core\Integrations\CadExchange\CadGeometry.cs" Link="Shared\CadGeometry.cs" />
+    <Compile Include="..\..\..\src\Raffaello.Core\Integrations\CadExchange\CadExchangeModel.cs" Link="Shared\CadExchangeModel.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseStubs)' == 'true'">
+    <ProjectReference Include="..\stubs\RevitStubs\RevitStubs.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseStubs)' != 'true'">
+    <Reference Include="RevitAPI"><HintPath>$(RevitDir)\RevitAPI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="RevitAPIUI"><HintPath>$(RevitDir)\RevitAPIUI.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Raffaello.CadExport.addin" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\blockmap.json" CopyToOutputDirectory="PreserveNewest" Link="blockmap.json" />
+  </ItemGroup>
+</Project>

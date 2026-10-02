@@ -129,6 +129,9 @@
                         </TextBlock>
                         <TextBlock Text="PARSER NOTES" Style="{StaticResource Label}" Margin="0,8,0,2"/>
                         <TextBlock Text="{Binding SelectedItem.Item.ParseNotes}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
+                        <!-- [assemblies] begin -->
+                        <Button Style="{StaticResource BtnGhost}" Content="BREAKDOWN (MATERIALS + RATE)" Command="{Binding BreakdownItemCommand}" HorizontalAlignment="Stretch" Margin="0,10,0,0"/>
+                        <!-- [assemblies] end -->
                         <Button Style="{StaticResource BtnPrimary}" Content="SAVE + CONFIRM ATTRIBUTES" Command="{Binding ConfirmItemCommand}" HorizontalAlignment="Stretch" Margin="0,10,0,10"
                                 ToolTip="Edit STAGE / CONDUIT / MOUNT / HEIGHT / SYSTEMS / SIZE / STAGE % in the grid, then confirm. Confirmed attributes survive re-imports."/>
                         <TextBlock Text="BOQ CODES LINKED TO THIS ITEM" Style="{StaticResource Label}" Margin="0,0,0,4"/>

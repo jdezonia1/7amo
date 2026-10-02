@@ -1,7 +1,8 @@
 <UserControl x:Class="Raffaello.App.Views.Pages.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:c="clr-namespace:Raffaello.App.Controls">
+             xmlns:c="clr-namespace:Raffaello.App.Controls"
+             xmlns:views="clr-namespace:Raffaello.App.Views">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Margin="24,0,24,20" MaxWidth="1200" HorizontalAlignment="Left">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -135,10 +136,7 @@
                             <TextBlock Text="ASK RAFFAELLO (CLAUDE)" Style="{StaticResource PanelTitle}" Margin="8,0,0,0"/>
                         </StackPanel>
                         <TextBlock Text="{Binding KeyStatus}" Style="{StaticResource BodyStrong}" FontSize="12" Margin="0,0,0,10"/>
-                        <TextBlock Text="ANTHROPIC API KEY (OR SET ANTHROPIC_API_KEY)" Style="{StaticResource Label}" FontSize="10"/>
-                        <TextBox Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="12" Margin="0,3,0,10"/>
-                        <TextBlock Text="MODEL" Style="{StaticResource Label}" FontSize="10"/>
-                        <TextBox Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="12" Margin="0,3,0,10"/>
+                        <!-- [assistant] the API key and model moved to the ASSISTANT card below (key stored with Windows DPAPI) -->
                         <TextBlock Text="EFFORT" Style="{StaticResource Label}" FontSize="10"/>
                         <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Efforts}" SelectedItem="{Binding Effort, Mode=TwoWay}" Margin="0,4,0,10"/>
                         <CheckBox Content="Server-side fallback if a request is declined (fallbacks: default)" IsChecked="{Binding UseFallbacks}" Margin="0,0,0,8"/>
@@ -147,9 +145,12 @@
                         <TextBlock Text="ACONEX CONFIG FILE (EMPTY = %APPDATA%\Raffaello\aconex.config.json)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding AconexConfigPath, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="12" Margin="0,3,0,10"/>
                         <!-- [phase4] end -->
-                        <TextBlock Text="The key is stored only in your own settings.json. The selected line's chain, the filter scope and today's queue are sent as context with each question." Style="{StaticResource Small}" FontSize="11"/>
+                        <TextBlock Text="The API key is stored encrypted for your Windows account only (DPAPI). The screen context and the results of the read tools are sent with each question." Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                 </Border>
+                <!-- [assistant] begin: language, assistant, morning brief, notifications -->
+                <views:AssistantSettingsCard DataContext="{Binding Assistant}" Margin="0,16,0,0"/>
+                <!-- [assistant] end -->
                 <Border Style="{StaticResource Card}" Margin="0,16,0,0">
                     <StackPanel>
                         <TextBlock Text="KEYBOARD" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>

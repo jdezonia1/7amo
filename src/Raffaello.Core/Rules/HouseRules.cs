@@ -46,7 +46,7 @@ public static class ClaimRules
 /// <summary>Pipes and conduits are bought in metres and delivered in pieces.</summary>
 public static class UnitConverter
 {
-    public const double DefaultPipeLength = 6.0;
+    public const double DefaultPipeLength = 3.0;   // Mohamed 02-Oct: conduit stick = 3 m
 
     public static double PcsToM(double pcs, double lengthPerPcs = DefaultPipeLength) =>
         pcs * (lengthPerPcs > 0 ? lengthPerPcs : DefaultPipeLength);

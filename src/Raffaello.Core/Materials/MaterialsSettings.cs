@@ -13,7 +13,7 @@ public sealed class MaterialsSettings
     public string ToleranceMode { get; set; } = "CLAUSE";
     public double CustomTolerancePct { get; set; } = 0.05;
     /// <summary>Default metres per piece for conduit / pipe (falls back to the app's PipeLengthM).</summary>
-    public double PipeLengthM { get; set; } = 6;
+    public double PipeLengthM { get; set; } = 3;
     /// <summary>Owner MOS % applied to BOQ rate x delivered-not-installed qty.</summary>
     public double MosPct { get; set; } = 0.75;
     /// <summary>Only DN lines covered by a MIR count as materials on site.</summary>

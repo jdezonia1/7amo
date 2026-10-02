@@ -316,6 +316,7 @@ public sealed class Db : IProjectStore
         foreach (var t in Remote.ModuleEntities.All.Where(t => existing.Contains(TableOf(t)))) Exec(c, tx, $"DELETE FROM [{TableOf(t)}];");
         Exec(c, tx, "DELETE FROM AuditLog;");
         Exec(c, tx, "DELETE FROM sqlite_sequence;");
+        Trust.SqliteAuditChain.OnReset(c, tx);   // [trust] the chain continues after a sanctioned reset
         tx.Commit();
     }
 
@@ -335,6 +336,7 @@ public sealed class Db : IProjectStore
         cmd.Parameters.AddWithValue("@S", summary);
         cmd.Parameters.AddWithValue("@C", changes);
         cmd.ExecuteNonQuery();
+        Trust.SqliteAuditChain.Seal(c, tx);   // [trust] hash chain: seal the new row in the same transaction
     }
 
     public void LogEvent(string action, string summary)
