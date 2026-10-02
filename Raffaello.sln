@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F44FF168-C130-49EA-94EE-FF2B60199348}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raffaello.Core", "src\Raffaello.Core\Raffaello.Core.csproj", "{DD7F02C5-7ED0-4BF3-BFFE-9A23D568BE99}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7628B8DD-76D2-4C8E-8668-FE79428EF974}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raffaello.Core.Tests", "tests\Raffaello.Core.Tests\Raffaello.Core.Tests.csproj", "{73B82C7D-2329-452D-8B07-B8C08067530A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DD7F02C5-7ED0-4BF3-BFFE-9A23D568BE99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD7F02C5-7ED0-4BF3-BFFE-9A23D568BE99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD7F02C5-7ED0-4BF3-BFFE-9A23D568BE99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD7F02C5-7ED0-4BF3-BFFE-9A23D568BE99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73B82C7D-2329-452D-8B07-B8C08067530A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73B82C7D-2329-452D-8B07-B8C08067530A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73B82C7D-2329-452D-8B07-B8C08067530A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73B82C7D-2329-452D-8B07-B8C08067530A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DD7F02C5-7ED0-4BF3-BFFE-9A23D568BE99} = {F44FF168-C130-49EA-94EE-FF2B60199348}
+		{73B82C7D-2329-452D-8B07-B8C08067530A} = {7628B8DD-76D2-4C8E-8668-FE79428EF974}
+	EndGlobalSection
+EndGlobal
