@@ -190,9 +190,10 @@ public static class PoReader
             if (desc.Length == 0 || qty is null)
             {
                 var joined = string.Join(" ", r.Cells.Values);
-                if (Regex.IsMatch(joined, @"Grand\s+Total", RegexOptions.IgnoreCase)) h.StatedGrandTotal = TextScan.LastAmount(joined) ?? 0;
-                else if (Regex.IsMatch(joined, @"\bVAT\b", RegexOptions.IgnoreCase)) h.StatedVat = TextScan.LastAmount(joined) ?? 0;
-                else if (Regex.IsMatch(joined, @"\bTotal\b", RegexOptions.IgnoreCase)) h.StatedTotal = TextScan.LastAmount(joined) ?? 0;
+                var value = r.GetNumber("AMOUNT", "TOTAL", "TOTAL PRICE", "TOTAL PRICE (SAR)", "VALUE") ?? TextScan.LastAmount(joined) ?? 0;
+                if (Regex.IsMatch(joined, @"Grand\s+Total", RegexOptions.IgnoreCase)) h.StatedGrandTotal = value;
+                else if (Regex.IsMatch(joined, @"\bVAT\b", RegexOptions.IgnoreCase)) h.StatedVat = value;
+                else if (Regex.IsMatch(joined, @"\bTotal\b", RegexOptions.IgnoreCase)) h.StatedTotal = value;
                 continue;
             }
             n++;
