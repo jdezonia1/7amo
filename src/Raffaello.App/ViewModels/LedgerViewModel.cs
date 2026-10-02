@@ -62,7 +62,22 @@ public sealed partial class LedgerViewModel : PageViewModel
 {
     public const double PlanWidth = 1000;
 
-    public LedgerViewModel(PageContext ctx) : base(ctx) { }
+    private readonly Raffaello.Core.Documents.IDocumentStore _docs;
+    public LedgerViewModel(PageContext ctx, Raffaello.Core.Documents.IDocumentStore docs) : base(ctx) { _docs = docs; }
+
+    /// <summary>Contract-rule warnings for a posted claim (height bands, 15 m rule): shown, never blocking.</summary>
+    private void ContractWarnings(ClaimLine line)
+    {
+        try
+        {
+            var contract = Project.Snapshot.Contracts.FirstOrDefault(c => c.Subcontractor == line.Subcontractor && (c.Building == line.Building || c.Building.Length == 0));
+            if (contract is null) return;
+            var warnings = Raffaello.Core.Documents.DocumentStoreExtensions.RuleEngine(_docs).CheckClaim(contract.ContractNo, line);
+            if (warnings.Count > 0)
+                Ctx.Toasts.Show("CONTRACT CHECK (WARNING)", string.Join("\n", warnings.Take(3).Select(w => $"{w.Message} [{w.Source}]")) + "\nBypass with a reason on the invoice's WARNINGS tab.", ToastKind.Warn, 10);
+        }
+        catch (Exception) { /* checks are advisory */ }
+    }
 
     public override string Key => "Ledger";
     public override string Title => "ROOMS & LEDGER";
@@ -266,6 +281,7 @@ public sealed partial class LedgerViewModel : PageViewModel
         if (!ok || result is null) return;
         if (!result.CanPost) { Ctx.Toasts.Show("CLAIM BLOCKED", result.Message, ToastKind.Warn, 8); return; }
         Ctx.Toasts.Show(result.IsOver ? "POSTED - OVER" : "CLAIM POSTED", result.Message, result.IsOver ? ToastKind.Warn : ToastKind.Good);
+        ContractWarnings(line);
         _pendingRoom = SelectedRoom.Code;
         Qty = ""; QtyAbove45 = ""; LengthClaimed = ""; OverReason = ""; Notes = "";
     }
