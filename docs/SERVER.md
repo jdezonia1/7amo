@@ -157,3 +157,23 @@ cache include these tables; a data reset clears them on both sides.
 picked per call by `CableStoreSelector`; the types are in `ModuleEntities.All` (migration, offline cache, reset). Run references (C-0001) are assigned
 before insert, so batches with temporary ids work.
 <!-- [cables] end -->
+
+<!-- [trust] begin -->
+## Trust module and subcontractor portal
+
+`TrustServerModule` (tables `UserSigningKeys`, `RecordSignatures`; `TrustGuard`; audit-chain sealer + `AuditChainHead`, anchor file
+`<backup folder>/audit-anchors.log`) and `PortalServerModule` (tables `PortalCompanySettings`, `PortalSubmissions`, `PortalMessages`;
+`PortalGuard`; own `PortalAccounts` / `PortalSessions`) are in `ServerModules.All`. Their own schema is created at start-up
+(idempotent, advisory lock). `PermissionGuard` lets every signed-in role write keys / signatures (TrustGuard decides).
+
+| Route | |
+|---|---|
+| `GET/POST /api/v1/trust/audit/verify` · `GET /audit/head` · `GET /audit/chain?afterSeq=&take=` · `POST /audit/seal` · `POST /audit/anchor` (ADMIN) | hash chain |
+| `GET /api/v1/trust/signatures/verify?table=&id=` | server-side signature check |
+| `GET/POST/PUT /api/v1/portal-admin/accounts` | portal accounts (list: EDIT_DATA, create / update: MANAGE_USERS) |
+| `/portal` | the portal page (anonymous, strict CSP) |
+| `POST /api/v1/portal/login` · `logout` · `GET me` · `GET template` · `GET/POST submissions` · `GET submissions/{id}/files` · `GET files/{id}` · `GET claims` · `GET invoices` · `GET remaining` · `GET/POST messages` · `POST messages/{id}/read` | portal API (portal token only) |
+
+Settings: `Raffaello:Portal` (`Enabled`, `MaxFileBytes`, `MaxSubmissionBytes`, `MaxFilesPerSubmission`, `MaxSubmissionsPerHour`,
+`MaxSubmissionsPerDay`, `RequestsPerMinute`, `MessagesPerHour`, `MaxMessageChars`, `TokenHours`). See `docs/TRUST.md`.
+<!-- [trust] end -->

@@ -212,6 +212,7 @@ public abstract class SideStore
         cmd.Parameters.AddWithValue("@S", summary);
         cmd.Parameters.AddWithValue("@C", changes);
         cmd.ExecuteNonQuery();
+        Trust.SqliteAuditChain.Seal(c, tx);   // [trust] hash chain: seal the new row in the same transaction
     }
 
     public void LogEvent(string action, string summary)

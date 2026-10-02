@@ -22,6 +22,8 @@
     <!-- [assistant] begin: API key / SMTP password / webhook URLs protected with Windows DPAPI -->
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
     <!-- [assistant] end -->
+    <!-- [trust] CMS (PAdES-style) PDF signatures; DPAPI package already referenced above -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
   </ItemGroup>
   <!-- [assistant] begin: interface strings. Both tables are embedded in Raffaello.Core.dll (no satellite assembly, so the
        single-file publish always carries Arabic). -->
@@ -30,6 +32,11 @@
     <EmbeddedResource Update="Localization\Strings.ar.resx" WithCulture="false" LogicalName="Raffaello.Core.Localization.Strings.ar.resources" />
   </ItemGroup>
   <!-- [assistant] end -->
+  <!-- [trust] begin: JSON schema of the CAD exchange file -->
+  <ItemGroup>
+    <EmbeddedResource Include="Integrations\CadExchange\cad-exchange.schema.json" LogicalName="Raffaello.Core.Integrations.CadExchange.cad-exchange.schema.json" />
+  </ItemGroup>
+  <!-- [trust] end -->
   <ItemGroup>
     <InternalsVisibleTo Include="Raffaello.Core.Tests" />
     <!-- [phase5] --><InternalsVisibleTo Include="Raffaello.Server.Tests" />

@@ -77,5 +77,9 @@ public static class ServerModules
         new Modules.InsightsServerModule(),      // [insights]
         new Modules.CablesServerModule(),        // [cables]
         new Modules.AssistantServerModule(),     // [assistant]
+        // [trust] begin
+        new Trust.TrustServerModule(),
+        new Portal.PortalServerModule(),
+        // [trust] end
     };
 }

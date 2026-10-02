@@ -156,6 +156,7 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, AssistantPageViewModel>();
                 s.AddSingleton<PageViewModel, BriefViewModel>();
                 // [assistant] end
+                s.AddSingleton<PageViewModel, TrustViewModel>();   // [trust]
                 s.AddSingleton<AskViewModel>();
                 s.AddSingleton<CommandPaletteViewModel>();
                 s.AddSingleton<ImportViewModel>();

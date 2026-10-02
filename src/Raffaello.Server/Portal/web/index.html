@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Raffaello - Subcontractor portal</title>
+  <link rel="stylesheet" href="/portal/app.css">
+  <link rel="icon" href="/portal/logo.svg" type="image/svg+xml">
+</head>
+<body>
+  <header class="bar">
+    <img src="/portal/logo.svg" alt="" class="logo">
+    <div class="brand"><strong data-t="appName">RAFFAELLO</strong><span data-t="portal">SUBCONTRACTOR PORTAL</span></div>
+    <div class="who" id="who"></div>
+    <button class="lang" id="langBtn" type="button">عربي</button>
+    <button class="ghost hidden" id="logoutBtn" type="button" data-t="logout">SIGN OUT</button>
+  </header>
+
+  <main id="app">
+    <section id="loginView" class="card narrow">
+      <h1 data-t="signIn">SIGN IN</h1>
+      <form id="loginForm" autocomplete="on">
+        <label><span data-t="userName">User name</span><input id="loginUser" name="username" autocomplete="username" required></label>
+        <label><span data-t="password">Password</span><input id="loginPass" name="password" type="password" autocomplete="current-password" required></label>
+        <button type="submit" class="primary" data-t="signInBtn">SIGN IN</button>
+        <p class="error" id="loginError" role="alert"></p>
+      </form>
+      <p class="small" data-t="loginHelp">Accounts are issued by the MOBCO QS team. You only ever see your own company's data.</p>
+    </section>
+
+    <section id="mainView" class="hidden">
+      <nav class="tabs" id="tabs">
+        <button type="button" data-tab="home" data-t="tabHome">HOME</button>
+        <button type="button" data-tab="statement" data-t="tabStatement">SEND STATEMENT</button>
+        <button type="button" data-tab="submissions" data-t="tabSubmissions">MY SUBMISSIONS</button>
+        <button type="button" data-tab="invoices" data-t="tabInvoices">CLAIMS &amp; INVOICES</button>
+        <button type="button" data-tab="remaining" data-t="tabRemaining">REMAINING</button>
+        <button type="button" data-tab="messages" data-t="tabMessages">MESSAGES <span id="unread" class="badge hidden"></span></button>
+      </nav>
+
+      <div class="tab" id="tab-home">
+        <div class="grid">
+          <div class="card stat"><span data-t="lastSubmission">LAST SUBMISSION</span><strong id="homeLast">-</strong><em id="homeLastStatus"></em></div>
+          <div class="card stat"><span data-t="openInvoices">INVOICES</span><strong id="homeInvoices">-</strong><em id="homeInvoiceStatus"></em></div>
+          <div class="card stat"><span data-t="unreadMessages">UNREAD MESSAGES</span><strong id="homeUnread">-</strong></div>
+        </div>
+        <div class="card">
+          <h2 data-t="howTitle">HOW IT WORKS</h2>
+          <ol class="steps">
+            <li data-t="how1">Download your standard site statement template (your rooms only).</li>
+            <li data-t="how2">Fill the quantities per room and stage, SITE %, WIR % and WIR no.</li>
+            <li data-t="how3">Send it here with the marked-up drawings (PDF) and photos.</li>
+            <li data-t="how4">Follow the status: submitted, under review, imported or rejected with the reason.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="tab hidden" id="tab-statement">
+        <div class="card">
+          <h2 data-t="templateTitle">1. STATEMENT TEMPLATE</h2>
+          <p class="small" data-t="templateHelp">A new numbered template with your rooms and the remaining quantities as cell comments.</p>
+          <button type="button" class="primary" id="templateBtn" data-t="downloadTemplate">DOWNLOAD TEMPLATE (.XLSX)</button>
+        </div>
+        <form class="card" id="submitForm">
+          <h2 data-t="sendTitle">2. SEND FILLED STATEMENT</h2>
+          <label><span data-t="statementNo">Statement no. (optional - read from the file)</span><input id="statementNo" maxlength="60"></label>
+          <label><span data-t="note">Note to the QS</span><textarea id="note" maxlength="2000" rows="3"></textarea></label>
+          <label class="file"><span data-t="files">Statement (.xlsx), drawings (.pdf), photos (.jpg / .png / .heic)</span>
+            <input id="files" type="file" multiple accept=".xlsx,.pdf,.jpg,.jpeg,.png,.heic"></label>
+          <label class="file"><span data-t="camera">Take a photo</span><input id="camera" type="file" accept="image/*" capture="environment" multiple></label>
+          <ul class="filelist" id="fileList"></ul>
+          <div class="progress hidden" id="progress"><div id="progressBar"></div></div>
+          <button type="submit" class="primary" id="sendBtn" data-t="send">SEND</button>
+          <p class="error" id="sendError" role="alert"></p>
+          <p class="ok" id="sendOk" role="status"></p>
+        </form>
+      </div>
+
+      <div class="tab hidden" id="tab-submissions">
+        <div id="submissionList" class="list"></div>
+      </div>
+
+      <div class="tab hidden" id="tab-invoices">
+        <div class="card">
+          <h2 data-t="invoicesTitle">INVOICES</h2>
+          <div class="scroll"><table id="invoiceTable"><thead><tr>
+            <th data-t="colInvoice">INVOICE</th><th data-t="colStatus">STATUS</th><th data-t="colReason">REASON</th>
+            <th class="num" data-t="colCurrent">THIS INVOICE (SAR)</th><th class="num" data-t="colCumulative">TO DATE (SAR)</th><th data-t="colDate">DATE</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="card">
+          <h2 data-t="claimsTitle">CLAIM LINES</h2>
+          <label class="inline"><span data-t="filter">Filter</span><input id="claimFilter" placeholder="P2-106, 1ST FIX, POWER, INV 2 ..."></label>
+          <div class="scroll"><table id="claimTable"><thead><tr>
+            <th data-t="colInv">INV</th><th data-t="colRoom">ROOM</th><th data-t="colStage">STAGE</th><th data-t="colItem">ITEM</th>
+            <th class="num" data-t="colQty">QTY</th><th class="num">SITE %</th><th class="num">WIR %</th><th data-t="colWir">WIR NO</th><th data-t="colChecks">CHECKS</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="tab hidden" id="tab-remaining">
+        <div class="card">
+          <h2 data-t="remainingTitle">REMAINING QUANTITIES PER ROOM</h2>
+          <p class="small" data-t="remainingHelp">PROJECT QTY minus everything already claimed on the room (all subcontractors). Claims above it are checked by the QS.</p>
+          <label class="inline"><span data-t="filter">Filter</span><input id="remFilter" placeholder="P2-1, POWER ..."></label>
+          <div class="scroll"><table id="remTable"><thead><tr>
+            <th data-t="colRoom">ROOM</th><th data-t="colLevel">LEVEL</th><th data-t="colStage">STAGE</th><th data-t="colItem">ITEM</th>
+            <th class="num" data-t="colProject">PROJECT QTY</th><th class="num" data-t="colYours">CLAIMED BY YOU</th><th class="num" data-t="colRemaining">REMAINING</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="tab hidden" id="tab-messages">
+        <div class="card">
+          <div id="thread" class="thread"></div>
+          <form id="msgForm">
+            <label><span data-t="subject">Subject</span><input id="msgSubject" maxlength="200"></label>
+            <label><span data-t="message">Message</span><textarea id="msgBody" rows="3" maxlength="4000" required></textarea></label>
+            <button type="submit" class="primary" data-t="sendMessage">SEND MESSAGE</button>
+            <p class="error" id="msgError" role="alert"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="foot" data-t="footer">MOBCO - Raffles project. Every action on this portal is recorded.</footer>
+  <script src="/portal/app.js"></script>
+</body>
+</html>

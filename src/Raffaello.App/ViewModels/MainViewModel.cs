@@ -61,6 +61,9 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 // [phase3] begin
                 Item("OwnerMos", "OWNER MOS", "IconExport", ""),
                 // [phase3] end
+                // [trust] begin
+                Item("Trust", "TRUST & INTEGRATIONS", "IconChecks", ""),
+                // [trust] end
             }),
             // [assistant] begin
             new NavGroup("ASSISTANT", new[] { Item("Brief", "MORNING BRIEF", "IconClock", ""), Item("Assistant", "ASK RAFFAELLO", "IconSparkles", "Ctrl+Shift+A") }),

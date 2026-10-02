@@ -45,6 +45,7 @@ public static class Program
         // [cables] begin
         if (CableCommands.Handles(args[0])) return CableCommands.Run(args);
         // [cables] end
+        if (TrustCommands.Handles(args[0])) return TrustCommands.Run(args);   // [trust]
         if (!Commands.Contains(args[0])) { Console.Error.WriteLine($"Unknown command {args[0]}"); Help(); return 2; }
         var opts = Options(args.Skip(1).ToArray(), out var positional);
         MapOptions = new MappingOptions
