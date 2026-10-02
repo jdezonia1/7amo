@@ -348,3 +348,42 @@ cores x size, CU / AL, LSOH, fire rated, conduit size / type, amps, ways, watts,
 Settings), lines OMISSION / ADDITION (contract rate) / NEW ITEM (material + labour + equipment, overhead %, profit %),
 totals and ageing, submission Excel / PDF and register export in the house style.
 <!-- [phase4] end -->
+
+<!-- [drawings] begin -->
+## Drawings module (takeoff, statement highlights, revision compare)
+
+DOCUMENTS > **DRAWINGS** (`src/Raffaello.Core/Drawings`, store `IDrawingStore` = SQLite data file or server `DrawingsServerModule`).
+
+- **Sources**: PDF (rasterised with PDFium for symbol matching; vector paths read with PdfPig for lines, `SCALE 1:N` and `H=1350mm` notes),
+  PNG, **DWG / DXF** (ACadSharp: block references + attributes, exploded blocks by geometry signature learned from the block
+  definitions, lengths per layer, rooms = closed polylines + text, units from `$INSUNITS`), **IFC** (in-house STEP reader: IfcSpace
+  footprints, containment, outlets / fixtures / switches, cable carrier / cable segments with Length quantities and Size) and the
+  **Revit add-in JSON** (`rooms` / `counts` / `linear`).
+- **Library**: box one example per symbol (name, system, W/C, light fitting, 2nd-fix factor, excluded); template matching = NCC on
+  blurred ink, 0/90/180/270 + mirrored, multi-scale, coarse-to-fine, stroke agreement check, NMS across symbols. Optional Claude vision
+  check of low-confidence hits (cloud reading on). Legend rows can be OCR'd into proposals (`LegendProposer`).
+- **Rooms**: tracker room shapes aligned by 2-3 clicked point pairs, or a CSV / JSON boundary import, or CAD / IFC rooms.
+- **Counting rules** (settings `%APPDATA%\Raffaello\drawings.json`): CEIL = all, 1ST = wall, 2ND = all (x 2nd-fix factor), FLEX = ceiling,
+  DALI = ceiling light fittings (default key `2ND FIX|DALI` - confirm), H >= 3000 -> ceiling. Results are a **PROJECT QTY diff**; only ticked
+  rows are written, every decision is recorded (append-only on the server).
+- **Lengths**: vector line styles / CAD layers / IFC classes / colour tracing on scans -> runs per room; cable length per point =
+  route (shortest path) + rise/drop (ceiling + half void - mounting height) + DB drop + riser + 2 x termination + spare %, with min / avg / max
+  per item, room type and system, and `n x L` groups for the 15 m check.
+- **Output**: takeoff PDF in the QS markup layout (original PDF page kept as vector, left panel with title bar, rules, SYMBOL / ITEM / C/W /
+  CEIL / 1ST / 2ND / FLEX / DALI table, TOTAL row, numbered circles dark red = wall, amber = ceiling; LENGTHS page) + workbook (DETAIL,
+  SUMMARY, PROPOSED QTY, LENGTHS, RUNS).
+- **Statement check**: highlighter HSV masks, alignment to the clean sheet (FFT phase correlation over scale / rotation, or clicked points),
+  symbols under highlights, highlighted runs, claimed (ledger / CSV) vs highlighted vs drawing total with flags; typical-unit pages apply to a
+  room list.
+- **Revision compare**: added / removed ink and symbols, per-room deltas -> PROJECT QTY diff or a DRAFT variation (variations module).
+
+```
+raffaello-cli takeoff FILE [--page N] [--dpi 150] [--library lib.json] [--box NAME:x,y,w,h[:SYSTEM[:W|C]]] [--rooms rooms.csv] --out DIR
+raffaello-cli verify-statement FILE [--pages 5-8] [--library lib.json] [--clean clean.pdf] [--claimed claims.csv] [--rooms "P2-106,P3-103"] --out DIR
+raffaello-cli compare-revisions OLD NEW [--library lib.json] --out DIR
+raffaello-cli drawings-demo --out DIR      (synthetic drawings with known answers: precision / recall, length errors)
+```
+
+NuGet added: **Docnet.Core 2.6.0** (MIT; bundles PDFium, BSD/Apache - no SkiaSharp, so no clash with the charts) and **ACadSharp 3.8.0** (MIT).
+PdfPig (Apache-2.0) and ClosedXML (MIT) were already referenced. Xbim.Essentials was not used (CDDL, weak copyleft) - IFC is read in-house.
+<!-- [drawings] end -->
