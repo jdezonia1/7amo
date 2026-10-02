@@ -36,6 +36,7 @@
         <DataTemplate DataType="{x:Type vm:OwnerMosViewModel}"><pages:OwnerMosView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BoqViewModel}"><pages:BoqView/></DataTemplate>
         <!-- [phase3] end -->
+        <!-- [cables] --><DataTemplate DataType="{x:Type vm:CablesViewModel}"><pages:CablesView/></DataTemplate>
 
         <Style x:Key="FilterCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="MinWidth" Value="104"/>

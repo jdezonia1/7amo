@@ -192,6 +192,7 @@ public sealed class CableService
     public void Commit(CableClaimPlan plan, string summary)
     {
         if (plan.Claims.Count == 0 && plan.Relinked.Count == 0) return;
+        var next = NextRefNumber();
         Store.Batch(w =>
         {
             foreach (var p in plan.NewPanels) { p.Id = 0; w.Insert(p); }
@@ -200,9 +201,9 @@ public sealed class CableService
             {
                 var temp = r.Id;
                 r.Id = 0;
+                if (r.Ref.Length == 0) r.Ref = "C-" + (next++).ToString("0000", CultureInfo.InvariantCulture);
                 w.Insert(r);
                 map[temp] = r.Id;
-                if (r.Ref.Length == 0) { r.Ref = "C-" + Math.Abs(r.Id).ToString("0000", CultureInfo.InvariantCulture); w.Update(r); }
             }
             foreach (var c in plan.Claims)
             {
@@ -212,6 +213,10 @@ public sealed class CableService
             foreach (var c in plan.Relinked) w.Update(c);
         }, summary);
     }
+
+    /// <summary>Next free number for "C-0001" style run references (ids are not known before the server answers).</summary>
+    private int NextRefNumber() => Store.All<CableRun>().Select(r => System.Text.RegularExpressions.Regex.Match(r.Ref, @"^C-(\d+)$"))
+        .Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)).DefaultIfEmpty(0).Max() + 1;
 
     /// <summary>Prepare + commit in one call (CLI, hooks).</summary>
     public CableClaimPlan Import(IEnumerable<CableClaim> incoming, IEnumerable<CableClaim>? ledgerClaims, string summary)
@@ -381,11 +386,12 @@ public sealed class CableService
         {
             foreach (var p in newPanels) { p.Id = 0; w.Insert(p); }
             foreach (var p in changedPanels) w.Update(p);
+            var next = NextRefNumber();
             foreach (var r in newRuns)
             {
                 r.Id = 0;
+                if (r.Ref.Length == 0) r.Ref = "C-" + (next++).ToString("0000", CultureInfo.InvariantCulture);
                 w.Insert(r);
-                if (r.Ref.Length == 0) { r.Ref = "C-" + r.Id.ToString("0000", CultureInfo.InvariantCulture); w.Update(r); }
             }
             foreach (var r in changedRuns) w.Update(r);
         }, $"{summary}: {added} runs added, {updated} updated, {upgraded} provisional runs confirmed by the design, {pAdded} panels added");

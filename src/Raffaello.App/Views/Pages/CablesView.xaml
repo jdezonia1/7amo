@@ -1,0 +1,296 @@
+<UserControl x:Class="Raffaello.App.Views.Pages.CablesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Raffaello.App.ViewModels">
+    <!-- [cables] CABLES: panel & cable register, panel tree, claims & flags, unknown runs, SLD / schedule / drawing reader -->
+    <Grid Margin="24,0,24,20">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
+        <!-- KPIs -->
+        <UniformGrid Rows="1" Columns="5" Margin="0,0,0,10">
+            <ContentControl Style="{StaticResource HeroCard}" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="CABLE RUNS" Style="{StaticResource Label}" Foreground="{DynamicResource YellowBrush}"/>
+                    <TextBlock Text="{Binding KpiRuns}" Style="{StaticResource KpiValue}" FontSize="22" Foreground="{DynamicResource OnAccentBrush}"/>
+                    <TextBlock Text="{Binding KpiRunsDetail}" Style="{StaticResource Small}" FontSize="10" Foreground="{DynamicResource OnAccentBrush}"/>
+                </StackPanel>
+            </ContentControl>
+            <Border Style="{StaticResource Card}" Margin="0,0,8,0" Padding="10">
+                <StackPanel><TextBlock Text="PANELS / EQUIPMENT" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding KpiPanels}" Style="{StaticResource KpiValue}" FontSize="18"/></StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,8,0" Padding="10">
+                <StackPanel><TextBlock Text="CLAIMS" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding KpiClaims}" Style="{StaticResource KpiValue}" FontSize="18"/></StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,8,0" Padding="10">
+                <StackPanel><TextBlock Text="DUPLICATE FROM-TO" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding KpiDuplicates}" Style="{StaticResource KpiValue}" FontSize="18" Foreground="{DynamicResource AccentBrush}"/></StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Padding="10">
+                <StackPanel><TextBlock Text="OPEN FLAGS" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding KpiFlags}" Style="{StaticResource KpiValue}" FontSize="18"/></StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <ProgressBar Style="{StaticResource SlimProgress}" IsIndeterminate="True" Width="100" Margin="0,0,8,0" Visibility="{Binding Busy, Converter={StaticResource BoolToVis}}"/>
+                <Button Style="{StaticResource BtnGhost}" Content="RE-MATCH CLAIMS" Command="{Binding RematchCommand}" Margin="0,0,6,0" ToolTip="Link unknown / provisional claims to register runs"/>
+                <Button Style="{StaticResource BtnYellow}" Content="EXPORT REGISTER" Command="{Binding ExportCommand}"/>
+            </StackPanel>
+            <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding Tab, Mode=TwoWay}" HorizontalAlignment="Left"/>
+        </DockPanel>
+
+        <!-- ============================================================ REGISTER -->
+        <Grid Grid.Row="2" Visibility="{Binding IsRegister, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="380"/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="6"/><ColumnDefinition Width="100"/><ColumnDefinition Width="6"/><ColumnDefinition Width="120"/><ColumnDefinition Width="6"/><ColumnDefinition Width="120"/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding Levels}" SelectedItem="{Binding LevelFilter, Mode=TwoWay}" ToolTip="Level"/>
+                        <ComboBox Grid.Column="2" ItemsSource="{Binding Sizes}" SelectedItem="{Binding SizeFilter, Mode=TwoWay}" ToolTip="Cable size"/>
+                        <ComboBox Grid.Column="4" ItemsSource="{Binding Subs}" SelectedItem="{Binding SubFilter, Mode=TwoWay}" ToolTip="Subcontractor"/>
+                        <ComboBox Grid.Column="6" ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter, Mode=TwoWay}" ToolTip="Progress / register status"/>
+                        <TextBox Grid.Column="8" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=250}" ToolTip="Panel name, run ref"/>
+                    </Grid>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Runs}" SelectedItem="{Binding SelectedRun, Mode=TwoWay}" IsReadOnly="True"
+                              VirtualizingPanel.IsVirtualizing="True" EnableRowVirtualization="True">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="STATUS" Width="66" SortMemberPath="Progress">
+                                <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Status}" ToolTip="{Binding Progress}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="REF" Binding="{Binding Ref}" Width="60" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="BLDG" Binding="{Binding Building}" Width="64" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="FROM" Binding="{Binding From}" Width="*" MinWidth="150" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="TO" Binding="{Binding To}" Width="*" MinWidth="150" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="SIZE" Binding="{Binding Size}" Width="64" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="EARTH" Binding="{Binding Earth}" Width="54" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="DESIGN M" Binding="{Binding Design, StringFormat=N0}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="MEAS. M" Binding="{Binding Measured, StringFormat=N0}" Width="60" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="PULLED M" Binding="{Binding Pulled, StringFormat=N0}" Width="66" ElementStyle="{StaticResource CellNumStrong}"/>
+                            <DataGridTemplateColumn Header="PULL" Width="70" SortMemberPath="PullPct">
+                                <DataGridTemplateColumn.CellTemplate><DataTemplate><ProgressBar Style="{StaticResource SlimProgress}" Value="{Binding PullPct, Mode=OneWay}" Margin="4,0" ToolTip="{Binding PullPct, StringFormat=P0}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="TERM M" Binding="{Binding Terminated, StringFormat=N0}" Width="56" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="HAND M" Binding="{Binding HandedOver, StringFormat=N0}" Width="56" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="70/20/10" Binding="{Binding Weighted, StringFormat=P0}" Width="62" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="REGISTER" Binding="{Binding Register}" Width="86" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="SUBS" Binding="{Binding Subs}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="FLAGS" Binding="{Binding Flags}" Width="46" ElementStyle="{StaticResource CellNum}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock Text="RUN" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding RunText}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="DESIGN M" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding EditDesign, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="MEASURED M" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding EditMeasured, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}"/></StackPanel>
+                            <StackPanel Grid.Column="4"><TextBlock Text="EARTH" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding EditEarth, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}"/></StackPanel>
+                        </Grid>
+                        <WrapPanel Margin="0,0,0,10">
+                            <Button Style="{StaticResource BtnPrimary}" Content="SAVE" Command="{Binding SaveRunCommand}" Margin="0,0,6,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="CONFIRM" Command="{Binding SetRunStatusCommand}" CommandParameter="CONFIRMED" Margin="0,0,6,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="REJECT" Command="{Binding SetRunStatusCommand}" CommandParameter="REJECTED" Margin="0,0,6,6"/>
+                        </WrapPanel>
+                        <TextBlock Text="CLAIMS ON THIS RUN" Style="{StaticResource PanelTitle}" Margin="0,0,0,4"/>
+                    </StackPanel>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding RunClaims}" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="SUB" Binding="{Binding Sub}" Width="64" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="INV" Binding="{Binding Inv}" Width="34" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="SIZE" Binding="{Binding Size}" Width="56" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="M" Binding="{Binding Qty, StringFormat=N0}" Width="44" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="SITE" Binding="{Binding SitePct, StringFormat=P0}" Width="40" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="LEDGER" Binding="{Binding Ledger}" Width="46" ElementStyle="{StaticResource CellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================ PANELS (SLD-like tree) -->
+        <Grid Grid.Row="2" Visibility="{Binding IsPanels, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="420"/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="PANEL TREE  -  fed from (parent) -> outgoing runs, coloured by weighted progress" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TreeView ItemsSource="{Binding Tree}" BorderThickness="0" Background="Transparent" SelectedItemChanged="OnTreeSelected">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="TreeViewItem">
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                <Setter Property="Margin" Value="0,1"/>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type vm:CablePanelNode}" ItemsSource="{Binding Children}">
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="56"/><ColumnDefinition Width="260"/><ColumnDefinition Width="90"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}"/>
+                                    <StackPanel Grid.Column="1" Margin="6,0">
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource BodyStrong}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Caption}" Style="{StaticResource Small}" FontSize="10"/>
+                                    </StackPanel>
+                                    <ProgressBar Grid.Column="2" Style="{StaticResource SlimProgress}" Value="{Binding Progress, Mode=OneWay}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Type}" Style="{StaticResource Small}" FontSize="10" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </DockPanel>
+            </Border>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Border Style="{StaticResource Card}" Padding="12">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="SAME PANEL?  (confirm = merge + learn the spelling)" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                        <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding AliasSuggestions}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Text}" Style="{StaticResource BodyStrong}" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding ScoreText}" Style="{StaticResource Small}" Margin="6,0,0,0"/>
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <Button Style="{StaticResource BtnLink}" Content="SAME - MERGE" Command="{Binding DataContext.ConfirmAliasCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" Margin="0,0,12,0"/>
+                                            <Button Style="{StaticResource BtnLink}" Content="NOT THE SAME" Command="{Binding DataContext.RejectAliasCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+                <Border Grid.Row="2" Style="{StaticResource Card}" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="MERGE BY HAND" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,6"><Run Text="Selected: "/><Run Text="{Binding SelectedNode.Name, Mode=OneWay}" FontWeight="Bold"/><Run Text="  is the same panel as:"/></TextBlock>
+                        <ComboBox ItemsSource="{Binding AllPanels}" SelectedItem="{Binding MergeTarget, Mode=TwoWay}" DisplayMemberPath="Name" IsEditable="True" IsTextSearchEnabled="True" Margin="0,0,0,6"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="MERGE" Command="{Binding MergePanelCommand}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ============================================================ CLAIMS & FLAGS -->
+        <Grid Grid.Row="2" Visibility="{Binding IsFlags, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <ComboBox ItemsSource="{Binding FlagCodes}" SelectedItem="{Binding FlagCode, Mode=TwoWay}" Width="220" Margin="0,0,8,0"/>
+                <CheckBox Content="SHOW BYPASSED" IsChecked="{Binding ShowBypassed}" VerticalAlignment="Center"/>
+                <TextBlock Text="Warnings never block - let them through with a reason (audited)." Style="{StaticResource Small}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+            </StackPanel>
+            <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding FlagRows}" SelectedItem="{Binding SelectedFlag, Mode=TwoWay}" IsReadOnly="True" VirtualizingPanel.IsVirtualizing="True">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="" Width="72" SortMemberPath="Tag">
+                        <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="FLAG" Binding="{Binding Code}" Width="150" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="SUB" Binding="{Binding Sub}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="INV" Binding="{Binding Inv}" Width="36" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="FROM" Binding="{Binding From}" Width="150" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="TO" Binding="{Binding To}" Width="150" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="SIZE" Binding="{Binding Size}" Width="60" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="M" Binding="{Binding Qty, StringFormat=N0}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DETAIL" Binding="{Binding Message}" Width="*" MinWidth="240" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="DECISION" Binding="{Binding Decision}" Width="180" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Grid Grid.Row="2" Margin="0,8,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBox Text="{Binding BypassReason, UpdateSourceTrigger=PropertyChanged}" ToolTip="Reason (required) - e.g. re-pulled after damage, approved by the engineer"/>
+                <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="BYPASS SELECTED" Command="{Binding BypassCommand}" Margin="8,0,0,0"/>
+                <Button Grid.Column="2" Style="{StaticResource BtnGhost}" Content="BYPASS ALL SHOWN" Command="{Binding BypassAllShownCommand}" Margin="6,0,0,0"/>
+            </Grid>
+        </Grid>
+
+        <!-- ============================================================ UNKNOWN RUNS -->
+        <Grid Grid.Row="2" Visibility="{Binding IsUnknown, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="400"/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="CLAIMS NOT ON A DESIGN RUN  (from statements only - no design length)" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding UnknownClaims}" SelectedItem="{Binding SelectedUnknown, Mode=TwoWay}" IsReadOnly="True" VirtualizingPanel.IsVirtualizing="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="RUN" Binding="{Binding RunRef}" Width="60" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="BLDG" Binding="{Binding Building}" Width="64" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="SUB" Binding="{Binding Sub}" Width="64" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="INV" Binding="{Binding Inv}" Width="34" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="FROM" Binding="{Binding From}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="TO" Binding="{Binding To}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="SIZE" Binding="{Binding Size}" Width="60" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="M" Binding="{Binding Qty, StringFormat=N0}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="LINK TO A REGISTER RUN" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                    <ListBox ItemsSource="{Binding Candidates}" SelectedItem="{Binding SelectedCandidate, Mode=TwoWay}" Height="220" BorderThickness="0" Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Style="{StaticResource Small}" TextTrimming="CharacterEllipsis"><Run Text="{Binding Ref, Mode=OneWay}" FontWeight="Bold"/><Run Text="  "/><Run Text="{Binding Title, Mode=OneWay}"/><Run Text="  "/><Run Text="{Binding DesignLength, Mode=OneWay, StringFormat=0 m}"/></TextBlock>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Button Style="{StaticResource BtnPrimary}" Content="LINK CLAIM TO RUN" Command="{Binding LinkToRunCommand}" HorizontalAlignment="Left" Margin="0,6,0,14"/>
+                    <TextBlock Text="OR CONFIRM ITS RUN WITH THE DESIGN LENGTH" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                    <TextBlock Text="Design length from the SLD / schedule (m)" Style="{StaticResource Label}" FontSize="10"/>
+                    <TextBox Text="{Binding UnknownDesign, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" Margin="0,0,0,6"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="CONFIRM RUN" Command="{Binding ConfirmProvisionalCommand}" HorizontalAlignment="Left"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================ READ SLD / SCHEDULE / DRAWING -->
+        <Grid Grid.Row="2" Visibility="{Binding IsRead, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <WrapPanel Margin="0,0,0,8">
+                <Button Style="{StaticResource BtnPrimary}" Content="READ CABLE SCHEDULE (EXCEL / CSV)" Command="{Binding ReadCommand}" CommandParameter="SCHEDULE" Margin="0,0,6,6"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="READ SLD (PDF)" Command="{Binding ReadCommand}" CommandParameter="PDF" Margin="0,0,6,6"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="READ DWG / DXF" Command="{Binding ReadCommand}" CommandParameter="CAD" Margin="0,0,6,6"/>
+                <Button Style="{StaticResource BtnGhost}" Content="READ SCANNED SLD (OCR)" Command="{Binding ReadCommand}" CommandParameter="SCAN" Margin="0,0,6,6"/>
+            </WrapPanel>
+            <Border Grid.Row="1" Background="{DynamicResource AccentSoftBrush}" CornerRadius="{StaticResource RadiusCard}" Padding="12,8" Margin="0,0,0,8">
+                <StackPanel>
+                    <TextBlock Text="{Binding ReadText}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ReadIssues}" Style="{StaticResource Small}" TextWrapping="Wrap" MaxHeight="80"/>
+                    <Grid Margin="0,6,0,0" Visibility="{Binding IsSchedule, Converter={StaticResource BoolToVis}}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="COLUMNS  " Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding MappingText, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" ToolTip="FIELD=Header;... (FROM, TO, SIZE, CORES, MM2, LENGTH, MEASURED, REF, CIRCUIT, BREAKER, INSULATION, CONDUCTOR, EARTH, LEVEL, BUILDING, NOTES)"/>
+                        <Button Grid.Column="2" Style="{StaticResource BtnGhost}" Content="RE-READ + REMEMBER" Command="{Binding ReReadWithMappingCommand}" Margin="6,0,0,0"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding ReadRuns}" IsReadOnly="False" CanUserAddRows="False" VirtualizingPanel.IsVirtualizing="True">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="SAVE" Binding="{Binding Include, UpdateSourceTrigger=PropertyChanged}" Width="44"/>
+                    <DataGridTemplateColumn Header="CONF." Width="62" SortMemberPath="Confidence" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding ConfidenceTag}" ToolTip="{Binding Confidence}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="FROM" Binding="{Binding From, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="TO" Binding="{Binding To, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="SIZE" Binding="{Binding Size, UpdateSourceTrigger=PropertyChanged}" Width="80" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="EARTH" Binding="{Binding Earth, UpdateSourceTrigger=PropertyChanged}" Width="64" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="LENGTH M" Binding="{Binding Length, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="BREAKER" Binding="{Binding Breaker, UpdateSourceTrigger=PropertyChanged}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="PAGE" Binding="{Binding Page}" Width="44" IsReadOnly="True" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="HOW" Binding="{Binding How}" Width="140" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0" Visibility="{Binding HasRead, Converter={StaticResource BoolToVis}}">
+                <Button Style="{StaticResource BtnPrimary}" Content="SAVE TICKED RUNS TO THE REGISTER" Command="{Binding SaveReadCommand}"/>
+                <TextBlock Text="Same route + size updates the run; runs created from statements are confirmed in place (their claims stay linked)." Style="{StaticResource Small}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -45,6 +45,25 @@ public static class CableHooks
         catch (Exception ex) { return "cables not imported: " + ex.Message; }
     }
 
+    /// <summary>
+    /// Ledger entry screen: a CABLE PULLING line just posted (LOCATION = FROM panel, NOTES = TO) becomes a cable claim; returns the cable flags
+    /// it raises (duplicate FROM-TO, over length, unknown run ...) as one warning text, or "" when there are none.
+    /// </summary>
+    public static string LedgerPosted(IProjectStore store, ClaimLine line)
+    {
+        try
+        {
+            if (!CableStages.IsLedgerCableStage(line.Stage)) return "";
+            if (line.SourceKey.Length == 0 && line.Id <= 0) return "";
+            var svc = new CableService(CableStore.For(store));
+            svc.Store.EnsureSchema();
+            var plan = svc.Import(Array.Empty<CableClaim>(), new[] { CableService.FromLedger(line) }, $"Ledger cable line {line.Subcontractor} INV {line.InvoiceNo} {line.Room} {line.Item}");
+            var open = plan.Flags.Where(f => !f.IsBypassed && f.Code != CableFlagCodes.UnknownRun).ToList();
+            return string.Join("\n", open.Take(4).Select(f => $"{f.Code}: {f.Message}"));
+        }
+        catch (Exception ex) { return "Cable checks not available: " + ex.Message; }
+    }
+
     public static List<CableClaim> LedgerCableLines(IEnumerable<ClaimLine> lines) =>
         lines.Where(l => CableStages.IsLedgerCableStage(l.Stage) && !l.ReplacedBySplit).Select(CableService.FromLedger).ToList();
 

@@ -49,6 +49,7 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
             new("GO TO", "BOQ", "Owner BOQ by system and category", "", () => nav.Go("Boq")),
             new("GO TO", "DN lookup", "Supplier + DN / PO / batch -> PO, invoice, MIR", "", () => nav.Go("Materials")),
             // [phase3] end
+            new("GO TO", "Cables", "Panel & cable register, claims per stage, duplicate FROM-TO flags", "", () => nav.Go("Cables")),   // [cables]
             new("FILTER", "Clear filters", "Show all buildings and stages", "", () => _filter.Clear()),
             new("FILTER", "Hotel only", "", "", () => _filter.Set(building: "HOTEL")),
             new("FILTER", "Branded only", "", "", () => _filter.Set(building: "BRANDED")),
