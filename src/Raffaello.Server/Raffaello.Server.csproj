@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Raffaello.Server</RootNamespace>
+    <AssemblyName>Raffaello.Server</AssemblyName>
+    <Version>1.0.0</Version>
+    <Product>Raffaello Server</Product>
+    <Company>MOBCO</Company>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <UserSecretsId>raffaello-server</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="8.0.31" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+    <PackageReference Include="Npgsql" Version="8.0.9" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Raffaello.Core\Raffaello.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Raffaello.Server.Tests" />
+  </ItemGroup>
+</Project>
