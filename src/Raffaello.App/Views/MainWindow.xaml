@@ -18,6 +18,10 @@
         <DataTemplate DataType="{x:Type vm:StatementsViewModel}"><pages:StatementsView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:MaterialsViewModel}"><pages:MaterialsView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:AconexViewModel}"><pages:AconexView/></DataTemplate>
+        <!-- [phase4] begin -->
+        <DataTemplate DataType="{x:Type vm:AconexHubViewModel}"><pages:AconexWorkflowsView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:VariationsViewModel}"><pages:VariationsView/></DataTemplate>
+        <!-- [phase4] end -->
         <DataTemplate DataType="{x:Type vm:WirViewModel}"><pages:WirView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ContractsViewModel}"><pages:ContractsView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:InvoicesViewModel}"><pages:InvoicesView/></DataTemplate>

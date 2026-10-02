@@ -41,7 +41,11 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
             new NavGroup("TRACK", new[] { Item("Dashboard", "DASHBOARD", "IconDashboard", "Ctrl+1"), Item("Ledger", "ROOMS & LEDGER", "IconLedger", "Ctrl+2"), Item("Quantities", "QUANTITIES", "IconQuantities", "Ctrl+4"), Item("Plan", "PLAN VIEW", "IconPlan", ""),
                 Item("Checks", "CHECKS", "IconChecks", "Ctrl+3"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+5"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+6") }),
             new NavGroup("DOCUMENTS", new[] { Item("Aconex", "ACONEX", "IconAconex", ""), Item("Wir", "WIR / MIR", "IconWir", ""), Item("Contracts", "CONTRACTS & BOQ", "IconContracts", "Ctrl+7"),
-                Item("SiteStatements", "SITE STATEMENTS", "IconSend", "Ctrl+9") }),
+                Item("SiteStatements", "SITE STATEMENTS", "IconSend", "Ctrl+9"),
+                // [phase4] begin
+                Item("Variations", "VARIATIONS / EI", "IconContracts", ""),
+                // [phase4] end
+            }),
             new NavGroup("OUTPUT", new[] { Item("Invoices", "INVOICES", "IconInvoices", "Ctrl+8"), Item("Reports", "REPORTS", "IconReports", "Ctrl+0") }),
         };
         SettingsItem = Item("Settings", "SETTINGS", "IconSettings", "");
@@ -131,6 +135,10 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         new PaletteEntry("ACTION", "Toggle light / dark", "", "Ctrl+Shift+L", ToggleTheme),
         new PaletteEntry("ACTION", "Reload data", "Read the shared data file again", "F5", () => _ = ReloadAsync()),
         new PaletteEntry("ACTION", "Weekly report", "Export the weekly progress workbook", "", () => Go("Reports")),
+        // [phase4] begin
+        new PaletteEntry("ACTION", "Aconex: where is each invoice", "Invoice status board (workflow step, who, due)", "", () => Go("Aconex")),
+        new PaletteEntry("ACTION", "Variations / EI", "Register, suggestions, submission export", "", () => Go("Variations")),
+        // [phase4] end
     };
 
     [RelayCommand] private void Navigate(string key) => Go(key);

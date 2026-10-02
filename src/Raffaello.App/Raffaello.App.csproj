@@ -21,6 +21,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Raffaello.Core\Raffaello.Core.csproj" />
+    <!-- [phase4] Aconex browser automation (Playwright) -->
+    <ProjectReference Include="..\Raffaello.Automation\Raffaello.Automation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Fonts\*.ttf" />
@@ -28,4 +30,17 @@
     <Resource Include="Assets\raffaello-link.png" />
     <None Include="Assets\raffaello-link.svg" />
   </ItemGroup>
+  <!-- [phase4] begin: keep Playwright's driver (.playwright\node\win32_x64\node.exe + package) next to Raffaello.exe;
+       inside the single file it cannot be started. Only the Windows node is copied (PlaywrightPlatform). -->
+  <PropertyGroup>
+    <PlaywrightPlatform Condition="'$(PlaywrightPlatform)' == ''">win</PlaywrightPlatform>
+  </PropertyGroup>
+  <Target Name="Phase4PlaywrightOutsideSingleFile" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').StartsWith('.playwright')) Or '%(ResolvedFileToPublish.RelativePath)' == 'playwright.ps1'">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+  <!-- [phase4] end -->
 </Project>

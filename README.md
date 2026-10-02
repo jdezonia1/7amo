@@ -247,3 +247,37 @@ WPF compiles on Linux with `EnableWindowsTargeting`, but only with Microsoft's S
 `Sdks/Microsoft.NET.Sdk.WindowsDesktop`. Distro-built SDKs (e.g. Ubuntu's `dotnet-sdk-8.0`) do not; copy that
 folder from Microsoft's `dotnet-sdk-8.0` package (packages.microsoft.com) into `<dotnet>/sdk/<version>/Sdks/`.
 The app itself only runs on Windows.
+
+<!-- [phase4] begin -->
+## Aconex automation and Variations (phase 4)
+
+**ACONEX** is a hub with five tabs: STATUS BOARD (every open invoice revision with its workflow: current step, who
+has it, due / overdue, outcome; REFRESH ALL, optional daily auto refresh while the app runs, step-change history,
+Excel / PDF for management), WORKFLOWS (look a WF number up, steps table + full-page and table screenshots attached
+to the invoice revision), DOWNLOADS (WIR / MIR from the Document Register by number list, date range, group,
+discipline or type into the WIR / MIR folders, resumable queue, register with SHA-256, already-downloaded
+revisions skipped, ZIP bundles extracted), SCRIPT RUNNER (the old `aconex_downloader.py` route) and SETUP.
+
+- Code: `Raffaello.Core/AconexWeb` (config, models, parsers, stores, services), `Raffaello.Automation`
+  (Playwright client, DPAPI vault). Tables live in the same data file (`AconexWorkflowLinks`, `AconexWorkflowChecks`,
+  `AconexStepChanges`, `InvoiceAttachments`, `AconexDownloads`, `AconexDownloadJobs`, `AconexQueueItems`).
+- Browser: Playwright with a persistent profile in `%LOCALAPPDATA%\Raffaello\aconex-profile`. Log in once in the
+  visible window (SSO / 2FA by hand); later runs reuse the session. A password is only stored if you choose to, and
+  then encrypted with Windows DPAPI. Default browser channel is `msedge` (no browser download needed on Windows).
+- Everything site-specific is in `%APPDATA%\Raffaello\aconex.config.json` (written with defaults on first use):
+  `BaseUrl`, `ProjectId`, `Login.*` selectors, `Workflows.SearchPath / WorkflowNoInput / SearchButton / ResultsTable /
+  FrameSelector / GroupRowRegex / Columns.*`, `Documents.SearchPath / DocNoInput / DateFromInput / DateToInput /
+  DateInputFormat / DisciplineSelect / DocTypeSelect / GroupInput / ResultsTable / DownloadMode / DownloadButton /
+  DownloadConfirmButton / RowCheckbox / Columns.*`, `DateFormats`, `Folders.*`. Columns are matched by header text,
+  never by position. Defaults are best guesses: check them on the first real run (SETUP > OPEN, edit, RELOAD).
+- Tests: `tests/Raffaello.Automation.Tests` runs real Chromium against a local mock Aconex site (login, Search
+  Workflows table, paged document register with ZIP bundles). Needs a Playwright browser
+  (`PLAYWRIGHT_BROWSERS_PATH`, or set `RAFFAELLO_TEST_BROWSER` to a chromium/edge exe); skipped when none.
+
+**VARIATIONS / EI** (DOCUMENTS): register of VO / EI / SI with consultant ref, status (Draft, Submitted, Under review,
+Approved, Rejected, Withdrawn; approved / closed are locked), Aconex workflow no, attached documents (text read with
+PdfPig; scans are flagged), SUGGEST related BOQ / contract items (TF-IDF keywords + attribute fingerprint: cable
+cores x size, CU / AL, LSOH, fire rated, conduit size / type, amps, ways, watts, IP; optional Claude re-ranking in
+Settings), lines OMISSION / ADDITION (contract rate) / NEW ITEM (material + labour + equipment, overhead %, profit %),
+totals and ageing, submission Excel / PDF and register export in the house style.
+<!-- [phase4] end -->

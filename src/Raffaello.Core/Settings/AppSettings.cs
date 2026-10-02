@@ -50,6 +50,15 @@ public sealed class AppSettings
     /// <summary>Protection password of the head-office tracker workbook.</summary>
     public string TrackerPassword { get; set; } = "RAFFAELLO";
 
+    // [phase4] begin
+    /// <summary>aconex.config.json (URLs, selectors, columns, folders); empty = %APPDATA%\Raffaello\aconex.config.json.</summary>
+    public string AconexConfigPath { get; set; } = "";
+    /// <summary>Re-rank variation BOQ suggestions with Claude (needs the API key; sends variation text + candidate descriptions).</summary>
+    public bool VariationsUseClaude { get; set; }
+    /// <summary>Where attached variation documents are copied (empty = keep the original path).</summary>
+    public string VariationDocsFolder { get; set; } = "";
+    // [phase4] end
+
     // session memory
     public DateTime? LastSeenAt { get; set; }
     public string LastModule { get; set; } = "Dashboard";

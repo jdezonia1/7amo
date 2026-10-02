@@ -139,6 +139,11 @@
                         <TextBlock Text="EFFORT" Style="{StaticResource Label}" FontSize="10"/>
                         <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Efforts}" SelectedItem="{Binding Effort, Mode=TwoWay}" Margin="0,4,0,10"/>
                         <CheckBox Content="Server-side fallback if a request is declined (fallbacks: default)" IsChecked="{Binding UseFallbacks}" Margin="0,0,0,8"/>
+                        <!-- [phase4] begin -->
+                        <CheckBox Content="Variations: re-rank BOQ suggestions with Claude (sends the variation text and item descriptions, no prices)" IsChecked="{Binding VariationsUseClaude}" Margin="0,0,0,8"/>
+                        <TextBlock Text="ACONEX CONFIG FILE (EMPTY = %APPDATA%\Raffaello\aconex.config.json)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBox Text="{Binding AconexConfigPath, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="12" Margin="0,3,0,10"/>
+                        <!-- [phase4] end -->
                         <TextBlock Text="The key is stored only in your own settings.json. The selected line's chain, the filter scope and today's queue are sent as context with each question." Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                 </Border>

@@ -52,6 +52,10 @@ public sealed partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private string _wirFolder = "";
     [ObservableProperty] private string _packageNamePattern = "";
     [ObservableProperty] private string _trackerPassword = "";
+    // [phase4] begin
+    [ObservableProperty] private bool _variationsUseClaude;
+    [ObservableProperty] private string _aconexConfigPath = "";
+    // [phase4] end
 
     private bool _loading;
     partial void OnThemeChanged(string value) { if (IsActive && !_loading) Ctx.Theme.Apply(value, Accent); }
@@ -83,6 +87,10 @@ public sealed partial class SettingsViewModel : PageViewModel
         WirFolder = s.WirFolder;
         PackageNamePattern = s.PackageNamePattern;
         TrackerPassword = s.TrackerPassword;
+        // [phase4] begin
+        VariationsUseClaude = s.VariationsUseClaude;
+        AconexConfigPath = s.AconexConfigPath;
+        // [phase4] end
         KeyStatus = AnthropicClient.ResolveKey(s.AnthropicApiKey) is null ? "NO KEY - Ask Raffaello runs offline (rules engine only)"
             : string.IsNullOrWhiteSpace(s.AnthropicApiKey) ? "USING ANTHROPIC_API_KEY FROM THE ENVIRONMENT" : "KEY SAVED IN SETTINGS";
     }
@@ -113,6 +121,10 @@ public sealed partial class SettingsViewModel : PageViewModel
         s.WirFolder = WirFolder.Trim();
         s.PackageNamePattern = string.IsNullOrWhiteSpace(PackageNamePattern) ? Raffaello.Core.Packaging.PackageNames.DefaultPattern : PackageNamePattern.Trim();
         s.TrackerPassword = string.IsNullOrWhiteSpace(TrackerPassword) ? "RAFFAELLO" : TrackerPassword.Trim();
+        // [phase4] begin
+        s.VariationsUseClaude = VariationsUseClaude;
+        s.AconexConfigPath = AconexConfigPath.Trim();
+        // [phase4] end
         s.Save();
         Project.CurrentUser = s.EffectiveUserName;
         if (pathChanged)

@@ -14,6 +14,8 @@
     <!-- [phase5] begin: live change notifications from Raffaello.Server -->
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.31" />
     <!-- [phase5] end -->
+    <!-- [phase4] text from variation / EI documents -->
+    <PackageReference Include="PdfPig" Version="0.1.16" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Raffaello.Core.Tests" />
