@@ -252,16 +252,22 @@ public sealed class Db : IProjectStore
     {
         using var c = Open();
         using var tx = c.BeginTransaction();
+        DeleteCore(c, tx, e, summary ?? $"Deleted {typeof(T).Name} #{e.Id}");
+        tx.Commit();
+    }
+
+    internal void DeleteCore<T>(SqliteConnection c, SqliteTransaction tx, T e, string? summary) where T : Entity
+    {
+        var table = TableOf(e.GetType());
         using (var cmd = c.CreateCommand())
         {
             cmd.Transaction = tx;
-            cmd.CommandText = $"DELETE FROM [{TableOf<T>()}] WHERE Id=@Id AND RowVersion=@V";
+            cmd.CommandText = $"DELETE FROM [{table}] WHERE Id=@Id AND RowVersion=@V";
             cmd.Parameters.AddWithValue("@Id", e.Id);
             cmd.Parameters.AddWithValue("@V", e.RowVersion);
-            if (cmd.ExecuteNonQuery() != 1) throw new ConcurrencyException(TableOf<T>(), e.Id, null);
+            if (cmd.ExecuteNonQuery() != 1) throw new ConcurrencyException(table, e.Id, null);
         }
-        Audit(c, tx, TableOf<T>(), e.Id, "DELETE", summary ?? $"Deleted {typeof(T).Name} #{e.Id}", JsonSerializer.Serialize(e, e.GetType()));
-        tx.Commit();
+        if (summary != null) Audit(c, tx, table, e.Id, "DELETE", summary, "");
     }
 
     /// <summary>Runs several writes atomically; the callback gets a writer bound to one transaction.</summary>
@@ -284,6 +290,7 @@ public sealed class Db : IProjectStore
         public T Insert<T>(T e) where T : Entity { _db.InsertCore(_c, _tx, e); return e; }
         public int InsertMany<T>(IEnumerable<T> rows) where T : Entity => _db.InsertManyCore(_c, _tx, rows);
         public void Update<T>(T e) where T : Entity, new() => _db.UpdateCore(_c, _tx, e, null, audit: false);
+        public void Delete<T>(T e) where T : Entity => _db.DeleteCore(_c, _tx, e, null);
         internal void Execute(string sql, object? args = null) { using var cmd = _c.CreateCommand(); cmd.Transaction = _tx; cmd.CommandText = sql; Bind(cmd, args); cmd.ExecuteNonQuery(); }
     }
 

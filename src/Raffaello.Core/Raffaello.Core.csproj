@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
+    <PackageReference Include="QuestPDF" Version="2026.9.1" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Raffaello.Core.Tests" />

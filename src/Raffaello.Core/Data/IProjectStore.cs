@@ -11,6 +11,7 @@ public interface IStoreBatch
     T Insert<T>(T entity) where T : Entity;
     int InsertMany<T>(IEnumerable<T> entities) where T : Entity;
     void Update<T>(T entity) where T : Entity, new();
+    void Delete<T>(T entity) where T : Entity;
 }
 
 /// <summary>

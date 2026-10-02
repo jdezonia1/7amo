@@ -21,9 +21,20 @@ public sealed class ProjectSnapshot
     public List<Contract> Contracts { get; init; } = new();
     public List<AconexDoc> AconexDocs { get; init; } = new();
     public List<ImportBatch> Imports { get; init; } = new();
+    // phase 1
+    public List<RoomQty> RoomQtys { get; init; } = new();
+    public List<ClaimLine> Claims { get; init; } = new();
+    public List<ContractItem> ContractItems { get; init; } = new();
+    public List<ContractItemBoq> ItemBoqs { get; init; } = new();
+    public List<MappingRule> MappingRules { get; init; } = new();
+    public List<SubInvoice> SubInvoices { get; init; } = new();
+    public List<SubInvoiceLine> SubInvoiceLines { get; init; } = new();
+    public List<InvoiceTemplateRow> TemplateRows { get; init; } = new();
+    public List<SiteStatement> Statements { get; init; } = new();
+    public List<RoomShape> RoomShapes { get; init; } = new();
     public DateTime LoadedAt { get; init; } = DateTime.Now;
 
-    public static ProjectSnapshot Load(Db db) => new()
+    public static ProjectSnapshot Load(IProjectStore db) => new()
     {
         Rooms = db.All<Room>(),
         Lines = db.All<QtyLine>(),
@@ -41,6 +52,16 @@ public sealed class ProjectSnapshot
         Contracts = db.All<Contract>(),
         AconexDocs = db.All<AconexDoc>(),
         Imports = db.All<ImportBatch>(),
+        RoomQtys = db.All<RoomQty>(),
+        Claims = db.All<ClaimLine>(),
+        ContractItems = db.All<ContractItem>(),
+        ItemBoqs = db.All<ContractItemBoq>(),
+        MappingRules = db.All<MappingRule>(),
+        SubInvoices = db.All<SubInvoice>(),
+        SubInvoiceLines = db.All<SubInvoiceLine>(),
+        TemplateRows = db.All<InvoiceTemplateRow>(),
+        Statements = db.All<SiteStatement>(),
+        RoomShapes = db.All<RoomShape>(),
         LoadedAt = DateTime.Now,
     };
 

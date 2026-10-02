@@ -4,7 +4,7 @@ using Raffaello.Core.Rules;
 
 namespace Raffaello.Core.Chain;
 
-public sealed class ClaimLine
+public sealed class CertLine
 {
     public required ChainRow Row { get; init; }
     public double Claimed { get; init; }
@@ -25,7 +25,7 @@ public sealed class ClaimDraft
     public string Subcontractor { get; init; } = "";
     public Invoice? Statement { get; init; }
     public Contract? Contract { get; init; }
-    public List<ClaimLine> Lines { get; init; } = new();
+    public List<CertLine> Lines { get; init; } = new();
     public double GrossToDate => Lines.Sum(l => l.ValueToDate);
     public double PreviousGross => Lines.Sum(l => l.PreviousCertified * l.Rate);
     public double ThisPeriodGross => GrossToDate - PreviousGross;
@@ -50,12 +50,12 @@ public static class ClaimBuilder
                          .OrderBy(i => i.InvDate).LastOrDefault();
         var prevLines = prevCert is null ? new Dictionary<long, double>() :
             s.InvoiceLines.Where(l => l.InvoiceId == prevCert.Id).GroupBy(l => l.LineId).ToDictionary(g => g.Key, g => g.Sum(x => x.CertifiedQty));
-        var lines = new List<ClaimLine>();
+        var lines = new List<CertLine>();
         if (statement != null)
             foreach (var il in s.InvoiceLines.Where(l => l.InvoiceId == statement.Id))
             {
                 if (!chain.TryGetValue(il.LineId, out var row)) continue;
-                lines.Add(new ClaimLine
+                lines.Add(new CertLine
                 {
                     Row = row, Claimed = il.CumQty, Done = row.Done, Cap = row.Cap,
                     Certifiable = ClaimRules.CertifiableQty(il.CumQty, row.Done, row.Cap),

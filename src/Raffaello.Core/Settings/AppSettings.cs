@@ -30,6 +30,14 @@ public sealed class AppSettings
     public string AconexDownloadFolder { get; set; } = "";
     public string AconexInputExcel { get; set; } = "";
 
+    // invoice header block (names are typed by the user, never shipped in code)
+    public string InvoiceProjectCode { get; set; } = "";
+    public string InvoiceProjectDirector { get; set; } = "";
+    public string InvoiceVendorNo { get; set; } = "";
+    /// <summary>Signature names in role order, separated by ';'.</summary>
+    public string InvoiceSignatureNames { get; set; } = "";
+    public int LengthRoundingDecimals { get; set; } = 1;
+
     // session memory
     public DateTime? LastSeenAt { get; set; }
     public string LastModule { get; set; } = "Dashboard";

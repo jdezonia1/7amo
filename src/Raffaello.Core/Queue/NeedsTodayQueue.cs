@@ -83,7 +83,29 @@ public static class NeedsTodayQueue
                     $"Lines SAR {p.TotalCheck.LinesTotal:N2} vs stated SAR {p.TotalCheck.StatedTotal:N2} (diff {p.TotalCheck.Difference:N2}).", new("Materials", Key: p.Po.PoNo), 2.5e8));
         }
 
-        // 8. PROJECT QTY coverage
+        // 8. real workflow: checks, room caps, invoices
+        var heightPending = s.Claims.Where(Ledger.HeightCheck.IsPending).ToList();
+        if (heightPending.Count > 0)
+            q.Add(new(Verdict.Due, "HEIGHT", $"{heightPending.Count} claims wait for the >4.5 m check",
+                $"{heightPending.Sum(c => c.QtyAbove45):N0} points claimed above 4.5 m are held out of the invoices until checked.", new("Checks", Key: "HEIGHT"), 1.6e8 + heightPending.Count));
+        var lengthPending = s.Claims.Where(Ledger.LengthCheck.IsPending).ToList();
+        if (lengthPending.Count > 0)
+            q.Add(new(Verdict.Due, "LENGTH", $"{lengthPending.Count} claims wait for the 15 m length check",
+                $"Claimed {lengthPending.Sum(c => c.LengthClaimedQty):N0} vs plan {lengthPending.Sum(c => c.Qty):N0} points - held out of the invoices.", new("Checks", Key: "LENGTH"), 1.6e8 + lengthPending.Count));
+        if (s.RoomQtys.Count > 0)
+        {
+            var overCap = Ledger.LedgerRules.Balances(s.RoomQtys, s.Claims).Values.Where(b => b.HasCap && b.IsOver).OrderByDescending(b => b.Claimed - b.ProjectQty).ToList();
+            if (overCap.Count > 0)
+                q.Add(new(Verdict.Over, "LEDGER", $"{overCap.Count} room / stage / item keys claimed above PROJECT QTY",
+                    $"Worst: {overCap[0].Room} {overCap[0].Stage} {overCap[0].Item} claimed {overCap[0].Claimed:N1} of {overCap[0].ProjectQty:N1}.", new("Ledger", Key: overCap[0].Room), 3.5e8 + overCap.Count));
+        }
+        foreach (var inv in s.SubInvoices.Where(i => i.Status == SubInvoiceStatus.Rejected
+                     && !s.SubInvoices.Any(n => n.ContractNo == i.ContractNo && n.Subcontractor == i.Subcontractor && n.InvoiceNo == i.InvoiceNo && n.Revision > i.Revision)))
+            q.Add(new(Verdict.Check, "INVOICE", $"{inv.Title} rejected - prepare Rev {inv.Revision + 1}", inv.RejectionReason, new("Invoices", Key: $"{inv.ContractNo}|{inv.Subcontractor}|{inv.InvoiceNo}"), 4.5e8));
+        foreach (var inv in s.SubInvoices.Where(i => i.Status == SubInvoiceStatus.Submitted))
+            q.Add(new(Verdict.Due, "INVOICE", $"{inv.Title} in Aconex {inv.AconexWorkflowNo}", $"Submitted {inv.SubmittedAt:dd MMM} - waiting for head office.", new("Invoices", Key: $"{inv.ContractNo}|{inv.Subcontractor}|{inv.InvoiceNo}"), 1.2e8));
+
+        // 9. PROJECT QTY coverage
         var withCap = rows.Count(r => r.ProjectQty.HasValue);
         if (rows.Count > 0 && withCap < rows.Count * 0.5)
             q.Add(new(Verdict.Open, "BOQ", $"PROJECT QTY only {(double)withCap / rows.Count:P0} filled",

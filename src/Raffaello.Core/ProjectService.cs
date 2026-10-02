@@ -33,6 +33,9 @@ public sealed class ProjectService
 
     public event Action? Changed;
 
+    /// <summary>Real-workflow operations (ledger, checks, contracts, mapping, invoices, statements).</summary>
+    public Workflow.WorkflowService Workflow { get; }
+
     public ProjectService(AppSettings settings, Func<AppSettings, IProjectStore>? storeFactory = null)
     {
         Settings = settings;
@@ -40,7 +43,11 @@ public sealed class ProjectService
         Store = _storeFactory(settings);
         ApplyRuleSettings();
         Engine = new RulesEngine(Options);
+        Workflow = new Workflow.WorkflowService(this);
     }
+
+    /// <summary>Plan images are large; they are loaded on demand, not with the snapshot.</summary>
+    public List<PlanImage> LoadPlans() => Store.All<PlanImage>();
 
     /// <summary>Where the data lives, for display (file path or server URL).</summary>
     public string DataLocation => Store.Location;
@@ -78,14 +85,7 @@ public sealed class ProjectService
     {
         ApplyRuleSettings();
         Engine = new RulesEngine(Options);
-        Snapshot = new ProjectSnapshot
-        {
-            Rooms = Store.All<Room>(), Lines = Store.All<QtyLine>(), Subcontractors = Store.All<Subcontractor>(), Allocations = Store.All<Allocation>(),
-            Wirs = Store.All<Wir>(), WirLines = Store.All<WirLine>(), Invoices = Store.All<Invoice>(), InvoiceLines = Store.All<InvoiceLine>(),
-            PurchaseOrders = Store.All<PurchaseOrder>(), PoLines = Store.All<PoLine>(), DeliveryNotes = Store.All<DeliveryNote>(), DnLines = Store.All<DnLine>(),
-            BoqItems = Store.All<BoqItem>(), Contracts = Store.All<Contract>(), AconexDocs = Store.All<AconexDoc>(), Imports = Store.All<ImportBatch>(),
-            LoadedAt = DateTime.Now,
-        };
+        Snapshot = ProjectSnapshot.Load(Store);
         Chain = ChainBuilder.Build(Snapshot, Engine);
         ChainById = Chain.ToDictionary(c => c.Id);
         Queue = NeedsTodayQueue.Build(Snapshot, Chain, Options);
