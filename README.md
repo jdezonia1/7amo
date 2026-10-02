@@ -359,6 +359,11 @@ WPF compiles on Linux with `EnableWindowsTargeting`, but only with Microsoft's S
 folder from Microsoft's `dotnet-sdk-8.0` package (packages.microsoft.com) into `<dotnet>/sdk/<version>/Sdks/`.
 The app itself only runs on Windows.
 
+Before sending a build to Windows run `tools/check_app.sh`: it compiles the app and runs `tools/Raffaello.XamlCheck`,
+which checks every `{Binding}` path on every screen against the type its DataContext will have (WPF drops broken
+paths silently). On Windows, `UPDATE_AND_RUN.bat` (downloads the branch, incremental build, starts the app) is the fast
+test loop; `%APPDATA%\Raffaello\startup.log`, `error.log` and `binding_errors.log` are collected by `RUN_DIAG.bat`.
+
 <!-- [phase4] begin -->
 ## Aconex automation and Variations (phase 4)
 
