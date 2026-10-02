@@ -8,7 +8,7 @@ namespace Raffaello.Cli;
 /// <summary>Phase 3 (materials / owner MOS / BOQ) verification commands.</summary>
 public static partial class Phase3Commands
 {
-    private static readonly HashSet<string> Names = new() { "pdf-text", "read-po", "read-dn", "read-mir", "match" };
+    private static readonly HashSet<string> Names = new() { "pdf-text", "read-po", "read-dn", "read-mir", "match", "autocode", "read-boq", "supplier-invoice" };
 
     public static bool Handles(string cmd) => Names.Contains(cmd);
 
@@ -30,6 +30,9 @@ public static partial class Phase3Commands
                 case "read-dn": ReadDn(args[1]); return 0;
                 case "read-mir": ReadMir(args[1]); return 0;
                 case "match": Match(args.Skip(1).ToArray()); return 0;
+                case "autocode": AutoCode(args.Skip(1).ToArray()); return 0;
+                case "read-boq": ReadBoq(args[1]); return 0;
+                case "supplier-invoice": SupplierInvoice(args.Skip(1).ToArray()); return 0;
             }
         }
         catch (Exception ex)
@@ -142,5 +145,98 @@ public static partial class Phase3Commands
             list.Add(a[i]);
         }
         return list;
+    }
+
+    private static string Csv(object? x) => "\"" + (x?.ToString() ?? "").Replace("\"", "'") + "\"";
+
+    /// <summary>autocode PO.pdf [--epromise INVOICE.xlsx] [--no-scope] [--out FILE.csv] : codes every PO line and prints coverage.</summary>
+    private static void AutoCode(string[] a)
+    {
+        var files = Positional(a);
+        var po = PoReader.ReadAsync(files[0]).GetAwaiter().GetResult();
+        var budget = new List<Raffaello.Core.Domain.BoqItem>();
+        if (Opt(a, "epromise") is { } ep)
+        {
+            var r = Raffaello.Core.Contracts.EPromiseImporter.Read(ep);
+            budget = r.Items;
+            Console.WriteLine("E-Promise: " + r.Summary);
+        }
+        var noScope = a.Contains("--no-scope");
+        var scope = noScope ? new List<MatPoScope>() : po.Value.Scope;
+        var coder = new AutoCoder(new CodingSources { BudgetList = budget, PoScope = scope }, 0.85, 0.6);
+        Console.WriteLine($"pool {coder.PoolSize} candidates, PO scope rows {scope.Count}");
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var rows = new List<string> { "line,description,unit,status,score,boq,cost code,budget resource,resource,source,alt1,alt2" };
+        var stats = new Dictionary<string, int>();
+        foreach (var l in po.Value.Lines)
+        {
+            var sug = coder.Suggest(new CodingRequest(po.Value.Header.Supplier, l.ItemCode, l.Description, l.Unit));
+            stats[sug.Status] = stats.GetValueOrDefault(sug.Status) + 1;
+            var b = sug.Best;
+            Console.WriteLine($"  {l.LineNo,3} {l.Description,-32} {sug.Status,-6} {b?.Score,5:P0} {b?.BoqCode,-22} {b?.CostCode} {b?.BudgetResourceCode} | {string.Join(" | ", sug.Top.Skip(1).Select(c => $"{c.BoqCode} {c.Score:P0}"))}");
+            rows.Add(string.Join(",", new object?[] { l.LineNo, l.Description, l.Unit, sug.Status, b?.Score, b?.BoqCode, b?.CostCode, b?.BudgetResourceCode, b?.ResourceCode, b?.Source,
+                sug.Top.ElementAtOrDefault(1)?.BoqCode, sug.Top.ElementAtOrDefault(2)?.BoqCode }.Select(Csv)));
+        }
+        Console.WriteLine($"coverage: {string.Join(", ", stats.Select(kv => $"{kv.Key} {kv.Value}"))} of {po.Value.Lines.Count} lines ({sw.ElapsedMilliseconds} ms)");
+        if (Opt(a, "out") is { } outFile) { File.WriteAllLines(outFile, rows); Console.WriteLine("written " + outFile); }
+    }
+
+    private static void ReadBoq(string path)
+    {
+        var r = Raffaello.Core.Boq.BoqImporter.Read(path);
+        Console.WriteLine(r.Summary);
+        foreach (var g in r.Rows.Where(x => !x.IsHeading).GroupBy(x => x.System.Length == 0 ? "(none)" : x.System).OrderByDescending(g => g.Count()))
+            Console.WriteLine($"  {g.Key,-24} {g.Count(),5}  {string.Join(", ", g.GroupBy(x => x.Category.Length == 0 ? "(none)" : x.Category).OrderByDescending(c => c.Count()).Take(4).Select(c => $"{c.Key} {c.Count()}"))}");
+        foreach (var i in r.Issues.Take(10)) Console.WriteLine("  CHECK " + i);
+    }
+
+    /// <summary>supplier-invoice PO.pdf DN.pdf [MIR.pdf --dn-in-mir] --out DIR : match, build INV-01 from all matched DN lines, save, export package.</summary>
+    private static void SupplierInvoice(string[] a)
+    {
+        var files = Positional(a);
+        var outDir = Opt(a, "out") ?? throw new ArgumentException("--out DIR is required");
+        Directory.CreateDirectory(outDir);
+        var dbPath = Path.Combine(outDir, "phase3-cli.db");
+        foreach (var f in new[] { dbPath, dbPath + "-wal", dbPath + "-shm" }) if (File.Exists(f)) File.Delete(f);
+        var settings = new Raffaello.Core.Settings.AppSettings { DataFilePath = dbPath, SeedDemoData = false, UserName = "cli" };
+        var project = new Raffaello.Core.ProjectService(settings);
+        project.Initialize();
+        var store = new SqliteMaterialsStore(() => (Db)project.Store);
+        var svc = new MaterialsService(project, store, new MaterialsSettings());
+        svc.Reload();
+        var po = svc.ReadPoAsync(files[0]).GetAwaiter().GetResult();
+        Console.WriteLine("coding: " + svc.CodePoLines(po.Value));
+        var saved = svc.CommitPo(po.Value);
+        foreach (var f in files.Skip(1))
+        {
+            if (f.Contains("MIR", StringComparison.OrdinalIgnoreCase))
+            {
+                var m = svc.ReadMirAsync(f).GetAwaiter().GetResult();
+                if (a.Contains("--dn-in-mir")) foreach (var d in svc.Snapshot.Dns) m.Value.Dns.Add(new MatMirDn { DnNo = d.DnNo, PoNo = d.PoNo, Source = "MANUAL" });
+                svc.CommitMir(m.Value);
+            }
+            else svc.CommitDn(svc.ReadDnAsync(f).GetAwaiter().GetResult().Value);
+        }
+        var match = svc.RunMatch();
+        Console.WriteLine("match: " + match.Summary);
+        var po2 = svc.Snapshot.Pos.First(p => p.Id == saved.Id);
+        var no = SupplierInvoices.NextInvoiceNo(svc.Snapshot, po2);
+        var lines = SupplierInvoices.Invoiceable(svc.Snapshot, po2, no).Select(l => l.Id).ToList();
+        var b = svc.BuildInvoice(po2, no, lines);
+        var h = svc.SaveInvoice(b);
+        Console.WriteLine($"invoice {h.Title}: {b.CurrentLines.Count} DN lines, {b.Build.Lines.Count(l => l.Kind == "ITEM")} rows, current SAR {b.Build.Totals.CurrGross:N2}, VAT {b.Build.Totals.VatCurr:N2}, incl. VAT {b.Build.Totals.NetInclVatCurr:N2}");
+        foreach (var l in b.Build.Lines.Where(l => l.Kind == "ITEM" && l.CurrQty > 0)) Console.WriteLine($"   {l.ItemNo} {l.BoqCode,-22} {l.Description,-26} curr {l.CurrQty,9:N2} {l.Unit} x {l.Rate:N3} = {l.CurrAmount,12:N2}");
+        foreach (var w in b.Warnings) Console.WriteLine("  WARN " + w);
+        try { svc.SaveInvoice(svc.BuildInvoice(po2, no + 1, lines)); Console.WriteLine("ERROR: second invoice of the same DN lines was accepted"); }
+        catch (DnLineLockedException ex) { Console.WriteLine("hard lock OK: " + ex.Message); }
+        var zip = svc.ExportInvoice(outDir, b, project.Workflow.HeaderInfo());
+        Console.WriteLine("package " + zip);
+        Console.WriteLine("lookup: " + string.Join(" | ", svc.Lookup(null, "81064344").Select(r => $"{r.DnNo} PO {r.PoNo} {r.Invoice} {r.InvoiceStatus} MIR {r.MirNo} {r.Match}")));
+        // owner MOS from the same deliveries
+        var mos = Raffaello.Core.Mos.MosService.Build(project.Snapshot, svc.Snapshot, svc.Settings, 1, 0, DateTime.Today, svc.Coder());
+        Console.WriteLine($"MOS-01: {mos.Lines.Count} BOQ rows, on site SAR {mos.CumAmount:N2}, warnings {mos.Warnings.Count}");
+        Raffaello.Core.Mos.MosExporter.ExportExcel(Path.Combine(outDir, "MOS-01.xlsx"), mos, project.Workflow.HeaderInfo());
+        Raffaello.Core.Mos.MosExporter.ExportPdf(Path.Combine(outDir, "MOS-01.pdf"), mos, project.Workflow.HeaderInfo());
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
     }
 }

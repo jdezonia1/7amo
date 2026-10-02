@@ -70,7 +70,7 @@ public static class Fingerprints
         if (a.Cores != b.Cores || Math.Abs(a.Size - b.Size) > 1e-6 || a.Conductor != b.Conductor || a.FireRated != b.FireRated || a.Class != b.Class || a.Runs != b.Runs) return 0;
         var s = 1.0;
         if (a.Sheath.Length > 0 && b.Sheath.Length > 0 && a.Sheath != b.Sheath) s -= 0.3;
-        if (a.Armoured != b.Armoured && a.Cores > 1 && b.Cores > 1) s -= 0.15;
+        if (a.Armoured != b.Armoured && a.Cores > 1 && b.Cores > 1 && a.Sheath.Length > 0 && b.Sheath.Length > 0) s -= 0.15;
         if (a.Earth != b.Earth) s -= 0.1;
         return s;
     }

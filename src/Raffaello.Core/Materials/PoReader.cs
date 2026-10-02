@@ -29,7 +29,7 @@ public static class PoReader
     private static readonly Regex SowRx = new(
         @"^\s*(?<sr>\d{1,4})\s+(?<code>\d{8,14})\s+(?<name>\S.*?)\s{2,}(?<boq>B\d{1,2}-[0-9A-Z-]+)\s+(?<unit>[A-Za-z]{1,6})\s+(?<req>[\d,]+(?:\.\d+)?)\s+(?<app>[\d,]+(?:\.\d+)?)\s*$",
         RegexOptions.Compiled);
-    private static readonly Regex SowCont = new(@"^\s+\S.*?\s{2,}(?<suffix>[A-Z]{1,3}-\d{1,3})\s*$", RegexOptions.Compiled);
+    private static readonly Regex SowCont = new(@"^\s+\S.*?\s+(?<suffix>[A-Z]{1,3}-\d{1,3})\s*$", RegexOptions.Compiled);
     private static readonly Regex PoNoRx = new(@"\b([A-Z]{2,6}-P\.?O\.?-[A-Z0-9]+(?:-[A-Z0-9]+)+)\b", RegexOptions.Compiled);
 
     public static async Task<ExtractionResult<PoDocument>> ReadAsync(string path, ReaderOptions? options = null, CancellationToken ct = default)
