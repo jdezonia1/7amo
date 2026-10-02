@@ -17,6 +17,10 @@
     <!-- [phase4] text from variation / EI documents -->
     <!-- [phase3] PDF text layer for the document reader pipeline -->
     <PackageReference Include="PdfPig" Version="0.1.16" />
+    <!-- [trust] begin: CMS (PAdES-style) PDF signatures + DPAPI protection of the per-user signing key -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+    <!-- [trust] end -->
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Raffaello.Core.Tests" />
