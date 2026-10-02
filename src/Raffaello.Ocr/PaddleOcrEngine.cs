@@ -192,7 +192,7 @@ public sealed class PaddleOcrEngine : ILayoutOcrEngine, IDisposable
         var boxes = known ?? _det!.Run(img);
         var pick = boxes.OrderByDescending(b => Math.Max(b.Size.Width, b.Size.Height)).Take(12).ToList();
         if (pick.Count == 0) return 0;
-        var crops = pick.Select(b => PaddleOcrAll.GetRotateCropImage(img, b)).ToArray();
+        var crops = pick.Select(b => Crop(img, b)).ToArray();
         try
         {
             var res = rec.Run(crops, 0);
@@ -201,6 +201,28 @@ public sealed class PaddleOcrEngine : ILayoutOcrEngine, IDisposable
         }
         finally { foreach (var c in crops) c.Dispose(); }
     }
+
+    /// <summary>
+    /// Crop of one text box, upright: a tight perspective warp with the corners ordered by position (PaddleOcrAll.GetRotateCropImage orders by the rectangle's own corner order and can return the
+    /// crop upside down, which would fool the orientation test).
+    /// </summary>
+    internal static Mat Crop(Mat img, RotatedRect b)
+    {
+        var pts = b.Points();
+        var tl = pts.OrderBy(p => p.X + p.Y).First();
+        var br = pts.OrderByDescending(p => p.X + p.Y).First();
+        var tr = pts.OrderBy(p => p.Y - p.X).First();
+        var bl = pts.OrderByDescending(p => p.Y - p.X).First();
+        var W = (int)Math.Max(4, Math.Round(Math.Max(Dist(tl, tr), Dist(bl, br))));
+        var H = (int)Math.Max(4, Math.Round(Math.Max(Dist(tl, bl), Dist(tr, br))));
+        var dst = new[] { new Point2f(0, 0), new Point2f(W - 1, 0), new Point2f(W - 1, H - 1), new Point2f(0, H - 1) };
+        using var M = Cv2.GetPerspectiveTransform(new[] { tl, tr, br, bl }, dst);
+        var outp = new Mat();
+        Cv2.WarpPerspective(img, outp, M, new Size(W, H), InterpolationFlags.Cubic, BorderTypes.Replicate);
+        return outp;
+    }
+
+    private static double Dist(Point2f a, Point2f b) => Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
 
     private static double Skew(RotatedRect[] boxes)
     {
@@ -223,7 +245,7 @@ public sealed class PaddleOcrEngine : ILayoutOcrEngine, IDisposable
     {
         var words = new List<OcrWord>(boxes.Length);
         if (boxes.Length == 0) return words;
-        var crops = boxes.Select(b => PaddleOcrAll.GetRotateCropImage(img, b)).ToArray();
+        var crops = boxes.Select(b => Crop(img, b)).ToArray();
         try
         {
             var res = rec.Run(crops, 0);
