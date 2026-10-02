@@ -177,7 +177,7 @@ public class AssembliesTests
     public void Default_library_formulas_are_valid_and_every_type_has_a_template()
     {
         var lib = Lib();
-        foreach (var t in lib.Templates) Assert.Empty(TemplateCheck.Problems(t, lib.Globals));
+        foreach (var t in lib.Templates) Assert.True(TemplateCheck.Problems(t, lib.Globals).Count == 0, t.Code + ": " + string.Join(" | ", TemplateCheck.Problems(t, lib.Globals)));
         foreach (var type in ItemTypes.All.Where(t => t != ItemTypes.Unknown)) Assert.NotNull(lib.ForType(type));
         Assert.Equal(lib.Templates.Count, lib.Templates.Select(t => t.Code).Distinct().Count());
         Assert.All(lib.Globals, g => Assert.False(g.Confirmed));
@@ -271,7 +271,7 @@ public class AssembliesTests
         };
         var labour = new ContractLabour(items);
         var spec = ItemParser.Parse("4C 16mm2 Cu/XLPE/SWA/LSHZ + 1C 16mm2 Cu/LSF G/Y", "m", ItemSourceKind.Boq);
-        var b = AssemblyCalculator.Calculate(spec, lib.ForType(spec.ItemType)!, Ctx(lib, prices: book, labour: labour, reference: 80));
+        var b = AssemblyCalculator.Calculate(spec, lib.ForType(spec.ItemType)!, Ctx(lib, prices: book, labour: labour, reference: 100));
         var cable = b.Lines.Single(l => l.Key == "cable");
         Assert.Equal(42.089, cable.UnitPrice, 3);
         Assert.Equal(PriceSources.Po, cable.PriceSource);
@@ -495,8 +495,8 @@ public class AssembliesTests
             {
                 Assert.True(wb.Worksheets.Contains("MATERIAL REQUIREMENTS"));
                 var ws = wb.Worksheet("ITEMS");
-                var header = ws.Row(3).Cell(1);
-                Assert.Equal(XLColor.FromHtml("#A6A6A6"), header.Style.Fill.BackgroundColor);
+                var header = ws.CellsUsed().First(c => c.GetString() == "DESCRIPTION");
+                Assert.Equal("FFA6A6A6", header.Style.Fill.BackgroundColor.Color.ToArgb().ToString("X8"));
                 Assert.True(header.Style.Font.Bold);
             }
             var pdf = Path.Combine(outDir, "rate.pdf");

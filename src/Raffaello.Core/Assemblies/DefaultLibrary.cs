@@ -58,7 +58,7 @@ public static class DefaultLibrary
         "if(cable_cores==2, if(cable_size>=6,10,8), if(cable_size>=150,18,if(cable_size>=120,13,if(cable_size>=70,12,if(cable_size>=50,10,if(cable_size>=25,8,if(cable_size>=10,7,6))))))))";
     private const string SubTerm =
         "if(is_earth || cable_cores==1, if(cable_size>=150,41,if(cable_size>=120,38,if(cable_size>=95,34,if(cable_size>=70,32,if(cable_size>=35,15,if(cable_size>=25,12,if(cable_size>=10,10,if(cable_size>=6,8,if(cable_size>=4,7,6))))))))), " +
-        "if(cable_cores==2, if(cable_size>=16,12,9), if(cable_size>=240,296,if(cable_size>=185,237,if(cable_size>=150,166,if(cable_size>=120,142,if(cable_size>=70,119,if(cable_size>=50,83,if(cable_size>=35,59,if(cable_size>=25,41,if(cable_size>=16,36,if(cable_size>=10,27,12)))))))))))";
+        "if(cable_cores==2, if(cable_size>=16,12,9), if(cable_size>=240,296,if(cable_size>=185,237,if(cable_size>=150,166,if(cable_size>=120,142,if(cable_size>=70,119,if(cable_size>=50,83,if(cable_size>=35,59,if(cable_size>=25,41,if(cable_size>=16,36,if(cable_size>=10,27,12))))))))))))";
 
     public static List<AsmParam> GlobalParams() => new()
     {

@@ -199,7 +199,7 @@ public static class AssemblyCalculator
             lines.Add(new BreakdownLine
             {
                 Order = c.Order, Key = c.Key, Component = c.Name, Spec = specText, Unit = c.Unit, Stage = c.Stage, Kind = c.Kind,
-                QtyPerUnit = Math.Round(qty, 4), WastePct = c.WastePct, TotalQty = Math.Round(total, 4), UnitPrice = Math.Round(price, 4), Amount = Math.Round(amount, 2),
+                QtyPerUnit = Math.Round(qty, 6), WastePct = c.WastePct, TotalQty = Math.Round(total, 6), UnitPrice = Math.Round(price, 4), Amount = Math.Round(amount, 2),
                 PriceSource = hit?.Source ?? (flag == BreakdownFlags.Error ? "" : PriceSources.Unknown), PriceRef = hit?.Ref ?? "", PriceDate = hit?.Date,
                 Included = included, Flag = flag, Note = string.Join("; ", new[] { c.Notes, hit?.Note ?? "" }.Where(s => s.Length > 0)),
             });
