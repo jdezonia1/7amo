@@ -32,6 +32,10 @@ public sealed class PackageRequest
     public List<(string Name, string Path, string Note)> ExtraFiles { get; init; } = new();
     /// <summary>[phase6] Plan images in the tracker are recompressed to stay under this total.</summary>
     public long MaxPlanImageBytes { get; init; } = TrackerExportScope.DefaultMaxImageBytes;
+    // [insights] begin
+    /// <summary>Generated sections for this package: (temp folder, stamp) -> files (name inside the ZIP, path, note).</summary>
+    public List<Func<string, DateTime, IEnumerable<(string Name, string Path, string Note)>>> Sections { get; init; } = new();
+    // [insights] end
 }
 
 public sealed record PackageEntry(string Name, long Bytes, string Sha256, string Note);
@@ -71,6 +75,11 @@ public static class PackageNames
 /// </summary>
 public static class InvoicePackageBuilder
 {
+    // [insights] begin
+    /// <summary>Sections every package gets from optional modules (e.g. the insights check page), registered at start-up: (request, temp folder, stamp) -> files.</summary>
+    public static readonly List<Func<PackageRequest, string, DateTime, IEnumerable<(string Name, string Path, string Note)>>> GlobalSections = new();
+    // [insights] end
+
     public static PackageResult Build(PackageRequest req)
     {
         QuestPDF.Settings.License = LicenseType.Community;
@@ -146,6 +155,13 @@ public static class InvoicePackageBuilder
             }
             foreach (var extra in req.ExtraFiles.Where(f => File.Exists(f.Path)))
                 files.Add((extra.Name, File.ReadAllBytes(extra.Path), extra.Note));
+            // [insights] begin
+            var sections = req.Sections.Select(f => (Func<string, DateTime, IEnumerable<(string Name, string Path, string Note)>>)f)
+                .Concat(GlobalSections.ToList().Select(g => (Func<string, DateTime, IEnumerable<(string Name, string Path, string Note)>>)((w, st) => g(req, w, st))));
+            foreach (var section in sections)
+                try { foreach (var f in section(work, stamp).Where(f => File.Exists(f.Path)).ToList()) files.Add((f.Name, File.ReadAllBytes(f.Path), f.Note)); }
+                catch (Exception ex) { res.Warnings.Add("A package section could not be generated: " + ex.Message); }
+            // [insights] end
 
             foreach (var f in files) res.Entries.Add(new PackageEntry(f.Name, f.Data.Length, Deterministic.Sha256(f.Data), f.Note));
 
