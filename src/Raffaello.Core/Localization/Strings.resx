@@ -753,7 +753,7 @@
   <data name="Ui_TRIES" xml:space="preserve"><value>TRIES</value></data>
   <data name="Ui_TYPE" xml:space="preserve"><value>TYPE</value></data>
   <data name="Ui_TEST_CERTIFICATES_DRUM_NO_LENGTH" xml:space="preserve"><value>Test certificates (drum no + length)</value></data>
-  <data name="Ui_THE_KEY_IS_STORED_ONLY_IN_YOUR_OWN_SETTINGS_JSON" xml:space="preserve"><value>The key is stored only in your own settings.json. The selected line's chain, the filter scope and today's queue are sent as context with each question.</value></data>
+  <data name="Ui_THE_API_KEY_IS_STORED_ENCRYPTED_FOR_YOUR_WINDOWS" xml:space="preserve"><value>The API key is stored encrypted for your Windows account only (DPAPI). The screen context and the results of the read tools are sent with each question.</value></data>
   <data name="Ui_THE_SAME_DESCRIPTION_GETS_THIS_SYSTEM_CATEGORY_A" xml:space="preserve"><value>The same description gets this system / category automatically from now on.</value></data>
   <data name="Ui_THE_SUBCONTRACTOR_S_INVOICE_LAYOUT_ITEM_X_BOQ_RO" xml:space="preserve"><value>The subcontractor's invoice layout: item x BOQ rows, stage %, sections</value></data>
   <data name="Ui_TYPE_PART_OF_A_NUMBER_PUNCTUATION_DOES_NOT_MATTE" xml:space="preserve"><value>Type part of a number - punctuation does not matter (RAF-P.O-E-045 = RAFPOE045).</value></data>

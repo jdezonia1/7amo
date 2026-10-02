@@ -52,6 +52,27 @@ public sealed class NotificationHub
         return new NotificationRouter(_store, _channels()) { Clock = Clock }.RouteAsync(owner, events, ct);
     }
 
+    /// <summary>
+    /// First run for a user: records every current event as already notified (nothing is sent), so the user is told about what
+    /// changes from now on instead of receiving the whole backlog. Returns how many were recorded.
+    /// </summary>
+    public int Baseline(string owner, ProjectSnapshot snapshot, IReadOnlyList<QueueItem> queue, string lang = Loc.English)
+    {
+        if (_store.All<NotificationLog>().Any(l => string.Equals(l.Owner, owner, StringComparison.OrdinalIgnoreCase))) return 0;
+        var now = Clock();
+        var events = NotifyEventDetector.Detect(snapshot, queue, _store.Reminders(owner), now, now, lang);
+        var channels = new NotificationRouter(_store, _channels()).RulesFor(owner).Where(r => r.Enabled).Select(r => r.Channel).Distinct().ToList();
+        var rows = events.SelectMany(e => channels.Select(c => new NotificationLog { Owner = owner, EventKey = e.Key, Channel = c, SentAt = now, Status = "SENT", Error = "baseline", Title = e.Title.Length > 200 ? e.Title[..200] : e.Title })).ToList();
+        if (rows.Count == 0)
+            rows.Add(new NotificationLog { Owner = owner, EventKey = "baseline", Channel = NotifyChannels.InApp, SentAt = now, Status = "SENT", Error = "baseline" });
+        _store.Batch(b => { foreach (var r in rows) b.Insert(r); }, $"Notifications baseline for {owner}: {rows.Count} current events");
+        return rows.Count;
+    }
+
+    /// <summary>True when today's brief already went out on some channel for this user.</summary>
+    public bool BriefSentToday(string owner) =>
+        _store.All<NotificationLog>().Any(l => l.EventKey == $"brief|{owner}|{Clock():yyyy-MM-dd}" && l.Status == "SENT");
+
     /// <summary>Sends the brief once per day per channel (e-mail gets HTML + PDF) and stores its figures for tomorrow's comparison.</summary>
     public async Task<List<NotifyResult>> SendBriefAsync(Brief brief, CancellationToken ct = default)
     {

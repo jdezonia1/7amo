@@ -578,7 +578,7 @@ TRACKER PASSWORD	كلمة مرور ملف المتابعة
 TRIES	المحاولات
 TYPE	النوع
 Test certificates (drum no + length)	شهادات الاختبار (رقم البكرة + الطول)
-The key is stored only in your own settings.json. The selected line's chain, the filter scope and today's queue are sent as context with each question.	يُحفظ المفتاح مشفراً على هذا الجهاز فقط. سياق الشاشة ونتائج الأدوات تُرسل مع كل سؤال.
+The API key is stored encrypted for your Windows account only (DPAPI). The screen context and the results of the read tools are sent with each question.	يُحفظ المفتاح مشفراً على هذا الجهاز فقط. سياق الشاشة ونتائج الأدوات تُرسل مع كل سؤال.
 The same description gets this system / category automatically from now on.	نفس الوصف سيأخذ هذا النظام / الفئة تلقائياً من الآن.
 The subcontractor's invoice layout: item x BOQ rows, stage %, sections	تنسيق فاتورة المقاول: البند × صفوف جدول الكميات، نسبة المرحلة، الأقسام
 Thinking...	جارٍ التفكير...

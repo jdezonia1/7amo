@@ -152,6 +152,9 @@ public sealed partial class SelectionService : ObservableObject
 {
     [ObservableProperty] private string _screen = "Welcome";
     [ObservableProperty] private ChainRow? _selectedLine;
+    // [assistant] begin: what is selected on the current page (room, invoice, DN ...), told to the assistant with each question
+    [ObservableProperty] private string _selectedRecord = "";
+    // [assistant] end
 }
 
 /// <summary>Writes a presence heartbeat to the shared data file every 60 s and reads who else is online.</summary>

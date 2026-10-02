@@ -157,7 +157,7 @@ public static class ApiKeys
     {
         if (vault.Get(SecretNames.AnthropicKey) is { Length: > 0 } k) return (k.Trim(), Source.Vault);
         if (Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") is { Length: > 0 } env) return (env.Trim(), Source.Environment);
-        if (!string.IsNullOrWhiteSpace(settings.AnthropicApiKey)) return (settings.AnthropicApiKey.Trim(), Source.LegacySettings);
+        if (!string.IsNullOrWhiteSpace(settings.StoredAnthropicApiKey)) return (settings.StoredAnthropicApiKey.Trim(), Source.LegacySettings);
         return (null, Source.None);
     }
 
@@ -167,11 +167,21 @@ public static class ApiKeys
     /// </summary>
     public static bool MigrateLegacy(ISecretVault vault, AppSettings settings, Action? save = null)
     {
-        if (!vault.IsPersistent || string.IsNullOrWhiteSpace(settings.AnthropicApiKey)) return false;
-        vault.Set(SecretNames.AnthropicKey, settings.AnthropicApiKey.Trim());
-        settings.AnthropicApiKey = "";
+        if (!vault.IsPersistent || string.IsNullOrWhiteSpace(settings.StoredAnthropicApiKey)) return false;
+        vault.Set(SecretNames.AnthropicKey, settings.StoredAnthropicApiKey.Trim());
+        settings.StoredAnthropicApiKey = "";
         (save ?? (() => settings.Save()))();
         return true;
+    }
+
+    /// <summary>
+    /// Registers the vault behind <see cref="AppSettings.AnthropicApiKey"/> (Windows only: DPAPI), so every module that reads the key gets it
+    /// from the vault and a key typed in Settings is written there, never to settings.json.
+    /// </summary>
+    public static void UseVaultForSettings(ISecretVault vault)
+    {
+        if (!vault.IsPersistent) return;
+        AppSettings.ProtectedApiKey = (() => vault.Get(SecretNames.AnthropicKey), v => vault.Set(SecretNames.AnthropicKey, v));
     }
 
     /// <summary>"sk-ant-...7Qx" style hint for the UI.</summary>

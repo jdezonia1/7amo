@@ -19,7 +19,23 @@ public sealed class AppSettings
     public double PipeLengthM { get; set; } = 6.0;
 
     // assistant
-    public string AnthropicApiKey { get; set; } = "";
+    // [assistant] begin: the API key lives in the Windows DPAPI vault once the app registers it (ProtectedApiKey); settings.json keeps a
+    // plain key only where no protected store exists. Every module keeps reading AnthropicApiKey as before.
+    [JsonIgnore]
+    public string AnthropicApiKey
+    {
+        get => !string.IsNullOrWhiteSpace(StoredAnthropicApiKey) ? StoredAnthropicApiKey : ProtectedApiKey?.Get() ?? "";
+        set
+        {
+            if (ProtectedApiKey is { } p) { p.Set((value ?? "").Trim()); StoredAnthropicApiKey = ""; }
+            else StoredAnthropicApiKey = value ?? "";
+        }
+    }
+    /// <summary>Plain key from settings.json (older versions, or no DPAPI). Moved into the vault on Windows at start-up.</summary>
+    [JsonPropertyName("AnthropicApiKey")] public string StoredAnthropicApiKey { get; set; } = "";
+    /// <summary>Protected key store registered by the app (Windows DPAPI). Null = plain settings.json.</summary>
+    [JsonIgnore] public static (Func<string?> Get, Action<string> Set)? ProtectedApiKey { get; set; }
+    // [assistant] end
     public string AnthropicModel { get; set; } = "claude-opus-5-5";
     public string AnthropicEffort { get; set; } = "medium";
     public bool UseServerFallbacks { get; set; } = true;

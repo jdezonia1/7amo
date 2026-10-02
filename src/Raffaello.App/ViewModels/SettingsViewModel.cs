@@ -19,6 +19,14 @@ public sealed partial class SettingsViewModel : PageViewModel
     public Phase5.ServerSettingsViewModel Server => _server ??= new Phase5.ServerSettingsViewModel(Ctx);
     // [phase5] end
 
+    // [assistant] begin
+    private AssistantSettingsViewModel? _assistant;
+    /// <summary>Language, assistant (API key in DPAPI), morning brief and notifications card.</summary>
+    public AssistantSettingsViewModel? Assistant => _assistant ??= Services.Assistant.AssistantHost.Current is { } h
+        ? new AssistantSettingsViewModel(h, Ctx.Toasts, () => App.Container?.GetService(typeof(Services.Assistant.AssistantNotificationService)) as Services.Assistant.AssistantNotificationService)
+        : null;
+    // [assistant] end
+
     public override string Key => "Settings";
     public override string Title => "SETTINGS";
     public override string Subtitle => "Stored per user in %APPDATA%\\Raffaello\\settings.json";
@@ -76,7 +84,7 @@ public sealed partial class SettingsViewModel : PageViewModel
         WirDueDays = s.WirDueDays.ToString(CultureInfo.InvariantCulture);
         SiteTolerance = (s.SiteTolerance * 100).ToString("0", CultureInfo.InvariantCulture);
         PipeLength = s.PipeLengthM.ToString("0.##", CultureInfo.InvariantCulture);
-        ApiKey = s.AnthropicApiKey;
+        ApiKey = "";   // [assistant] the key is edited in the ASSISTANT card (DPAPI); never held here
         Model = s.AnthropicModel;
         Effort = s.AnthropicEffort;
         UseFallbacks = s.UseServerFallbacks;
@@ -95,8 +103,11 @@ public sealed partial class SettingsViewModel : PageViewModel
         VariationsUseClaude = s.VariationsUseClaude;
         AconexConfigPath = s.AconexConfigPath;
         // [phase4] end
-        KeyStatus = AnthropicClient.ResolveKey(s.AnthropicApiKey) is null ? "NO KEY - Ask Raffaello runs offline (rules engine only)"
-            : string.IsNullOrWhiteSpace(s.AnthropicApiKey) ? "USING ANTHROPIC_API_KEY FROM THE ENVIRONMENT" : "KEY SAVED IN SETTINGS";
+        // [assistant] begin: the key lives in the DPAPI vault
+        KeyStatus = AnthropicClient.ResolveKey(s.AnthropicApiKey) is null ? "NO KEY - Ask Raffaello runs offline (local data only)"
+            : !string.IsNullOrWhiteSpace(s.AnthropicApiKey) ? "KEY SAVED (WINDOWS DPAPI)" : "USING ANTHROPIC_API_KEY FROM THE ENVIRONMENT";
+        _assistant?.Load();
+        // [assistant] end
     }
 
     [RelayCommand]
@@ -112,8 +123,8 @@ public sealed partial class SettingsViewModel : PageViewModel
         if (int.TryParse(WirDueDays, out var d)) s.WirDueDays = Math.Clamp(d, 1, 120);
         if (double.TryParse(SiteTolerance, NumberStyles.Float, CultureInfo.InvariantCulture, out var t)) s.SiteTolerance = Math.Clamp(t / 100.0, 0, 1);
         if (double.TryParse(PipeLength, NumberStyles.Float, CultureInfo.InvariantCulture, out var pl) && pl > 0) s.PipeLengthM = pl;
-        s.AnthropicApiKey = ApiKey.Trim();
-        s.AnthropicModel = string.IsNullOrWhiteSpace(Model) ? AnthropicClient.DefaultModel : Model.Trim();
+        // [assistant] the API key is saved by the ASSISTANT card (DPAPI vault), not here
+        // [assistant] the model is edited in the ASSISTANT card
         s.AnthropicEffort = Effort;
         s.UseServerFallbacks = UseFallbacks;
         s.InvoiceProjectCode = InvoiceProjectCode.Trim();

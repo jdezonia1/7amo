@@ -753,7 +753,7 @@
   <data name="Ui_TRIES" xml:space="preserve"><value>المحاولات</value></data>
   <data name="Ui_TYPE" xml:space="preserve"><value>النوع</value></data>
   <data name="Ui_TEST_CERTIFICATES_DRUM_NO_LENGTH" xml:space="preserve"><value>شهادات الاختبار (رقم البكرة + الطول)</value></data>
-  <data name="Ui_THE_KEY_IS_STORED_ONLY_IN_YOUR_OWN_SETTINGS_JSON" xml:space="preserve"><value>يُحفظ المفتاح مشفراً على هذا الجهاز فقط. سياق الشاشة ونتائج الأدوات تُرسل مع كل سؤال.</value></data>
+  <data name="Ui_THE_API_KEY_IS_STORED_ENCRYPTED_FOR_YOUR_WINDOWS" xml:space="preserve"><value>يُحفظ المفتاح مشفراً على هذا الجهاز فقط. سياق الشاشة ونتائج الأدوات تُرسل مع كل سؤال.</value></data>
   <data name="Ui_THE_SAME_DESCRIPTION_GETS_THIS_SYSTEM_CATEGORY_A" xml:space="preserve"><value>نفس الوصف سيأخذ هذا النظام / الفئة تلقائياً من الآن.</value></data>
   <data name="Ui_THE_SUBCONTRACTOR_S_INVOICE_LAYOUT_ITEM_X_BOQ_RO" xml:space="preserve"><value>تنسيق فاتورة المقاول: البند × صفوف جدول الكميات، نسبة المرحلة، الأقسام</value></data>
   <data name="Ui_TYPE_PART_OF_A_NUMBER_PUNCTUATION_DOES_NOT_MATTE" xml:space="preserve"><value>اكتب جزءاً من الرقم - علامات الترقيم لا تهم (RAF-P.O-E-045 = RAFPOE045).</value></data>

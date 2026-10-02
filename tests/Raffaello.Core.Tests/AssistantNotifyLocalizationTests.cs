@@ -253,6 +253,29 @@ public class AssistantInfrastructureTests
     }
 
     [Fact]
+    public void A_key_typed_in_settings_goes_to_the_protected_store_and_never_into_settings_json()
+    {
+        var dir = TestData.TempDir();
+        var path = Path.Combine(dir, "settings.json");
+        File.WriteAllText(path, "{\"UserName\":\"x\",\"AnthropicApiKey\":\"sk-old-plain\"}");
+        var legacy = AppSettings.Load(path);
+        Assert.Equal("sk-old-plain", legacy.StoredAnthropicApiKey);       // older files still read
+        Assert.Equal("sk-old-plain", legacy.AnthropicApiKey);
+        var vault = new Dictionary<string, string>();
+        var s = new AppSettings();
+        try
+        {
+            AppSettings.ProtectedApiKey = (() => vault.GetValueOrDefault("k"), v => vault["k"] = v);
+            s.AnthropicApiKey = "sk-new-secret";
+            Assert.Equal("sk-new-secret", vault["k"]);
+            Assert.Equal("sk-new-secret", s.AnthropicApiKey);           // every module still reads it here
+            s.Save(path);
+            Assert.DoesNotContain("sk-new-secret", File.ReadAllText(path));
+        }
+        finally { AppSettings.ProtectedApiKey = null; }
+    }
+
+    [Fact]
     public void Settings_round_trip_without_secrets()
     {
         var path = Path.Combine(TestData.TempDir(), "assistant.json");
