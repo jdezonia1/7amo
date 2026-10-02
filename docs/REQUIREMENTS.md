@@ -34,6 +34,16 @@ The app must be multi-user (several people editing at once).
    filled + flagged for review; low → user picks. Every confirmation is learned; each line records where its code
    came from. Reuse the same matcher for variations and new owner BOQ items.
 
+8. **Height above 4.5 m check** (added 02-Oct): subcontractors claim some work is above 4.5 m (higher contract
+   rate, e.g. item 2 SAR 57 vs item 1 SAR 55). Cannot be traced from drawings — Mohamed checks manually. Every claim
+   line needs: QTY CLAIMED ABOVE 4.5 m, CHECK STATUS (PENDING / ACCEPTED / PARTLY / REJECTED), QTY ACCEPTED ABOVE
+   4.5 m, CHECKED BY, CHECK DATE, NOTES (+ photo). Only the accepted quantity is priced at the >4.5 m item; the rest
+   at the normal item; pending lines are held out of the invoice until checked. Rooms can carry a "high area" note
+   once confirmed, to speed up later claims.
+9. **Infrastructure**: no known server; office has a switched LAN with shared network partitions. Ask IT for one
+   always-on Windows PC/VM on the LAN (or a NAS that can run PostgreSQL) to host the Raffaello service + database;
+   documents stay on the shared partition.
+
 ## Findings from the sample files
 - **Subcontractor contract (Excel)** `contract_excel.xlsx`: Arabic labour-only rate schedule, one sheet,
   ~323 items in 23 sections (Lighting & Power, Façade, LED strip, Cable tray, Terminations, Cable pulling,
