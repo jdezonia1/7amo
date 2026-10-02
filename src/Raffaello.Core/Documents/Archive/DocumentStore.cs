@@ -39,7 +39,8 @@ public static class DocumentStoreExtensions
     /// <summary>Saves a read document with its page text and fields. A document with the same SHA-256 and link is replaced (re-read).</summary>
     public static DocRecord SaveRead(this IDocumentStore store, DocRecord rec, IReadOnlyList<DocPageText> pages, IReadOnlyList<DocField> fields)
     {
-        var old = store.All<DocRecord>().FirstOrDefault(d => d.Sha256 == rec.Sha256 && d.LinkedTable == rec.LinkedTable && d.LinkedKey == rec.LinkedKey && rec.Sha256.Length > 0);
+        var old = store.All<DocRecord>().FirstOrDefault(d => d.LinkedTable == rec.LinkedTable && d.LinkedKey == rec.LinkedKey
+            && (rec.Sha256.Length > 0 ? d.Sha256 == rec.Sha256 : d.Sha256.Length == 0 && d.FileName == rec.FileName));
         var oldPages = old is null ? new List<DocPageText>() : store.All<DocPageText>().Where(p => p.DocRecordId == old.Id).ToList();
         var oldFields = old is null ? new List<DocField>() : store.All<DocField>().Where(f => f.DocRecordId == old.Id).ToList();
         foreach (var p in pages) if (p.NormText.Length == 0) p.NormText = ArabicText.Normalize(p.Text);

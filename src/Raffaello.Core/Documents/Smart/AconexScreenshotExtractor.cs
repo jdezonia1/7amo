@@ -41,8 +41,11 @@ public static class AconexScreenshotExtractor
         var scored = lines.Select((l, i) => (i, Hits: HeaderWords.Count(h => ArabicText.Fold(l.Text).Contains(h)))).OrderByDescending(x => x.Hits).First();
         if (scored.Hits < 2) { res.Issues.Add(new(IssueLevel.Error, "NO_HEADER", "workflow table header (Step Name / Assigned To / Date Due) not found", null, "")); return res; }
         var hl = lines[scored.i];
-        var lh = hl.Box.H;
-        var headerWords = words.Where(w => w.Box.Cy >= hl.Box.Y - lh * 1.2 && w.Box.Cy <= hl.Box.Bottom + lh * 1.2).ToList();
+        var hs = words.Select(w => w.Box.H).OrderBy(h => h).ToList();
+        var lh = hs[hs.Count / 2];
+        // two-line labels ("Date" over "Completed") sit within one text height of the header line; the group row below does not count
+        var headerWords = words.Where(w => w.Box.Cy >= hl.Box.Y - lh * 0.9 && w.Box.Cy <= hl.Box.Bottom + lh * 0.9
+                                           && !Regex.IsMatch(ArabicText.Fold(w.Text), @"WORKFLOW\s*NO|INITIATOR")).ToList();
         var cols = ColumnsFrom(headerWords);
         res.Table.Headers = cols.Select(c => c.Label).ToList();
 

@@ -252,8 +252,11 @@ public static class ContractPdfImport
     public static List<DocPageText> PageTexts(SmartDocument doc) => doc.Pages.Select(p => new DocPageText
     {
         Page = p.Number, Kind = p.Kind.Type, Source = p.Source, Engine = p.Engine, Quality = p.Quality?.Score ?? 0, Confidence = Math.Round(p.Confidence, 3),
-        Text = p.ReadingText.Length > 0 ? p.ReadingText : p.Text, NormText = ArabicText.Normalize(p.ReadingText + "\n" + p.Text),
+        Text = p.ReadingText.Length > 0 ? p.ReadingText : p.Text, NormText = SearchText(p.ReadingText + "\n" + p.Text),
     }).ToList();
+
+    /// <summary>Search form of a page: codes with letter O for zero repaired ("SUB-ELE-O28" -> "SUB-ELE-028"), then normalised.</summary>
+    public static string SearchText(string text) => ArabicText.Normalize(ContractBodyExtractor.FixCodes(text));
 
     public static List<DocField> Fields(ContractPdfReadResult res)
     {

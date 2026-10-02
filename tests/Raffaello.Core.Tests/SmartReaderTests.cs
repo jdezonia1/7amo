@@ -507,7 +507,7 @@ public class SmartReaderTests
         Assert.NotEmpty(docs.All<DocField>());
 
         // full-text search: Arabic word, a code, a number
-        Assert.True(docs.Search("لاندسكيب").Count > 0, string.Join(" || ", docs.All<DocPageText>().Select(p => p.Page + ":" + p.NormText.Length + ":" + p.NormText[..Math.Min(300, p.NormText.Length)])));
+        Assert.NotEmpty(docs.Search("لاندسكيب"));
         Assert.NotEmpty(docs.Search("SUB-ELE-028"));
         var hit = docs.Search("7051467475").First();
         Assert.Equal("Contract", hit.LinkedTable);

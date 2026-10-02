@@ -85,23 +85,23 @@ public static class ContractBodyExtractor
             t.VatTreatment = excl ? "EXCLUDED" : "INCLUDED";
             var pctTxt = vat.Groups.Cast<Group>().Skip(1).Select(g => g.Value).LastOrDefault(v => Regex.IsMatch(v, @"^\d{1,2}$"));
             t.VatPct = pctTxt != null ? double.Parse(pctTxt, CultureInfo.InvariantCulture) / 100 : DocValidators.VatRate;
-            Set(res, "Vat", $"{t.VatTreatment} {t.VatPct:P0}", 0.85);
+            Set(res, "Vat", $"{t.VatTreatment} {Pc(t.VatPct)}", 0.85);
         }
 
         // payments: "90% دفعه تصرف بمستخلص مع تنفيذ 1st Fix", cable tray "70% دفعه بعد اعمال التركيب"
         ReadPayments(res, fold, fixedText);
         var main = res.Payments.Where(p => p.Group == "MAIN").ToList();
         var tray = res.Payments.Where(p => p.Group == "TRAY").ToList();
-        t.PaymentTerms = string.Join("; ", main.Select(p => $"{p.Stage} {p.Pct:P0}"));
-        t.TrayPaymentTerms = string.Join("; ", tray.Select(p => $"{p.Stage} {p.Pct:P0}"));
+        t.PaymentTerms = string.Join("; ", main.Select(p => $"{p.Stage} {Pc(p.Pct)}"));
+        t.TrayPaymentTerms = string.Join("; ", tray.Select(p => $"{p.Stage} {Pc(p.Pct)}"));
         if (t.PaymentTerms.Length > 0) Set(res, "PaymentTerms", t.PaymentTerms, 0.75);
         if (t.TrayPaymentTerms.Length > 0) Set(res, "TrayPaymentTerms", t.TrayPaymentTerms, 0.7);
 
         // retention / advance
         var ret = Regex.Match(fold, @"(محتجزات|ضمان\s*حسن\s*التنفيذ|RETENTION)[^%\n]{0,60}?(\d{1,2}(\.\d+)?)\s*%");
-        if (ret.Success) { t.RetentionPct = double.Parse(ret.Groups[2].Value, CultureInfo.InvariantCulture) / 100; Set(res, "RetentionPct", $"{t.RetentionPct:P0}", 0.8); }
+        if (ret.Success) { t.RetentionPct = double.Parse(ret.Groups[2].Value, CultureInfo.InvariantCulture) / 100; Set(res, "RetentionPct", $"{Pc(t.RetentionPct)}", 0.8); }
         var adv = Regex.Match(fold, @"(دفعه\s*مقدمه|الدفعه\s*المقدمه|ADVANCE\s*PAYMENT)[^%\n]{0,60}?(\d{1,2}(\.\d+)?)\s*%");
-        if (adv.Success) { t.AdvancePct = double.Parse(adv.Groups[2].Value, CultureInfo.InvariantCulture) / 100; Set(res, "AdvancePct", $"{t.AdvancePct:P0}", 0.8); }
+        if (adv.Success) { t.AdvancePct = double.Parse(adv.Groups[2].Value, CultureInfo.InvariantCulture) / 100; Set(res, "AdvancePct", $"{Pc(t.AdvancePct)}", 0.8); }
 
         // delay penalty: "غرامه تاخير مقدارها 500 ريال ... عن كل اسبوع تاخير ... بحد اقصي 10%"
         var pen = Regex.Match(fold, @"غرام\S*\s*(تاخير)?[^\n]{0,40}?(\d[\d,]*)\s*ريال[^\n]{0,80}?(اسبوع|يوم)");
@@ -121,7 +121,7 @@ public static class ContractBodyExtractor
         {
             var v = cap.Groups.Cast<Group>().Skip(1).Select(g => g.Value).First(x => Regex.IsMatch(x, @"^\d{1,2}$"));
             t.DelayPenaltyCapPct = double.Parse(v, CultureInfo.InvariantCulture) / 100;
-            Set(res, "DelayPenaltyCapPct", $"{t.DelayPenaltyCapPct:P0}", 0.8);
+            Set(res, "DelayPenaltyCapPct", $"{Pc(t.DelayPenaltyCapPct)}", 0.8);
         }
 
         // warranty: "مده سنه" / "12 شهر" / "سنتين"
@@ -149,6 +149,8 @@ public static class ContractBodyExtractor
         Regex.Replace(text, @"\b[A-Za-z]{2,}(?:-[A-Za-z0-9]{1,})+\b", m => string.Join("-", m.Value.Split('-').Select(p => p.Any(char.IsDigit) ? ArabicText.FixDigitConfusions(p) : p)));
 
     private static int PageOf(List<SmartPage> pages, string value) => pages.FirstOrDefault(p => FixCodes(p.ReadingText + p.Text).Contains(value, StringComparison.OrdinalIgnoreCase))?.Number ?? 0;
+
+    private static string Pc(double? v) => v is double d ? (d * 100).ToString("0.##", CultureInfo.InvariantCulture) + "%" : "";
 
     private static void Set(ContractBodyRead res, string field, string value, double conf, int page = 0) =>
         res.Fields[field] = FieldVote.Single(field, value, conf, "reader", null, page);

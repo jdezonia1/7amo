@@ -27,7 +27,7 @@ public static class DocArchive
         };
         var pages = text.Pages.Where(p => p.Text.Trim().Length > 0).Select(p => new DocPageText
         {
-            Page = p.Number, Kind = p.Kind, Source = p.Source, Quality = p.LayerQuality?.Score ?? 0, Text = p.Text, NormText = ArabicText.Normalize(p.Text),
+            Page = p.Number, Kind = p.Kind, Source = p.Source, Quality = p.LayerQuality?.Score ?? 0, Text = p.Text, NormText = ArabicText.Normalize(Smart.ContractBodyExtractor.FixCodes(p.Text)),
         }).ToList();
         return store.SaveRead(rec, pages, Array.Empty<DocField>());
     }
