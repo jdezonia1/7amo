@@ -26,12 +26,35 @@ public partial class App : Application
     private IHost? _host;
 
     public static string ErrorLogPath => Path.Combine(AppSettings.SettingsFolder, "error.log");
+    /// <summary>Each start-up step, overwritten every start: shows where a start that never opens a window stopped.</summary>
+    public static string StartupLogPath => Path.Combine(AppSettings.SettingsFolder, "startup.log");
+
+    public App()
+    {
+        // runs before InitializeComponent (App.xaml theme dictionaries), so a XAML / native failure there is logged and shown, not silent
+        try { Directory.CreateDirectory(AppSettings.SettingsFolder); File.WriteAllText(StartupLogPath, ""); } catch { }
+        Step($"start {typeof(App).Assembly.GetName().Version} on {Environment.OSVersion}, exe {Environment.ProcessPath}");
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            var ex = e.ExceptionObject as Exception ?? new Exception(e.ExceptionObject?.ToString());
+            Log(ex);
+            Step("CRASH " + ex.GetType().Name + ": " + ex.Message);
+            try { MessageBox.Show($"Raffaello crashed.\n\n{ex.GetType().Name}: {ex.Message}\n\nDetails: {ErrorLogPath}\nStart-up steps: {StartupLogPath}", "Raffaello", MessageBoxButton.OK, MessageBoxImage.Error); } catch { }
+        };
+        TaskScheduler.UnobservedTaskException += (_, e) => { Log(e.Exception); e.SetObserved(); };
+    }
+
+    public static void Step(string what)
+    {
+        try { File.AppendAllText(StartupLogPath, $"[{DateTime.Now:HH:mm:ss.fff}] {what}\n"); } catch { /* never throws */ }
+    }
 
     /// <summary>[assistant] The DI container, for the few places created outside it (Settings cards).</summary>
     public static IServiceProvider? Container { get; private set; }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        Step("resources loaded (App.xaml), OnStartup");
         base.OnStartup(e);
         DispatcherUnhandledException += OnUnhandled;
         try
@@ -41,6 +64,7 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log(ex);
+            Step("FAILED " + ex.GetType().Name + ": " + ex.Message);
             MessageBox.Show($"Raffaello could not start.\n\n{ex.Message}\n\nDetails: {ErrorLogPath}", "Raffaello", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
@@ -50,6 +74,7 @@ public partial class App : Application
     {
 
         var settings = AppSettings.Load();
+        Step($"settings loaded ({AppSettings.SettingsPath}), data {settings.DataFilePath}");
         // [assistant] begin: interface language before the first window (strings, RTL, Arabic font fallback, display culture)
         var uiLanguage = Raffaello.Core.Assistant.AssistantSettings.Load().Language;
         Raffaello.App.Resources.LocService.InitializeFormatting(uiLanguage);
@@ -58,9 +83,11 @@ public partial class App : Application
         // [assistant] end
         var theme = new ThemeService();
         theme.Apply(settings.Theme, settings.Accent);
+        Step("language + theme applied");
 
         var splash = new SplashWindow();
         splash.Show();
+        Step("splash shown");
 
         // [phase5] begin: data source = local SQLite file or Raffaello server (Settings > Data source)
         var project = new ProjectService(settings, Raffaello.Core.Remote.DataSourceFactory.Create);
@@ -80,6 +107,7 @@ public partial class App : Application
             await Task.Run(() => project.Initialize(msg => splash.Dispatcher.Invoke(() => splash.Status = msg)));
         }
 
+        Step("data opened: " + project.DataLocation);
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices(s =>
             {
@@ -193,6 +221,7 @@ public partial class App : Application
 
         var sp = _host.Services;
         Container = sp;   // [assistant]
+        Step("services built");
         // [phase6] "Needs you today" from every module (each source is skipped when its data cannot be read)
         {
             var mats = sp.GetRequiredService<Raffaello.Core.Materials.IMaterialsStore>();
@@ -222,7 +251,9 @@ public partial class App : Application
                     r.Text, $"Due {r.Due:dd MMM HH:mm}", new Raffaello.Core.Queue.NavTarget(r.TargetModule.Length > 0 ? r.TargetModule : "Brief", Key: r.TargetKey.Length > 0 ? r.TargetKey : null), 0.5e8)));
             try { project.Reload(); } catch (Exception ex) { Log(ex); }
         }
+        Step("module queues registered");
         var main = sp.GetRequiredService<MainViewModel>();
+        Step("pages created");
         sp.GetRequiredService<NavigatorProxy>().Target = main;
         sp.GetRequiredService<FilterState>().RebuildOptions();
         main.UpdateBadges();
@@ -231,6 +262,7 @@ public partial class App : Application
         if (!settings.FirstRunCompleted)
         {
             splash.Hide();
+            Step("first-run wizard");
             var wizard = new FirstRunWindow(sp.GetRequiredService<FirstRunViewModel>());
             wizard.ShowDialog();
             if (wizard.DataContext is FirstRunViewModel { NeedsRestart: true })
@@ -239,10 +271,12 @@ public partial class App : Application
         }
 
         var window = sp.GetRequiredService<MainWindow>();
+        Step("main window created");
         MainWindow = window;
         ShutdownMode = ShutdownMode.OnMainWindowClose;
         window.Show();
         splash.Close();
+        Step("main window shown");
         main.Go("Welcome");
         // [assistant] begin: the morning brief is the first screen of the day; notifications start
         {
@@ -256,6 +290,7 @@ public partial class App : Application
         // [phase5] begin: live "updated by X" toasts, offline / sync status
         new Services.Phase5.RemoteSyncService(sp.GetRequiredService<DataService>(), sp.GetRequiredService<ToastService>()).Start(project.Store as Raffaello.Core.Remote.RemoteProjectStore);
         // [phase5] end
+        Step("started");
     }
 
     /// <summary>Obligations (handover, warranty end, retention release, penalty start / cap) due within 30 days.</summary>
