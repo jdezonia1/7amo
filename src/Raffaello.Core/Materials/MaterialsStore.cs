@@ -65,6 +65,8 @@ public interface IMaterialsStore
     void LockDnLines(IReadOnlyCollection<long> dnLineIds, string supplier, string poNo, int invoiceNo, long subInvoiceId);
     /// <summary>Releases the locks of a draft invoice that is abandoned.</summary>
     int ReleaseLocks(string supplier, string poNo, int invoiceNo);
+    /// <summary>Releases the locks of the given DN lines (used to undo a lock when saving the invoice failed).</summary>
+    int ReleaseLines(IReadOnlyCollection<long> dnLineIds);
 }
 
 /// <summary>SQLite implementation in the same data file as <see cref="Db"/> (WAL, busy timeout, audit log shared).</summary>
@@ -290,6 +292,16 @@ public sealed class SqliteMaterialsStore : IMaterialsStore
                                                          && MaterialsSnapshot.PoKey(k.PoNo) == MaterialsSnapshot.PoKey(poNo)).ToList();
         if (mine.Count == 0) return 0;
         db.Batch(w => { foreach (var k in mine) w.Delete(k); }, $"{supplier} {poNo} INV-{invoiceNo:00}: {mine.Count} DN line lock(s) released");
+        return mine.Count;
+    }
+
+    public int ReleaseLines(IReadOnlyCollection<long> dnLineIds)
+    {
+        var db = Db;
+        var set = dnLineIds.ToHashSet();
+        var mine = db.All<MatDnInvoiceLock>().Where(k => set.Contains(k.DnLineId)).ToList();
+        if (mine.Count == 0) return 0;
+        db.Batch(w => { foreach (var k in mine) w.Delete(k); }, $"{mine.Count} DN line lock(s) released");
         return mine.Count;
     }
 

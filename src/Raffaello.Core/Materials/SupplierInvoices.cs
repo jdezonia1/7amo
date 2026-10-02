@@ -109,8 +109,17 @@ public static class SupplierInvoices
     {
         var h = b.Build.Header;
         var ids = b.CurrentLines.Select(l => l.Id).ToList();
+        var already = store.All<MatDnInvoiceLock>().Select(k => k.DnLineId).ToHashSet();
+        var fresh = ids.Where(i => !already.Contains(i)).ToList();
         store.LockDnLines(ids, h.Subcontractor, h.ContractNo, h.InvoiceNo, 0);
-        var saved = InvoiceWorkflow.SaveDraft(projectStore, b.Build);
+        SubInvoice saved;
+        try { saved = InvoiceWorkflow.SaveDraft(projectStore, b.Build); }
+        catch
+        {
+            // the invoice was not saved: undo the locks this call added, so no orphan locks are left behind
+            store.ReleaseLines(fresh);
+            throw;
+        }
         store.LockDnLines(ids, h.Subcontractor, h.ContractNo, h.InvoiceNo, saved.Id);
         return saved;
     }

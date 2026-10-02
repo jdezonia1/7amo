@@ -51,7 +51,7 @@ public static class DnReader
         var res = Parse(doc);
         if (res.Value.Lines.Count == 0 && options.CanUseVision)
         {
-            foreach (var p in doc.Pages)
+            foreach (var p in doc.Pages.Any(x => x.IsScan) ? doc.Pages.Where(x => x.IsScan).ToList() : doc.Pages)
             {
                 var (bytes, media) = ReaderPipeline.PageContent(path, p);
                 await VisionAsync(res, p.Number, bytes, media, options.Vision!, ct).ConfigureAwait(false);

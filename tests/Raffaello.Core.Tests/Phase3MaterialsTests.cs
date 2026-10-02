@@ -183,6 +183,19 @@ public class Phase3MaterialsTests
         Assert.Equal(800, b2.Build.Lines.Where(l => l.Kind == "ITEM" && l.ItemNo == "01").Sum(l => l.CumQty), 6);
         env.Service.SaveInvoice(b2);
 
+        // an approved invoice cannot take new lines, and the failed save leaves no lock behind
+        InvoiceWorkflow.Approve(env.Project.Store, env.Project.Store.All<SubInvoice>().Single(i => i.InvoiceNo == 1 && i.Revision == 1));
+        env.Project.Reload(); env.Service.Reload();
+        var locksBefore = env.Service.Snapshot.Locks.Count;
+        SaveDn(env, "81000004", 0.1, "Aug 26, 2026", "0013282222");
+        env.Service.RunMatch();
+        var extra = env.Service.Snapshot.DnLines.Where(l => env.Service.Snapshot.Dns.Single(d => d.DnNo == "81000004").Id == l.DnId).Select(l => l.Id).ToList();
+        var locked1 = env.Service.Snapshot.Locks.Where(k => k.InvoiceNo == 1).Select(k => k.DnLineId).ToList();
+        var approvedBuild = env.Service.BuildInvoice(po, 1, locked1.Concat(extra).ToList(), 1);
+        Assert.Throws<InvalidOperationException>(() => env.Service.SaveInvoice(approvedBuild));
+        env.Service.Reload();
+        Assert.Equal(locksBefore, env.Service.Snapshot.Locks.Count);
+
         // release of an abandoned draft frees the lines
         Assert.Equal(2, env.Store.ReleaseLocks(po.Supplier, po.PoNo, 2));
     }

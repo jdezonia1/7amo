@@ -243,7 +243,8 @@ public static class PoReader
 
     private static async Task VisionLinesAsync(string path, DocText text, ExtractionResult<PoDocument> res, IVisionReader vision, CancellationToken ct)
     {
-        foreach (var p in text.Pages)
+        var pages = text.Pages.Any(p => p.IsScan) ? text.Pages.Where(p => p.IsScan).ToList() : text.Pages;
+        foreach (var p in pages)
         {
             var (bytes, media) = ReaderPipeline.PageContent(path, p);
             var json = await vision.ExtractAsync(new VisionRequest
