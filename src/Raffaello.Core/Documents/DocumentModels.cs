@@ -37,6 +37,10 @@ public sealed class DocPage
     public string Kind { get; set; } = "";
     public double WidthPt { get; init; }
     public double HeightPt { get; init; }
+    /// <summary>Text-layer words with boxes (points, origin top-left) - lets the table reader work on digital PDFs too.</summary>
+    public List<Ocr.OcrWord> Words { get; set; } = new();
+    /// <summary>Plausibility of the text layer (null when the page has none).</summary>
+    public TextQualityReport? LayerQuality { get; set; }
 
     public bool IsScan => !HasTextLayer || WordCount < 8;
     public IEnumerable<string> Lines => Text.Split('\n').Select(l => l.TrimEnd('\r'));

@@ -37,8 +37,14 @@ public static class PdfTextReader
         catch { words = new List<Word>(); }
         PageImage? img = null;
         try { img = DominantImage(page); } catch { /* broken image streams: no image */ }
+        var ocrWords = words.Select(w => new Ocr.OcrWord
+        {
+            Text = w.Text, Confidence = 1, Engine = TextSource.TextLayer,
+            Box = new Ocr.Box(w.BoundingBox.Left, page.Height - w.BoundingBox.Top, w.BoundingBox.Width, Math.Max(1, w.BoundingBox.Height)),
+        }).ToList();
         return new DocPage
         {
+            Words = ocrWords,
             Number = page.Number,
             Text = Layout(words, page.Width),
             Source = words.Count > 0 ? TextSource.TextLayer : TextSource.None,
