@@ -1,0 +1,70 @@
+<UserControl x:Class="Raffaello.App.Views.Pages.InsightsRatesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
+    <UserControl.Resources>
+        <ResourceDictionary Source="pack://application:,,,/Views/Pages/InsightsResources.xaml"/>
+    </UserControl.Resources>
+    <Grid Margin="24,0,24,20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="14"/>
+            <ColumnDefinition Width="520"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.ColumnSpan="3" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="260"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Views}" SelectedItem="{Binding View, Mode=TwoWay}"/>
+            <TextBox Grid.Column="1" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=250}" Margin="12,0,0,0" ToolTip="Item, party or reference"/>
+            <TextBlock Grid.Column="2" Text="{Binding StatusText}" Style="{StaticResource Small}" VerticalAlignment="Center" Margin="12,0"/>
+            <Button Grid.Column="3" Style="{StaticResource BtnGhost}" Content="EXPORT EXCEL" Command="{Binding ExportCommand}"/>
+        </Grid>
+
+        <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding Groups}" SelectedItem="{Binding Selected, Mode=TwoWay}" VirtualizingPanel.IsVirtualizing="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ITEM" Binding="{Binding Label}" Width="*" MinWidth="240" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="44" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="SOURCES" Binding="{Binding Sources}" Width="130" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="MIN" Binding="{Binding Min, StringFormat=N2}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                <DataGridTextColumn Header="AVG" Binding="{Binding Avg, StringFormat=N2}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                <DataGridTextColumn Header="MAX" Binding="{Binding Max, StringFormat=N2}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                <DataGridTextColumn Header="MAX / MIN" Binding="{Binding Spread, StringFormat=0.00}" Width="64" ElementStyle="{StaticResource CellNumStrong}"/>
+                <DataGridTextColumn Header="OUTLIERS" Binding="{Binding Outliers}" Width="60" ElementStyle="{StaticResource CellNum}"/>
+                <DataGridTextColumn Header="OWNER" Binding="{Binding OwnerRate, StringFormat=N2}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                <DataGridTextColumn Header="MARGIN %" Binding="{Binding MarginPct, StringFormat=P0}" Width="66" ElementStyle="{StaticResource CellNumStrong}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="1" Grid.Column="2">
+            <Grid.RowDefinitions><RowDefinition Height="260"/><RowDefinition Height="12"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Border Style="{StaticResource Card}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding Selected.Label}" Style="{StaticResource PanelTitle}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Selected.Label}"/>
+                    <lvc:CartesianChart Series="{Binding Chart}" XAxes="{Binding ChartX}" YAxes="{Binding ChartY}" LegendPosition="Top" TooltipPosition="Top" Margin="0,6,0,0"/>
+                </DockPanel>
+            </Border>
+            <Border Grid.Row="2" Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="EVERY RATE IN THE GROUP" Style="{StaticResource Label}" Margin="0,0,0,6"/>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Entries}">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" Width="72">
+                                <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource SeverityTag}" Content="{Binding Source}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="PARTY" Binding="{Binding Party}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="REF" Binding="{Binding Ref}" Width="64" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="RATE" Binding="{Binding Rate, StringFormat=N2}" Width="64" ElementStyle="{StaticResource CellNumStrong}"/>
+                            <DataGridTextColumn Header="VS MEDIAN" Binding="{Binding DeviationPct, StringFormat=P0}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridCheckBoxColumn Header="OUTLIER" Binding="{Binding IsOutlier, Mode=OneWay}" Width="56"/>
+                            <DataGridTextColumn Header="MARGIN" Binding="{Binding Margin, StringFormat=N2}" Width="60" ElementStyle="{StaticResource CellNum}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -29,6 +29,26 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                <!-- [insights] begin -->
+                <TextBlock Text="INSIGHTS (WARNINGS, RECONCILIATION, BENCHMARK, FORECASTS)" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                <ItemsControl DataContext="{Binding InsightsReports}" ItemsSource="{Binding Cards}" Margin="0,0,0,10">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0,0,12,12">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Bottom" Style="{StaticResource BtnYellow}" HorizontalAlignment="Left" Margin="0,12,0,0" Content="EXCEL"
+                                            Command="{Binding DataContext.RunCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding Key}"/>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource PanelTitle}"/>
+                                        <TextBlock Text="{Binding Description}" Style="{StaticResource Body}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <!-- [insights] end -->
                 <TextBlock Text="DEMO CHAIN REPORTS" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                 <ItemsControl ItemsSource="{Binding Cards}">
                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
