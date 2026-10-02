@@ -807,4 +807,7 @@
   <data name="Ui_VO" xml:space="preserve"><value>+ أمر تغييري</value></data>
   <data name="Ui_EI" xml:space="preserve"><value>+ تعليمات هندسية</value></data>
   <data name="Ui_SI" xml:space="preserve"><value>+ تعليمات موقع</value></data>
+  <data name="Ui_OFFLINE" xml:space="preserve"><value>بدون اتصال</value></data>
+  <data name="Ui_ADDRESS" xml:space="preserve"><value>العنوان</value></data>
+  <data name="Ui_ON" xml:space="preserve"><value>مفعل</value></data>
 </root>

@@ -64,11 +64,12 @@ public sealed class AssistantNotificationService
             if (first) await Task.Run(() => Hub.Baseline(Owner, p.Snapshot, p.Queue, lang));
             var since = _since;
             _since = DateTime.Now;
-            await Hub.CheckAsync(Owner, p.Snapshot, p.Queue, since, lang);
-            if (NotificationHub.BriefDue(_host.Settings.BriefTime, DateTime.Now, null) && !Hub.BriefSentToday(Owner))
+            var owner = Owner;
+            await Task.Run(() => Hub.CheckAsync(owner, p.Snapshot, p.Queue, since, lang));
+            if (NotificationHub.BriefDue(_host.Settings.BriefTime, DateTime.Now, null) && !Hub.BriefSentToday(owner))
             {
-                var brief = Hub.BuildBrief(Owner, p.Snapshot, p.Queue, lang, p.Settings.WirDueDays);
-                await Hub.SendBriefAsync(brief);
+                var brief = Hub.BuildBrief(owner, p.Snapshot, p.Queue, lang, p.Settings.WirDueDays);
+                await Task.Run(() => Hub.SendBriefAsync(brief));
             }
         }
         catch (Exception ex)

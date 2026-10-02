@@ -807,4 +807,7 @@
   <data name="Ui_VO" xml:space="preserve"><value>+ VO</value></data>
   <data name="Ui_EI" xml:space="preserve"><value>+ EI</value></data>
   <data name="Ui_SI" xml:space="preserve"><value>+ SI</value></data>
+  <data name="Ui_OFFLINE" xml:space="preserve"><value>OFFLINE</value></data>
+  <data name="Ui_ADDRESS" xml:space="preserve"><value>ADDRESS</value></data>
+  <data name="Ui_ON" xml:space="preserve"><value>ON</value></data>
 </root>
