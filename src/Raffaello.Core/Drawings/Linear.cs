@@ -58,7 +58,7 @@ public static class LinearTakeoff
         var res = new List<DwgRun>();
         foreach (var c in classes.Where(c => c.Active && !string.IsNullOrWhiteSpace(c.ColourHex)))
         {
-            var mask = HighlightDetector.NearColour(img, Rgb.Parse(c.ColourHex, Rgb.Black), c.ColourTolerance).Close(1);
+            var mask = HighlightDetector.NearColour(img, Rgb.Parse(c.ColourHex, Rgb.Black), c.ColourTolerance).Close(4);   // bridges dash gaps
             foreach (var comp in mask.Components(minLengthPx))
             {
                 var skel = Skeleton.Thin(comp.LocalMask());

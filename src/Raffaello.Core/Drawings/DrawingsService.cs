@@ -106,7 +106,7 @@ public sealed class DrawingsService
     public DwgSymbol DefineSymbol(DwgSheet sheet, RectD box, DwgSymbol template)
     {
         var (img, dpi) = Picture(sheet);
-        var crop = img.ToGray().Crop((int)box.X, (int)box.Y, Math.Max(4, (int)box.W), Math.Max(4, (int)box.H));
+        var crop = img.ToInkGray().Crop((int)box.X, (int)box.Y, Math.Max(4, (int)box.W), Math.Max(4, (int)box.H));
         template.TemplatePng = TemplateMatcher.Trim(TemplateMatcher.Isolate(crop)).ToPng();
         template.TemplateDpi = dpi;
         template.SourceSheetId = sheet.Id;
