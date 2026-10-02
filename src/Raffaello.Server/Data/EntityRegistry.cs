@@ -75,6 +75,7 @@ public static class ServerModules
         new Modules.VariationsServerModule(),    // [phase6]
         // [trust] begin
         new Trust.TrustServerModule(),
+        new Portal.PortalServerModule(),
         // [trust] end
     };
 }

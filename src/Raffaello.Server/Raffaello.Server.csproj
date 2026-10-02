@@ -23,4 +23,11 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Raffaello.Server.Tests" />
   </ItemGroup>
+  <!-- [trust] begin: subcontractor portal web page (served from the assembly at /portal) -->
+  <ItemGroup>
+    <Content Remove="Portal\web\**" />
+    <None Remove="Portal\web\**" />
+    <EmbeddedResource Include="Portal\web\*" LogicalName="Raffaello.Server.Portal.web.%(Filename)%(Extension)" />
+  </ItemGroup>
+  <!-- [trust] end -->
 </Project>
