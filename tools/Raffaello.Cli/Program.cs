@@ -38,6 +38,7 @@ public static class Program
         // [phase3] begin
         if (Phase3Commands.Handles(args[0])) return Phase3Commands.Run(args);
         // [phase3] end
+        if (DocBench.Handles(args[0])) return DocBench.Run(args);
         if (!Commands.Contains(args[0])) { Console.Error.WriteLine($"Unknown command {args[0]}"); Help(); return 2; }
         var opts = Options(args.Skip(1).ToArray(), out var positional);
         MapOptions = new MappingOptions

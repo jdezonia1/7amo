@@ -15,7 +15,8 @@
     <PackageReference Include="Sdcb.PaddleOCR.Models.Local" Version="3.3.1" />
     <!-- Models.Local 3.3.1 declares LocalV5 3.0.0, which lacks the Arabic / English V5 recognisers: pin 3.3.1 -->
     <PackageReference Include="Sdcb.PaddleOCR.Models.LocalV5" Version="3.3.1" />
-    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
+    <!-- the package analyzer needs a newer compiler than the .NET 8 SDK (CS9057): not used -->
+    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" ExcludeAssets="analyzers" />
     <PackageReference Include="Docnet.Core" Version="2.6.0" />
   </ItemGroup>
   <!-- Native runtimes for the machine that builds: win-x64 on Windows (the app, RUN_ONE_CLICK.bat), linux-x64 elsewhere (CI / tests). -->

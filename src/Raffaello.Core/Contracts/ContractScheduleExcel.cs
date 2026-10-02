@@ -59,7 +59,7 @@ public static class ContractScheduleExcel
             }
             if (res.Items.Count > 0) break;
         }
-        if (res.Items.Count == 0) res.Issues.Add(new(0, IssueLevel.Error, "No rate schedule (No / Description / Unit / Qty / Rate header) found in the workbook."));
+        if (res.Items.Count == 0) res.Issues.Add(new(0, Import.IssueLevel.Error, "No rate schedule (No / Description / Unit / Qty / Rate header) found in the workbook."));
         return res;
     }
 

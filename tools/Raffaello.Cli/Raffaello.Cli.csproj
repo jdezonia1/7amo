@@ -9,5 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Raffaello.Core\Raffaello.Core.csproj" />
+    <!-- offline OCR (PaddleOCR / OpenCV / PDFium) for doc-bench and read-doc -->
+    <ProjectReference Include="..\..\src\Raffaello.Ocr\Raffaello.Ocr.csproj" />
   </ItemGroup>
 </Project>

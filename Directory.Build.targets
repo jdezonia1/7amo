@@ -1,0 +1,9 @@
+<Project>
+  <!-- OpenCvSharp4 4.13 ships a Roslyn analyzer built for a newer compiler than the .NET 8 SDK (warning CS9057).
+       It only checks OpenCvSharp call patterns; drop it so builds stay at 0 warnings. -->
+  <Target Name="RaffaelloDropOpenCvAnalyzer" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'OpenCvSharp.Analyzers'" />
+    </ItemGroup>
+  </Target>
+</Project>
