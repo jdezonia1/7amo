@@ -62,6 +62,9 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 Item("OwnerMos", "OWNER MOS", "IconExport", ""),
                 // [phase3] end
             }),
+            // [assistant] begin
+            new NavGroup("ASSISTANT", new[] { Item("Brief", "MORNING BRIEF", "IconClock", ""), Item("Assistant", "ASK RAFFAELLO", "IconSparkles", "Ctrl+Shift+A") }),
+            // [assistant] end
         };
         SettingsItem = Item("Settings", "SETTINGS", "IconSettings", "");
         palette.SetNavigator(this);
@@ -152,6 +155,10 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         new PaletteEntry("ACTION", "Toggle light / dark", "", "Ctrl+Shift+L", ToggleTheme),
         new PaletteEntry("ACTION", "Reload data", "Read the shared data file again", "F5", () => _ = ReloadAsync()),
         new PaletteEntry("ACTION", "Weekly report", "Export the weekly progress workbook", "", () => Go("Reports")),
+        // [assistant] begin
+        new PaletteEntry("ACTION", "Morning brief", "What changed since yesterday, what needs you today", "", () => Go("Brief")),
+        new PaletteEntry("ACTION", "Ask Raffaello (full page)", "Chat with history, sources and confirm cards", "", () => Go("Assistant")),
+        // [assistant] end
         // [phase4] begin
         new PaletteEntry("ACTION", "Aconex: where is each invoice", "Invoice status board (workflow step, who, due)", "", () => Go("Aconex")),
         new PaletteEntry("ACTION", "Variations / EI", "Register, suggestions, submission export", "", () => Go("Variations")),

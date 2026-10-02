@@ -76,5 +76,6 @@ public static class ServerModules
         new Modules.DocumentsServerModule(),     // smart document reader + contract intelligence
         new Modules.InsightsServerModule(),      // [insights]
         new Modules.CablesServerModule(),        // [cables]
+        new Modules.AssistantServerModule(),     // [assistant]
     };
 }

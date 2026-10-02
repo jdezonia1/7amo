@@ -28,6 +28,9 @@ public static class ModuleEntities
 
     public static IReadOnlyList<Type> All => MaterialsStoreBase.EntityTypes.Concat(Aconex).Concat(Variations).Concat(Documents)
         .Concat(Cables.CableStore.EntityTypes)   // [cables]
+        // [assistant] begin: conversations, proposed actions, reminders, notification rules / log, brief snapshots
+        .Concat(Raffaello.Core.Assistant.AssistantEntityTypes.All)
+        // [assistant] end
         .ToList();
 
     private static bool _registered;

@@ -27,6 +27,9 @@ public partial class App : Application
 
     public static string ErrorLogPath => Path.Combine(AppSettings.SettingsFolder, "error.log");
 
+    /// <summary>[assistant] The DI container, for the few places created outside it (Settings cards).</summary>
+    public static IServiceProvider? Container { get; private set; }
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -47,6 +50,12 @@ public partial class App : Application
     {
 
         var settings = AppSettings.Load();
+        // [assistant] begin: interface language before the first window (strings, RTL, Arabic font fallback, display culture)
+        var uiLanguage = Raffaello.Core.Assistant.AssistantSettings.Load().Language;
+        Raffaello.App.Resources.LocService.InitializeFormatting(uiLanguage);
+        Raffaello.App.Resources.AutoTranslator.Register();
+        Raffaello.App.Resources.LocService.Instance.Apply(uiLanguage);
+        // [assistant] end
         var theme = new ThemeService();
         theme.Apply(settings.Theme, settings.Accent);
 
@@ -141,6 +150,12 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, InvoicesViewModel>();
                 s.AddSingleton<PageViewModel, ReportsViewModel>();
                 s.AddSingleton<PageViewModel, SettingsViewModel>();
+                // [assistant] begin
+                s.AddSingleton<Services.Assistant.AssistantHost>();
+                s.AddSingleton<Services.Assistant.AssistantNotificationService>();
+                s.AddSingleton<PageViewModel, AssistantPageViewModel>();
+                s.AddSingleton<PageViewModel, BriefViewModel>();
+                // [assistant] end
                 s.AddSingleton<AskViewModel>();
                 s.AddSingleton<CommandPaletteViewModel>();
                 s.AddSingleton<ImportViewModel>();
@@ -151,6 +166,7 @@ public partial class App : Application
             .Build();
 
         var sp = _host.Services;
+        Container = sp;   // [assistant]
         // [phase6] "Needs you today" from every module (each source is skipped when its data cannot be read)
         {
             var mats = sp.GetRequiredService<Raffaello.Core.Materials.IMaterialsStore>();
@@ -168,6 +184,11 @@ public partial class App : Application
             // [cables] duplicate FROM-TO, over-length, stage order, unknown runs, alias suggestions
             var cables = sp.GetRequiredService<Raffaello.Core.Cables.ICableStore>();
             project.QueueSources.Add(p => Raffaello.Core.Cables.CableHooks.Queue(cables));
+            // [assistant] reminders that are due (assistant create_reminder or typed) show in Needs-today
+            var assistant = sp.GetRequiredService<Services.Assistant.AssistantHost>();
+            project.QueueSources.Add(p => Raffaello.Core.Assistant.AssistantStoreExtensions.Reminders(assistant.Store, assistant.Data.User).Where(r => r.Due <= DateTime.Now.Date.AddDays(1))
+                .Select(r => new Raffaello.Core.Queue.QueueItem(r.Due < DateTime.Now ? Raffaello.Core.Domain.Verdict.Due : Raffaello.Core.Domain.Verdict.Open, "REMINDER",
+                    r.Text, $"Due {r.Due:dd MMM HH:mm}", new Raffaello.Core.Queue.NavTarget(r.TargetModule.Length > 0 ? r.TargetModule : "Brief", Key: r.TargetKey.Length > 0 ? r.TargetKey : null), 0.5e8)));
             try { project.Reload(); } catch (Exception ex) { Log(ex); }
         }
         var main = sp.GetRequiredService<MainViewModel>();
@@ -192,6 +213,14 @@ public partial class App : Application
         window.Show();
         splash.Close();
         main.Go("Welcome");
+        // [assistant] begin: the morning brief is the first screen of the day; notifications start
+        {
+            var assistant = sp.GetRequiredService<Services.Assistant.AssistantHost>();
+            if (assistant.Settings.ShowBriefFirst && (assistant.Settings.LastBriefShown is null || assistant.Settings.LastBriefShown.Value.Date < DateTime.Today))
+                main.Go("Brief");
+            sp.GetRequiredService<Services.Assistant.AssistantNotificationService>().Start();
+        }
+        // [assistant] end
         sp.GetRequiredService<PresenceService>().Start();
         // [phase5] begin: live "updated by X" toasts, offline / sync status
         new Services.Phase5.RemoteSyncService(sp.GetRequiredService<DataService>(), sp.GetRequiredService<ToastService>()).Start(project.Store as Raffaello.Core.Remote.RemoteProjectStore);

@@ -289,13 +289,49 @@ Updating the server: run `RUN_ONE_CLICK.bat` on a build PC, copy the new `server
 `SETUP_SERVER.bat` again (it keeps the settings, upgrades the database and restarts the service).
 <!-- [phase5] end -->
 
-## Ask Raffaello
+<!-- [assistant] begin -->
+## Ask Raffaello, morning brief, notifications, Arabic (roadmap 11-13)
 
-Slide-in assistant (Ctrl+Shift+A). It calls the Claude Messages API over HttpClient with streaming, model
-`claude-opus-5-5` by default (Settings), adaptive thinking, explicit effort (default `medium`) and server-side
-refusal fallbacks (`fallbacks: "default"`, can be switched off in Settings). The system prompt carries the house
-rules, the filter scope with per-stage totals, the selected line's full chain and today's queue. With no API key
-(Settings or `ANTHROPIC_API_KEY`) it answers offline from the rules engine.
+**ASK RAFFAELLO** (Ctrl+Shift+A slide-in, or the full page under ASSISTANT): chat with Claude over the project data, English or
+Arabic. Claude Messages API over HttpClient (`Core/Assistant/ClaudeTurnClient`, same raw-HTTP approach as the rest of the app):
+streaming, manual tool loop, adaptive thinking, explicit effort, server-side refusal fallbacks (`fallbacks: "default"`), prompt
+caching (tool definitions + frozen system prompt + automatic caching of the conversation), eager input streaming with client-side
+schema validation, refusal / max_tokens handling (tools never run on such a turn). Default model `claude-opus-5-5` (Settings).
+- Read tools: search_documents, query_ledger, get_room, get_invoice (revisions + Aconex), list_needs_today, get_contract_terms,
+  find_dn, list_anomalies (built-in checks unless a module provides `AssistantData.Anomalies`), get_report, explain_rule.
+- Action tools (draft only): draft_ledger_claim, draft_invoice_revision, draft_rejection_reply_email (.eml draft, nothing sent),
+  draft_variation, create_reminder. Each shows a card; it runs only on CONFIRM, is re-checked then, and is audited
+  (AssistantActions table + AuditLog). The outcome is told to Claude with the next question.
+- Answers cite records as chips (`[[room:P2-106]]` ...) that navigate (Ledger, Invoices, Materials, Aconex, Variations, WIR, files).
+- The current screen, filter, selected line / record travel in each question (`<app_context>`), never in the system prompt; the
+  history is stored append-only per user (AssistantConversations / AssistantMessages, data file or server).
+- Attach PDF / image / Excel / CSV: text layers and tables are read locally; scans / images go to Claude only with
+  Settings > "Cloud document reading" (off by default), otherwise Windows OCR. The privacy line under the input says what is sent.
+  "Allow assistant to read project data" (on by default) switches the read tools off.
+- No key or no connection: deterministic answers from local data (EN + AR), e.g. "remaining in P2-106 2nd fix light",
+  "where is DN 81064344", "status of ROOTS INV 3", "P2-106", "what needs me today", "explain the 15 m rule".
+- The API key is kept with Windows DPAPI (`%LOCALAPPDATA%\Raffaello\secrets`), or `ANTHROPIC_API_KEY`; a key left in
+  settings.json by an older version is moved into DPAPI at start-up. Never logged.
+
+**MORNING BRIEF** (first screen of the day, Settings): new claims, over-cap keys, checks pending, invoices awaiting you, Aconex
+overdue steps, DNs without MIR, VO ageing, reminders / obligations due - each compared with the previous brief (+n, NEW). EXPORT PDF,
+SEND NOW, optional Claude summary (figures only).
+
+**NOTIFICATIONS**: in-app toasts, Windows notifications, e-mail (SMTP), Microsoft Teams incoming webhook (Adaptive Card), WhatsApp via
+any webhook gateway (body template `{to} {title} {text}`). Per-user rules: event, channel, minimum severity, quiet hours, address;
+each event is sent once per channel (NotificationLogs); the first run records the backlog without sending it. With a local data file the
+desktop sends all channels; in server mode the desktop shows in-app / Windows only and the server sends e-mail / Teams / WhatsApp and
+the scheduled briefs - `appsettings.json` section `Raffaello:Notify` (`Enabled`, `BriefAt`, `Language`, `CheckEveryMinutes`, `Smtp*`,
+`TeamsWebhookUrl`, `WhatsApp*`; secrets also as environment variables such as `Raffaello__Notify__SmtpPassword`);
+`POST /api/v1/assistant/brief/run` (MANAGE_SETTINGS) sends now, `GET /api/v1/assistant/brief` returns the signed-in user's brief.
+
+**ARABIC / ENGLISH**: Settings > LANGUAGE. Strings: `Core/Localization/strings.keys.tsv` (keys) + `strings.ui.tsv` (literal XAML
+texts) -> `python3 tools/localization/build_strings.py --coverage` generates `Strings.resx` / `Strings.ar.resx` (both embedded).
+XAML: `{res:L Key}`; bound English (navigation, page titles) through `TrConverter`; literal texts of the other screens are translated
+at load time (`AutoTranslator`) until converted to keys. Arabic switches the windows to right-to-left and adds an Arabic font fallback
+(IBM Plex Sans Arabic, Segoe UI, Tahoma) at once; number / date display (Gregorian, "." and ",") follows after a restart. Storage
+and parsing stay invariant.
+<!-- [assistant] end -->
 
 ## Fonts
 

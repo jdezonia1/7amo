@@ -1,0 +1,93 @@
+<UserControl x:Class="Raffaello.App.Views.Pages.BriefView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:Raffaello.App.Controls"
+             xmlns:res="clr-namespace:Raffaello.App.Resources">
+    <!-- [assistant] MORNING BRIEF: first screen of the day -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24,0,24,24" MaxWidth="1200" HorizontalAlignment="Stretch">
+            <!-- hero -->
+            <Border Background="{StaticResource BrandRedBrush}" CornerRadius="{StaticResource RadiusCard}" Padding="20,16">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="{res:L Brief_Title}" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" FontSize="26" Foreground="White"/>
+                        <TextBlock Text="{Binding Header}" Foreground="White" FontSize="13" Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding Since}" Foreground="#E8C9C9" FontSize="11" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                        <Button Style="{StaticResource BtnYellow}" Command="{Binding SummariseCommand}" Margin="0,0,8,6">
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSparkles}" Width="15" Height="15" Foreground="{DynamicResource OnYellowBrush}"/>
+                                <TextBlock Text="{res:L Brief_Summarise}" Margin="6,0,0,0"/></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource BtnYellow}" Command="{Binding ExportPdfCommand}" Margin="0,0,8,6">
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconExport}" Width="15" Height="15" Foreground="{DynamicResource OnYellowBrush}"/>
+                                <TextBlock Text="{res:L Btn_ExportPdf}" Margin="6,0,0,0"/></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource BtnYellow}" Command="{Binding SendNowCommand}" Margin="0,0,8,6">
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSend}" Width="15" Height="15" Foreground="{DynamicResource OnYellowBrush}"/>
+                                <TextBlock Text="{res:L Brief_SendNow}" Margin="6,0,0,0"/></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource BtnIcon}" Command="{Binding RefreshBriefCommand}" ToolTip="{res:L Btn_Refresh}" Margin="0,0,0,6">
+                            <c:IconView Data="{StaticResource IconRefresh}" Foreground="White"/>
+                        </Button>
+                    </WrapPanel>
+                </Grid>
+            </Border>
+            <TextBlock Text="{Binding Status}" Style="{StaticResource Small}" Margin="2,6,0,0" TextWrapping="Wrap" Visibility="{Binding Status, Converter={StaticResource BoolToVis}}"/>
+
+            <!-- Claude summary (optional) -->
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0" Background="{DynamicResource YellowSoftBrush}" Visibility="{Binding Summary, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="{res:L Brief_Summary}" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource InkBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- sections -->
+            <ItemsControl ItemsSource="{Binding Sections}" Margin="0,4,0,0">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Margin="0,12,12,0">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Title}" Style="{StaticResource PanelTitle}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Delta}" FontFamily="{StaticResource FontMonoBold}" FontSize="12" Foreground="{DynamicResource AccentBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <ContentControl Grid.Column="2" Style="{StaticResource Tag}" Content="{Binding Tag}"/>
+                                </Grid>
+                                <TextBlock Text="{Binding Count}" Style="{StaticResource KpiValue}" Margin="0,0,0,6"/>
+                                <TextBlock Text="{res:L Brief_Nothing}" Style="{StaticResource Small}" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+                                <ItemsControl ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource BtnLink}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="0,3"
+                                                    Command="{Binding DataContext.OpenItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                    <Border CornerRadius="2" Background="{Binding Severity, Converter={StaticResource StatusStripe}}"/>
+                                                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Border Background="{DynamicResource AccentBrush}" CornerRadius="4" Padding="4,0" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                                    Visibility="{Binding IsNew, Converter={StaticResource BoolToVis}}">
+                                                                <TextBlock Text="{res:L Brief_New}" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                                            </Border>
+                                                            <TextBlock Text="{Binding Title}" Style="{StaticResource BodyStrong}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding Detail}" Style="{StaticResource Small}" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Text="{Binding More}" Style="{StaticResource Small}" Margin="12,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

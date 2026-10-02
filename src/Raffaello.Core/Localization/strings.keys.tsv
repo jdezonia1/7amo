@@ -1,0 +1,198 @@
+App_Name	RAFFAELLO	رافاييلو
+App_Tagline	Every quantity. One chain.	كل كمية. سلسلة واحدة.
+Nav_Group_Track	TRACK	المتابعة
+Nav_Group_Documents	DOCUMENTS	المستندات
+Nav_Group_Output	OUTPUT	المخرجات
+Nav_Group_Assistant	ASSISTANT	المساعد
+Nav_Dashboard	DASHBOARD	لوحة المتابعة
+Nav_Ledger	ROOMS & LEDGER	الغرف والسجل
+Nav_Quantities	QUANTITIES	الكميات
+Nav_Plan	PLAN VIEW	عرض المخطط
+Nav_Checks	CHECKS	الفحوصات
+Nav_Statements	STATEMENTS	المستخلصات
+Nav_Materials	MATERIALS	المواد
+Nav_Aconex	ACONEX	أكونكس
+Nav_Wir	WIR / MIR	طلبات الفحص / المواد
+Nav_Contracts	CONTRACTS & BOQ	العقود وجدول الكميات
+Nav_SiteStatements	SITE STATEMENTS	كشوف الموقع
+Nav_Variations	VARIATIONS / EI	الأوامر التغييرية / التعليمات
+Nav_Boq	BOQ	جدول الكميات
+Nav_Invoices	INVOICES	الفواتير
+Nav_Reports	REPORTS	التقارير
+Nav_OwnerMos	OWNER MOS	مواد الموقع للمالك
+Nav_Settings	SETTINGS	الإعدادات
+Nav_Welcome	WELCOME	الترحيب
+Nav_Assistant	ASK RAFFAELLO	اسأل رافاييلو
+Nav_Brief	MORNING BRIEF	الموجز الصباحي
+Sub_Dashboard	Every problem is a mismatch in the chain	كل مشكلة هي عدم تطابق في السلسلة
+Sub_Ledger	Remaining = PROJECT QTY - all subcontractors, per room x stage x item (stages never summed)	المتبقي = كمية المشروع - جميع المقاولين، لكل غرفة × مرحلة × بند (لا تُجمع المراحل)
+Sub_Quantities	REMAINING = TOTAL QS - GIVEN, per room / system / stage	المتبقي = إجمالي الحصر - المُسند، لكل غرفة / نظام / مرحلة
+Sub_Plan	Every room on its level plan - colour by status, subcontractor, % used or pending checks; click a room for its balance	كل غرفة على مخطط طابقها - تلوين حسب الحالة أو المقاول أو نسبة الاستهلاك أو الفحوصات المعلقة؛ انقر على الغرفة لعرض رصيدها
+Sub_Checks	HEIGHT CHECK (>4.5 m) and LENGTH CHECK (15 m rule) - pending lines are held out of invoicing	فحص الارتفاع (أكثر من 4.5 م) وفحص الطول (قاعدة 15 م) - البنود المعلقة تُستبعد من الفوترة
+Sub_Statements	Cumulative statements per subcontractor - capped by PROJECT QTY, checked against WIR	المستخلصات التراكمية لكل مقاول - بسقف كمية المشروع ومطابقة مع طلبات الفحص
+Sub_Materials	PO, DN and MIR read and checked, 3-way match, supplier invoices, DN lookup	قراءة وفحص أوامر الشراء وإشعارات التسليم وطلبات المواد، المطابقة الثلاثية، فواتير الموردين، البحث عن إشعار التسليم
+Sub_Aconex	Invoice workflows, status board for management, WIR / MIR downloads (browser automation of ksa1.aconex.com)	سير عمل الفواتير، لوحة الحالة للإدارة، تنزيل طلبات الفحص والمواد (أتمتة متصفح ksa1.aconex.com)
+Sub_Wir	Inspection requests - EMT is rework and never counts as progress	طلبات الفحص - أعمال EMT إعادة عمل ولا تُحتسب تقدماً
+Sub_Contracts	Contract items with their rate-driving attributes and BOQ links; E-Promise BOQ codes; rates and PROJECT QTY	بنود العقود وخصائصها المؤثرة في السعر وروابطها بجدول الكميات؛ أكواد E-Promise؛ الأسعار وكمية المشروع
+Sub_SiteStatements	Issue a statement sheet per subcontractor, import it back into the room ledger (duplicates and over-remaining are caught)	إصدار كشف لكل مقاول واستيراده إلى سجل الغرف (يتم اكتشاف التكرار وتجاوز المتبقي)
+Sub_Variations	Consultant instructions -> omission / addition / new item submissions, tracked to approval	تعليمات الاستشاري -> تقديم حذف / إضافة / بند جديد، ومتابعتها حتى الاعتماد
+Sub_Boq	Owner BOQ by system and category - corrections are learned	جدول كميات المالك حسب النظام والفئة - يتم تعلّم التصحيحات
+Sub_Invoices	Built from the room ledger: claims up to this invoice no, previous = last approved invoice, approved invoices are locked	تُبنى من سجل الغرف: المطالبات حتى رقم هذه الفاتورة، السابق = آخر فاتورة معتمدة، الفواتير المعتمدة مقفلة
+Sub_Reports	Weekly progress report, chain exports, printable summary	تقرير التقدم الأسبوعي، تصدير السلسلة، ملخص للطباعة
+Sub_OwnerMos	Materials on site: delivered (DN + MIR) less installed, at owner BOQ rate x MOS %	المواد في الموقع: المُسلّم (إشعار تسليم + طلب مواد) ناقص المركّب، بسعر جدول كميات المالك × نسبة MOS
+Sub_Settings	Stored per user in %APPDATA%\Raffaello\settings.json	تُحفظ لكل مستخدم في %APPDATA%\Raffaello\settings.json
+Sub_Assistant	Ask about rooms, the ledger, invoices, deliveries and today's work - answers cite their sources	اسأل عن الغرف والسجل والفواتير والتسليمات وعمل اليوم - الإجابات تذكر مصادرها
+Sub_Brief	What changed since yesterday and what needs you today	ما الذي تغيّر منذ الأمس وما المطلوب منك اليوم
+Btn_Save	SAVE	حفظ
+Btn_Cancel	CANCEL	إلغاء
+Btn_Close	CLOSE	إغلاق
+Btn_Confirm	CONFIRM	تأكيد
+Btn_Send	SEND	إرسال
+Btn_Stop	STOP	إيقاف
+Btn_Attach	ATTACH	إرفاق
+Btn_Remove	REMOVE	إزالة
+Btn_Export	EXPORT	تصدير
+Btn_Import	IMPORT	استيراد
+Btn_Open	OPEN	فتح
+Btn_Refresh	REFRESH	تحديث
+Btn_Test	TEST	اختبار
+Btn_Yes	YES	نعم
+Btn_No	NO	لا
+Btn_ExportPdf	EXPORT PDF	تصدير PDF
+Btn_NewConversation	NEW CONVERSATION	محادثة جديدة
+Btn_OpenFullPage	OPEN FULL PAGE	فتح صفحة كاملة
+Btn_History	HISTORY	السجل
+Btn_Delete	DELETE	حذف
+Btn_OpenAssistant	ASK RAFFAELLO	اسأل رافاييلو
+Dlg_Confirm_Title	Please confirm	يرجى التأكيد
+Dlg_Error_Title	Something went wrong	حدث خطأ
+Dlg_RestartForFormats	Number and date formats follow the new language after Raffaello is restarted.	تنسيق الأرقام والتواريخ يتبع اللغة الجديدة بعد إعادة تشغيل رافاييلو.
+Dlg_SavedTitle	SETTINGS SAVED	تم حفظ الإعدادات
+Toast_DataReloaded	DATA RELOADED	تم تحديث البيانات
+Toast_Exported	EXPORTED	تم التصدير
+Toast_SaveFailed	SAVE FAILED	فشل الحفظ
+Toast_ChangedBySomeone	CHANGED BY SOMEONE ELSE	تم التعديل من مستخدم آخر
+Ask_Title	ASK RAFFAELLO	اسأل رافاييلو
+Ask_Placeholder	Ask about a room, an invoice, a DN ... (Enter to send, Shift+Enter for a new line)	اسأل عن غرفة أو فاتورة أو إشعار تسليم ... (Enter للإرسال، Shift+Enter لسطر جديد)
+Ask_Empty	Ask in English or Arabic. Raffaello reads the ledger, invoices, deliveries and today's queue, cites where each figure comes from, and prepares drafts you confirm.	اسأل بالعربية أو الإنجليزية. يقرأ رافاييلو السجل والفواتير والتسليمات ومهام اليوم، ويذكر مصدر كل رقم، ويجهّز مسودات تؤكدها أنت.
+Ask_Thinking	Thinking...	جارٍ التفكير...
+Ask_Reading	Reading	جارٍ قراءة
+Ask_Offline	OFFLINE - answers from local data (add an API key in Settings)	بدون اتصال - إجابات من البيانات المحلية (أضف مفتاح API في الإعدادات)
+Ask_Online	ONLINE	متصل
+Ask_Sources	SOURCES	المصادر
+Ask_ActionCard	NEEDS YOUR CONFIRMATION	بحاجة إلى تأكيدك
+Ask_ActionDone	DONE	تم
+Ask_ActionCancelled	CANCELLED	ملغى
+Ask_ActionFailed	FAILED	فشل
+Ask_Privacy	PRIVACY	الخصوصية
+Ask_Attachments	ATTACHMENTS	المرفقات
+Ask_Conversations	CONVERSATIONS	المحادثات
+Ask_Context	CONTEXT	السياق
+Ask_Suggest1	What needs me today?	ما المطلوب مني اليوم؟
+Ask_Suggest2	Remaining in P2-106 2nd fix light	المتبقي في P2-106 التمديد الثاني إنارة
+Ask_Suggest3	Where is DN 81064344?	أين إشعار التسليم 81064344؟
+Ask_Suggest4	Why is this line flagged?	لماذا تم تمييز هذا البند؟
+Ask_Suggest5	What looks wrong in the latest claims?	ما الذي يبدو غير صحيح في آخر المطالبات؟
+Ask_Suggest6	Draft the rejection reply for the last rejected invoice	اكتب مسودة الرد على آخر فاتورة مرفوضة
+Ask_KeyMissing	No API key - offline answers only	لا يوجد مفتاح API - إجابات محلية فقط
+Brief_Title	MORNING BRIEF	الموجز الصباحي
+Brief_Subtitle	What changed since yesterday and what needs you today	ما الذي تغيّر منذ الأمس وما المطلوب منك اليوم
+Brief_Since	Since	منذ
+Brief_NewClaims	NEW CLAIMS	مطالبات جديدة
+Brief_OverCap	OVER THE CAP	تجاوز السقف
+Brief_Checks	CHECKS PENDING	فحوصات معلقة
+Brief_Invoices	INVOICES AWAITING YOU	فواتير بانتظارك
+Brief_Aconex	ACONEX OVERDUE STEPS	خطوات أكونكس المتأخرة
+Brief_Materials	DNs WITHOUT MIR / MATERIALS	إشعارات تسليم بدون طلب مواد / المواد
+Brief_Vo	VARIATIONS AGEING	تقادم الأوامر التغييرية
+Brief_Obligations	OBLIGATIONS AND REMINDERS DUE	الالتزامات والتذكيرات المستحقة
+Brief_Nothing	Nothing new.	لا جديد.
+Brief_New	new	جديد
+Brief_Summary	SUMMARY	الملخص
+Brief_Summarise	SUMMARISE WITH CLAUDE	تلخيص بواسطة Claude
+Brief_SendNow	SEND NOW	إرسال الآن
+Brief_ShowFirst	Show the brief as the first screen of the day	عرض الموجز كأول شاشة في اليوم
+Brief_Time	BRIEF TIME (HH:mm)	وقت الموجز (HH:mm)
+Brief_ClaudeSummary	Add a short summary written by Claude (sends the brief figures only)	إضافة ملخص قصير يكتبه Claude (يُرسل أرقام الموجز فقط)
+Brief_Today	TODAY	اليوم
+Brief_Generated	Generated	أُنشئ في
+Set_Assistant	ASSISTANT	المساعد
+Set_Language	LANGUAGE / اللغة	اللغة / LANGUAGE
+Set_LanguageEnglish	English	الإنجليزية
+Set_LanguageArabic	العربية (Arabic)	العربية
+Set_AllowRead	Allow assistant to read project data	السماح للمساعد بقراءة بيانات المشروع
+Set_AllowReadHint	Read tools look at rooms, the ledger, invoices, deliveries and contracts and send the results to Claude. Off: answers from the house rules only.	أدوات القراءة تطّلع على الغرف والسجل والفواتير والتسليمات والعقود وتُرسل النتائج إلى Claude. عند الإيقاف: إجابات من قواعد المشروع فقط.
+Set_CloudReading	Cloud document reading (send scanned pages / images to Claude)	القراءة السحابية للمستندات (إرسال الصفحات الممسوحة / الصور إلى Claude)
+Set_ApiKey	ANTHROPIC API KEY (stored with Windows DPAPI, or set ANTHROPIC_API_KEY)	مفتاح ANTHROPIC API (يُحفظ بتشفير Windows DPAPI، أو عيّن ANTHROPIC_API_KEY)
+Set_Model	MODEL	النموذج
+Set_MaxTokens	MAX TOKENS PER ANSWER	الحد الأقصى للرموز لكل إجابة
+Set_Notifications	NOTIFICATIONS	الإشعارات
+Set_InAppToasts	In-app notifications	إشعارات داخل التطبيق
+Set_WindowsToasts	Windows notifications	إشعارات Windows
+Set_Email	E-MAIL (SMTP)	البريد الإلكتروني (SMTP)
+Set_SmtpHost	SMTP SERVER	خادم SMTP
+Set_SmtpPort	PORT	المنفذ
+Set_SmtpSsl	Use SSL / TLS	استخدام SSL / TLS
+Set_SmtpUser	USER	المستخدم
+Set_SmtpPassword	PASSWORD (DPAPI)	كلمة المرور (DPAPI)
+Set_SmtpFrom	FROM	من
+Set_EmailTo	SEND TO	إرسال إلى
+Set_Teams	MICROSOFT TEAMS INCOMING WEBHOOK URL	رابط Webhook الوارد في Microsoft Teams
+Set_WhatsApp	WHATSAPP WEBHOOK URL (any gateway)	رابط Webhook لواتساب (أي بوابة)
+Set_WhatsAppTo	WHATSAPP TO (phone / id)	واتساب إلى (رقم / معرّف)
+Set_WhatsAppTemplate	WEBHOOK BODY TEMPLATE ({to} {title} {text})	قالب محتوى Webhook ({to} {title} {text})
+Set_WhatsAppHeader	HEADER NAME / VALUE (optional, value in DPAPI)	اسم / قيمة الترويسة (اختياري، القيمة في DPAPI)
+Set_Rules	RULES: WHICH EVENT, WHICH CHANNEL, QUIET HOURS	القواعد: أي حدث، أي قناة، ساعات الهدوء
+Set_Event	EVENT	الحدث
+Set_Channel	CHANNEL	القناة
+Set_MinSeverity	MIN. SEVERITY	أدنى خطورة
+Set_QuietFrom	QUIET FROM	الهدوء من
+Set_QuietTo	QUIET TO	الهدوء إلى
+Set_AddRule	+ RULE	+ قاعدة
+Set_SaveAssistant	SAVE ASSISTANT & NOTIFICATIONS	حفظ المساعد والإشعارات
+Set_TestChannel	SEND TEST	إرسال تجربة
+Set_KeySaved	KEY SAVED (DPAPI)	تم حفظ المفتاح (DPAPI)
+Set_KeyEnv	USING ANTHROPIC_API_KEY FROM THE ENVIRONMENT	استخدام ANTHROPIC_API_KEY من البيئة
+Set_KeyNone	NO KEY - the assistant answers offline from local data	لا يوجد مفتاح - يجيب المساعد بدون اتصال من البيانات المحلية
+Set_KeyLegacy	KEY IN settings.json (plain text) - save to move it to DPAPI	المفتاح في settings.json (نص عادي) - احفظ لنقله إلى DPAPI
+Evt_NewClaims	New claims	مطالبات جديدة
+Evt_OverCap	Over the cap	تجاوز السقف
+Evt_ChecksPending	Checks pending	فحوصات معلقة
+Evt_InvoiceAwaiting	Invoice awaiting you	فاتورة بانتظارك
+Evt_InvoiceRejected	Invoice rejected	فاتورة مرفوضة
+Evt_AconexOverdue	Aconex step overdue	خطوة أكونكس متأخرة
+Evt_DnWithoutMir	DN without MIR	إشعار تسليم بدون طلب مواد
+Evt_VoAgeing	Variation ageing	تقادم أمر تغييري
+Evt_ReminderDue	Reminder due	تذكير مستحق
+Evt_Brief	Morning brief	الموجز الصباحي
+Evt_All	Every event	كل الأحداث
+Ch_InApp	In-app	داخل التطبيق
+Ch_Windows	Windows	Windows
+Ch_Email	E-mail	البريد الإلكتروني
+Ch_Teams	Teams	Teams
+Ch_WhatsApp	WhatsApp	واتساب
+Sev_Open	OPEN	مفتوح
+Sev_Due	DUE	مستحق
+Sev_Check	CHECK	فحص
+Sev_Over	OVER	تجاوز
+Sev_Ok	OK	سليم
+Queue_Title	NEEDS YOU TODAY	المطلوب منك اليوم
+Queue_Cat_OVER	OVER	تجاوز
+Queue_Cat_CHECK	CHECK	فحص
+Queue_Cat_CERTIFY	CERTIFY	اعتماد
+Queue_Cat_STATEMENT	STATEMENT	مستخلص
+Queue_Cat_WIR	WIR	طلب فحص
+Queue_Cat_MATERIAL	MATERIAL	مواد
+Queue_Cat_ACONEX	ACONEX	أكونكس
+Queue_Cat_VO	VO	أمر تغييري
+Queue_Cat_INVOICE	INVOICE	فاتورة
+Queue_Cat_PACKAGE	PACKAGE	حزمة
+Queue_Cat_HEIGHT	HEIGHT	ارتفاع
+Queue_Cat_LENGTH	LENGTH	طول
+Queue_Cat_LEDGER	LEDGER	السجل
+Queue_Cat_CUMULATIVE	CUMULATIVE	تراكمي
+Queue_Cat_BOQ	BOQ	جدول الكميات
+Queue_Cat_REMINDER	REMINDER	تذكير
+Building_All	ALL	الكل
+Building_Branded	BRANDED	المساكن ذات العلامة
+Building_Hotel	HOTEL	الفندق
