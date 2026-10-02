@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- [phase4] Browser automation for Aconex (Playwright). Kept out of Raffaello.Core so Core stays free of Playwright. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Raffaello.Automation</RootNamespace>
+    <Version>1.0.0</Version>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 1.56 drives Chromium build 1194; on Windows the default config uses the installed Edge (channel msedge) instead. -->
+    <PackageReference Include="Microsoft.Playwright" Version="1.56.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Raffaello.Core\Raffaello.Core.csproj" />
+  </ItemGroup>
+</Project>
