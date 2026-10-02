@@ -8,3 +8,7 @@ TestResults/
 *.db
 *.db-wal
 *.db-shm
+# [phase5] server build output, setup log and site settings
+server-publish/
+setup_server_log.txt
+appsettings.Local.json

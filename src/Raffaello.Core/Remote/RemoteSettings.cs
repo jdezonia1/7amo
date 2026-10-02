@@ -26,7 +26,7 @@ public sealed class RemoteSettings
     public DateTime? TokenExpires { get; set; }
     /// <summary>Offline cache + queued writes. Empty = %LOCALAPPDATA%\Raffaello\server-cache\&lt;host&gt;.</summary>
     public string CacheFolder { get; set; } = "";
-    public int TimeoutSeconds { get; set; } = 30;
+    public int TimeoutSeconds { get; set; } = 120;
 
     public bool IsServer => string.Equals(Mode, DataSources.Server, StringComparison.OrdinalIgnoreCase) && ServerUrl.Trim().Length > 0;
 

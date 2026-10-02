@@ -22,6 +22,9 @@ public static class ServerApp
             ContentRootPath = AppContext.BaseDirectory,
         });
         builder.Host.UseWindowsService(o => o.ServiceName = ServiceName);
+        // site settings written by SETUP_SERVER.bat (kept out of appsettings.json so updates never overwrite them); command line wins
+        builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.Local.json"), optional: true, reloadOnChange: false);
+        builder.Configuration.AddCommandLine(args);
 
         var opt = builder.Configuration.GetSection("Raffaello").Get<ServerOptions>() ?? new ServerOptions();
         var cs = ConnectionString(builder.Configuration);

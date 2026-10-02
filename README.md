@@ -127,6 +127,63 @@ A server implementation (API + PostgreSQL + live updates) can replace `Db` behin
 Excel is import / export only. Exports use a #A6A6A6 header fill with bold black text, number formats, frozen
 header row and autofilter.
 
+<!-- [phase5] begin -->
+## Multi-user server (Phase 5)
+
+`src/Raffaello.Server` is an ASP.NET Core service with PostgreSQL behind the same `IProjectStore` interface.
+In Settings > **Data source** each user picks **Local (this PC / shared file)** or **Server (URL)**; nothing else
+in the app changes. Over the server:
+
+- the ledger is append-only and REMAINING is re-checked on the server at save time under a lock on the
+  room | stage | item key, so two users can never both claim the last units (the second gets "exceeds remaining";
+  with a reason it posts OVER, as on the desktop);
+- a stale RowVersion gets 409 with the current row and who changed it; every change is in the AuditLog
+  (who / when / PC / old / new); presence shows who is online and on which screen;
+- changes are pushed live (SignalR): other people see "updated by X just now - review" and their screens refresh;
+- roles: SITE (upload statements, view), QS (enter data, prepare invoices), REVIEWER (check / approve), ADMIN
+  (users, templates, settings). Invoices go DRAFT -> CHECKED -> APPROVED -> SUBMITTED; each stamp records who and when
+  (Settings > Data source > Invoice approvals). Sign-in is the Windows account on domain PCs, or an app account;
+- documents are stored on the shared partition (UNC path); the database keeps their metadata and SHA-256;
+- if the server is unreachable the app keeps working on its last copy; changes are queued and sent on reconnect.
+  Anything that no longer fits (someone changed the same row, or the remaining quantity is gone) shows up in
+  Settings > Data source > **Sync conflicts**: keep mine / keep theirs / merge field by field;
+- **Copy local data to server** moves an existing data file to the server (dry run first; ids kept; safe to repeat).
+
+Developer notes (API, plug-in pattern for new stores, tests): `docs/SERVER.md`.
+
+## Server setup for IT
+
+What is needed: **one always-on Windows PC or VM on the office LAN** (Windows 10/11 Pro or Windows Server),
+about **4 GB RAM and 100 GB disk**, a fixed IP address or DNS name, reachable from the users' PCs on TCP port 5180.
+Users' PCs only need the Raffaello app. Documents stay on the existing shared partition.
+
+1. Install **PostgreSQL 16** for Windows (https://www.postgresql.org/download/windows/). Keep port 5432 and write
+   down the password you give the `postgres` user. PostgreSQL only needs to accept connections from the same PC.
+2. Copy the `server-publish` folder (made by `RUN_ONE_CLICK.bat`) and `SETUP_SERVER.bat` to the server PC, side by
+   side. (Alternatively copy the whole repository and install the .NET 8 SDK; the script then builds the server.)
+3. Right-click `SETUP_SERVER.bat` > **Run as administrator**. It asks for the postgres password, a new password
+   for the `raffaello` database user (letters and digits), the shared folder for documents (e.g.
+   `\\FILESERVER\RAFFLES\RaffaelloDocs`) and a backup folder (preferably on another disk or share), then:
+   installs the program in `C:\RaffaelloServer`, creates the database, creates the first ADMIN account, installs
+   the Windows service **Raffaello Server** (automatic start, restarts itself on failure), opens port 5180 in the
+   Windows firewall (domain + private networks) and prints the address users must type, e.g. `http://RAFFAELLO-SRV:5180`.
+4. If documents are on a network share: services.msc > Raffaello Server > Log On > **This account** = a domain
+   service account that can read/write that share (the default LocalSystem account cannot open `\\server\share`).
+   For Windows sign-in without passwords the server PC must be joined to the domain.
+5. Backups run **every night at 02:00** (PostgreSQL dump, kept 30 days, at least the last 7). Manual:
+   `C:\RaffaelloServer\Raffaello.Server.exe backup`; restore: stop the service, then
+   `Raffaello.Server.exe restore <file.dump>`, start the service. Include the backup folder and the documents
+   share in the normal IT backup. Settings live in `C:\RaffaelloServer\appsettings.Local.json` (not overwritten by updates).
+6. Users: everyone signing in with Windows gets the SITE role on first use; the ADMIN raises roles
+   (`Raffaello.Server.exe adduser NAME ROLE [PASSWORD]`, `passwd NAME PASSWORD`, `users`).
+7. How users connect: Raffaello > Settings > Data source > Server, type the address, TEST CONNECTION,
+   USE THIS DATA SOURCE. The first time, an ADMIN runs MIGRATION DRY RUN and COPY LOCAL DATA TO SERVER from the PC
+   that has the current data file.
+
+Updating the server: run `RUN_ONE_CLICK.bat` on a build PC, copy the new `server-publish` folder over, run
+`SETUP_SERVER.bat` again (it keeps the settings, upgrades the database and restarts the service).
+<!-- [phase5] end -->
+
 ## Ask Raffaello
 
 Slide-in assistant (Ctrl+Shift+A). It calls the Claude Messages API over HttpClient with streaming, model

@@ -4,6 +4,7 @@
         xmlns:c="clr-namespace:Raffaello.App.Controls"
         xmlns:vm="clr-namespace:Raffaello.App.ViewModels"
         xmlns:pages="clr-namespace:Raffaello.App.Views.Pages"
+        xmlns:p5="clr-namespace:Raffaello.App.Services.Phase5"
         Title="Raffaello" Width="1366" Height="768" MinWidth="1080" MinHeight="620"
         WindowStartupLocation="CenterScreen" Icon="pack://application:,,,/Assets/raffaello.ico"
         Background="{DynamicResource BgBrush}" Foreground="{DynamicResource InkBrush}"
@@ -111,6 +112,10 @@
                         <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="{Binding UserName}" Foreground="{StaticResource SidebarInkBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Text="{Binding Presence.OthersOnline}" Foreground="{StaticResource SidebarMutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" ToolTip="{Binding Presence.OthersOnline}"/>
+                            <!-- [phase5] begin: data source / sync status -->
+                            <TextBlock Text="{Binding Source={x:Static p5:SyncStatus.Current}, Path=Text}" ToolTip="{Binding Source={x:Static p5:SyncStatus.Current}, Path=Detail}"
+                                       Foreground="{StaticResource SidebarMutedBrush}" FontSize="9" TextTrimming="CharacterEllipsis"/>
+                            <!-- [phase5] end -->
                         </StackPanel>
                     </Grid>
                 </StackPanel>

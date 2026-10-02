@@ -13,7 +13,6 @@ namespace Raffaello.Server.Data;
 public static class EntityRegistry
 {
     private static readonly ConcurrentDictionary<string, Type> ByTable = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropCache = new();
     private static readonly object Gate = new();
     private static bool _initialized;
 
@@ -35,6 +34,7 @@ public static class EntityRegistry
         if (!typeof(Entity).IsAssignableFrom(t) || t.IsAbstract || t.GetConstructor(Type.EmptyTypes) is null)
             throw new ArgumentException($"{t.Name} must be a concrete Entity with a parameterless constructor.");
         ByTable[TableOf(t)] = t;
+        Core.Remote.EntityMeta.Register(t);
     }
 
     public static IReadOnlyCollection<Type> All { get { EnsureInitialized(); return ByTable.Values.OrderBy(t => t.Name).ToList(); } }
@@ -45,14 +45,11 @@ public static class EntityRegistry
 
     public static string TableOf(Type t) => Db.TableOf(t);
 
-    /// <summary>Stored columns: public read/write properties (computed getters like ClaimLine.Key are not stored).</summary>
-    public static PropertyInfo[] Props(Type t) => PropCache.GetOrAdd(t, x =>
-        x.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0).ToArray());
+    /// <summary>Stored columns: public read/write properties (computed getters like ClaimLine.Key are not stored). Same rule as the client.</summary>
+    public static PropertyInfo[] Props(Type t) => Core.Remote.EntityMeta.Props(t);
 
     /// <summary>Foreign-key-like columns (long / long? named *Id, not Id itself) - remapped when they carry a temporary negative id.</summary>
-    public static IEnumerable<PropertyInfo> ForeignKeys(Type t) => Props(t).Where(p =>
-        p.Name != nameof(Entity.Id) && p.Name.EndsWith("Id", StringComparison.Ordinal) &&
-        (p.PropertyType == typeof(long) || p.PropertyType == typeof(long?)));
+    public static IEnumerable<PropertyInfo> ForeignKeys(Type t) => Core.Remote.EntityMeta.ForeignKeys(t);
 }
 
 /// <summary>

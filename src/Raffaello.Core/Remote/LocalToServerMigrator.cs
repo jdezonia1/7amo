@@ -86,7 +86,12 @@ public static class LocalToServerMigrator
         {
             var table = EntityMeta.TableOf(t);
             progress?.Invoke($"Comparing {table}...");
-            var mine = EntityMeta.AllOf(local, t);
+            List<Entity> mine;
+            try { mine = EntityMeta.AllOf(local, t); }
+            catch (System.Reflection.TargetInvocationException ex) when (ex.InnerException is Microsoft.Data.Sqlite.SqliteException)
+            {
+                mine = new List<Entity>();   // the local file has no table for this type (added by another module): nothing to copy
+            }
             var theirs = EntityMeta.AllOf(server, t).ToDictionary(e => e.Id);
             var plan = new TableMigration { Table = table, Local = mine.Count, OnServer = theirs.Count };
             var copy = new List<Entity>();
