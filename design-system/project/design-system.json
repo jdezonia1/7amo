@@ -1,0 +1,42 @@
+{
+  "v": 3,
+  "assetGroups": {
+    "Logos": {
+      "files": {
+        "raffaello-mark.svg": {
+          "blob": "a9f1a2027507cd2102a8b443ea189113",
+          "name": "raffaello-mark.svg",
+          "size": 492,
+          "type": "image/svg+xml"
+        }
+      },
+      "name": "Logos",
+      "order": [
+        "raffaello-mark.svg"
+      ],
+      "tile": "l"
+    }
+  },
+  "blobs": {},
+  "createdOnFiles": {
+    "at": "2026-10-02T04:41:33Z",
+    "v": 1
+  },
+  "docs": {
+    "sections": []
+  },
+  "groups": [
+    "Logos"
+  ],
+  "lastChange": {
+    "at": "2026-10-02T04:41:33Z",
+    "by": "Mohamed",
+    "note": "Raffaello design system created from the app's Mizan-based theme and diamond logo.",
+    "via": "Claude chat"
+  },
+  "layout": "files",
+  "libraries": [],
+  "namespace": "Raffaello",
+  "sections": {},
+  "title": "Raffaello"
+}

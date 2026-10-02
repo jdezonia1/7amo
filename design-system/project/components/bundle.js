@@ -1,0 +1,2 @@
+/* @ds-bundle: {"format": 4, "namespace": "Raffaello", "components": [{"name": "AppHeader"}, {"name": "WorkspaceTabs"}, {"name": "Kpi"}, {"name": "Panel"}, {"name": "DataTable"}, {"name": "Tag"}, {"name": "Button"}]} */
+(function(){var w=window;w.Raffaello=w.Raffaello||{};w.Raffaello.classes={header:"rf-header",tabs:"rf-tabs",tab:"rf-tab",card:"rf-card",kpi:"rf-kpi",table:"rf-table",tag:"rf-tag",btn:"rf-btn"};})();
