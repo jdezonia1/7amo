@@ -28,6 +28,9 @@ echo. >> "%OUT%"
 echo ===== %RAF%\error.log (last 150 lines) ===== >> "%OUT%"
 if exist "%RAF%\error.log" (powershell -NoProfile -Command "Get-Content -Path '%RAF%\error.log' -Tail 150" >> "%OUT%" 2>&1) else (echo none >> "%OUT%")
 echo. >> "%OUT%"
+echo ===== %RAF%\binding_errors.log (first 200 lines) ===== >> "%OUT%"
+if exist "%RAF%\binding_errors.log" (powershell -NoProfile -Command "Get-Content -Path '%RAF%\binding_errors.log' -TotalCount 200" >> "%OUT%" 2>&1) else (echo none >> "%OUT%")
+echo. >> "%OUT%"
 echo ===== WINDOWS APPLICATION EVENTS (last hour, .NET Runtime / Application Error) ===== >> "%OUT%"
 powershell -NoProfile -Command "Get-WinEvent -FilterHashtable @{LogName='Application'; StartTime=(Get-Date).AddHours(-1)} -ErrorAction SilentlyContinue | Where-Object { $_.ProviderName -in '.NET Runtime','Application Error','Windows Error Reporting' -and $_.Message -match 'Raffaello' } | Select-Object -First 5 | ForEach-Object { '----- ' + $_.TimeCreated + ' ' + $_.ProviderName; $_.Message }" >> "%OUT%" 2>&1
 echo. >> "%OUT%"

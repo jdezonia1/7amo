@@ -291,7 +291,7 @@
         <!-- [assistant] end -->
 
         <!-- ============================================================ COMMAND PALETTE -->
-        <Grid Grid.ColumnSpan="2" Visibility="{Binding Palette.IsOpen, Converter={StaticResource BoolToVis}}" DataContext="{Binding Palette}">
+        <Grid Grid.ColumnSpan="2" DataContext="{Binding Palette}" Visibility="{Binding IsOpen, Converter={StaticResource BoolToVis}}">
             <Border Background="{DynamicResource OverlayBrush}" MouseDown="PaletteBackdrop_MouseDown"/>
             <Border Width="660" VerticalAlignment="Top" Margin="0,80,0,0" Style="{StaticResource Card}" Padding="10" MaxHeight="520">
                 <DockPanel>

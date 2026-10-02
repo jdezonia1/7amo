@@ -42,6 +42,35 @@ public partial class App : Application
             try { MessageBox.Show($"Raffaello crashed.\n\n{ex.GetType().Name}: {ex.Message}\n\nDetails: {ErrorLogPath}\nStart-up steps: {StartupLogPath}", "Raffaello", MessageBoxButton.OK, MessageBoxImage.Error); } catch { }
         };
         TaskScheduler.UnobservedTaskException += (_, e) => { Log(e.Exception); e.SetObserved(); };
+        // WPF drops broken {Binding} paths silently (an overlay stuck open, an empty column): write each distinct one to binding_errors.log
+        try
+        {
+            File.WriteAllText(BindingLogPath, "");
+            System.Diagnostics.PresentationTraceSources.Refresh();
+            System.Diagnostics.PresentationTraceSources.DataBindingSource.Listeners.Add(new BindingErrorListener());
+            System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Error;
+        }
+        catch { /* diagnostics only */ }
+    }
+
+    public static string BindingLogPath => Path.Combine(AppSettings.SettingsFolder, "binding_errors.log");
+
+    private sealed class BindingErrorListener : System.Diagnostics.TraceListener
+    {
+        private readonly HashSet<string> _seen = new();
+        private readonly System.Text.StringBuilder _line = new();
+        public override void Write(string? message) => _line.Append(message);
+        public override void WriteLine(string? message)
+        {
+            _line.Append(message);
+            var text = _line.ToString();
+            _line.Clear();
+            lock (_seen)
+            {
+                if (_seen.Count > 500 || !_seen.Add(text)) return;
+                try { File.AppendAllText(BindingLogPath, $"[{DateTime.Now:HH:mm:ss}] {text}\n"); } catch { }
+            }
+        }
     }
 
     public static void Step(string what)
