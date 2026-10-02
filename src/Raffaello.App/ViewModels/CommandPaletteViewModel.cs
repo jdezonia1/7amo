@@ -49,6 +49,13 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
             new("GO TO", "BOQ", "Owner BOQ by system and category", "", () => nav.Go("Boq")),
             new("GO TO", "DN lookup", "Supplier + DN / PO / batch -> PO, invoice, MIR", "", () => nav.Go("Materials")),
             // [phase3] end
+            // [insights] begin
+            new("INSIGHTS", "Anomalies", "Unusual claims: jumps, shared rooms, 15 m / >4.5 m, before WIR, copied invoices, reused photos, rates", "", () => nav.Go("Anomalies")),
+            new("INSIGHTS", "Material reconciliation", "Delivered vs installed vs paid, wastage, stock on site, MOS release", "", () => nav.Go("MaterialRecon")),
+            new("INSIGHTS", "Rate benchmark", "Same item across contracts, POs and owner BOQ - outliers and margin", "", () => nav.Go("RateBenchmark")),
+            new("INSIGHTS", "Cash-flow forecast", "Monthly payables vs owner receipts, delay scenario", "", () => nav.Go("CashFlow")),
+            new("INSIGHTS", "Earned value & productivity", "Planned vs actual, points per week, forecast finish per area, early warnings", "", () => nav.Go("EarnedValue")),
+            // [insights] end
             new("FILTER", "Clear filters", "Show all buildings and stages", "", () => _filter.Clear()),
             new("FILTER", "Hotel only", "", "", () => _filter.Set(building: "HOTEL")),
             new("FILTER", "Branded only", "", "", () => _filter.Set(building: "BRANDED")),

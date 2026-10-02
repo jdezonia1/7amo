@@ -31,10 +31,15 @@ public sealed partial class ReportsViewModel : PageViewModel
     private readonly Raffaello.Core.Materials.MaterialsSettings _materialsSettings;
     private readonly AconexAutomationService _aconex;
 
-    public ReportsViewModel(PageContext ctx, Raffaello.Core.Materials.IMaterialsStore materials, Raffaello.Core.Materials.MaterialsSettings materialsSettings, AconexAutomationService aconex) : base(ctx)
+    public ReportsViewModel(PageContext ctx, Raffaello.Core.Materials.IMaterialsStore materials, Raffaello.Core.Materials.MaterialsSettings materialsSettings, AconexAutomationService aconex,
+        Insights.InsightsReportsPanel insightsReports /* [insights] */) : base(ctx)
     {
         _materials = materials; _materialsSettings = materialsSettings; _aconex = aconex;
+        InsightsReports = insightsReports;   // [insights]
     }
+
+    /// <summary>[insights] Insight report cards (anomalies, material reconciliation, rate benchmark, cash flow, earned value).</summary>
+    public Insights.InsightsReportsPanel InsightsReports { get; }
 
     /// <summary>[phase6] Management reports from the real data (ledger, invoices, materials, variations, Aconex).</summary>
     public ProjectReportCard[] ProjectCards { get; } = Raffaello.Core.Reports.ProjectReports.All.Select(d => new ProjectReportCard(d)).ToArray();

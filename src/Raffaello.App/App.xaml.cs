@@ -122,6 +122,16 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, OwnerMosViewModel>();
                 s.AddSingleton<PageViewModel, BoqViewModel>();
                 // [phase3] end
+                // [insights] begin - anomalies, material reconciliation, rate benchmark, cash flow, earned value
+                s.AddSingleton<Raffaello.Core.Insights.IInsightsStore>(sp => new Raffaello.Core.Insights.InsightsStoreSelector(() => sp.GetRequiredService<ProjectService>().Store));
+                s.AddSingleton<ViewModels.Insights.InsightsHub>();
+                s.AddSingleton<ViewModels.Insights.InsightsReportsPanel>();
+                s.AddSingleton<PageViewModel, ViewModels.Insights.InsightsAnomaliesViewModel>();
+                s.AddSingleton<PageViewModel, ViewModels.Insights.InsightsReconViewModel>();
+                s.AddSingleton<PageViewModel, ViewModels.Insights.InsightsRatesViewModel>();
+                s.AddSingleton<PageViewModel, ViewModels.Insights.InsightsCashFlowViewModel>();
+                s.AddSingleton<PageViewModel, ViewModels.Insights.InsightsEarnedValueViewModel>();
+                // [insights] end
                 s.AddSingleton<PageViewModel, WirViewModel>();
                 s.AddSingleton<PageViewModel, ContractsViewModel>();
                 s.AddSingleton<PageViewModel, InvoicesViewModel>();
@@ -145,6 +155,12 @@ public partial class App : Application
             project.QueueSources.Add(p => Raffaello.Core.Queue.ModuleQueue.Materials(mats.Load(), matSettings, DateTime.Today));
             project.QueueSources.Add(p => Raffaello.Core.Queue.ModuleQueue.Aconex(Raffaello.Core.AconexWeb.StatusBoard.Build(p.Snapshot.SubInvoices, aconex.Store.ActiveLinks(), aconex.Store.LatestChecks(), DateTime.Today, false)));
             project.QueueSources.Add(p => Raffaello.Core.Queue.ModuleQueue.Variations(aconex.Variations.Variations(), DateTime.Today));
+            // [insights] begin: warnings feed "Needs you today"; every subcontractor invoice package gets the insight-check page
+            var insights = sp.GetRequiredService<ViewModels.Insights.InsightsHub>();
+            Raffaello.Core.Insights.RemoteInsightsStore.Register();
+            project.QueueSources.Add(p => insights.QueueItems(p));
+            Raffaello.Core.Packaging.InvoicePackageBuilder.GlobalSections.Add(Raffaello.Core.Insights.InsightsPackage.Section(insights.LoadData));
+            // [insights] end
             try { project.Reload(); } catch (Exception ex) { Log(ex); }
         }
         var main = sp.GetRequiredService<MainViewModel>();

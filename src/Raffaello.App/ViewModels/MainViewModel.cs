@@ -49,6 +49,10 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 Item("Boq", "BOQ", "IconDatabase", ""),
                 // [phase3] end
             }),
+            // [insights] begin
+            new NavGroup("INSIGHTS", new[] { Item("Anomalies", "ANOMALIES", "IconAlert", ""), Item("MaterialRecon", "MATERIAL RECON", "IconMaterials", ""),
+                Item("RateBenchmark", "RATE BENCHMARK", "IconContracts", ""), Item("CashFlow", "CASH FLOW", "IconReports", ""), Item("EarnedValue", "EARNED VALUE", "IconDashboard", "") }),
+            // [insights] end
             new NavGroup("OUTPUT", new[] { Item("Invoices", "INVOICES", "IconInvoices", "Ctrl+8"), Item("Reports", "REPORTS", "IconReports", "Ctrl+0"),
                 // [phase3] begin
                 Item("OwnerMos", "OWNER MOS", "IconExport", ""),
@@ -127,6 +131,7 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 "Aconex" => B(s.AconexDocs.Count(d => d.Queued)),
                 "Invoices" => B(s.SubInvoices.Count(x => x.Status is SubInvoiceStatus.Rejected or SubInvoiceStatus.Submitted)),
                 "Checks" => B(s.Claims.Count(c => Raffaello.Core.Ledger.HeightCheck.IsPending(c) || Raffaello.Core.Ledger.LengthCheck.IsPending(c))),
+                "Anomalies" => B(p.Queue.Count(q => q.Category == "INSIGHT" && q.Severity >= Verdict.Check)),   // [insights]
                 _ => "",
             };
         }

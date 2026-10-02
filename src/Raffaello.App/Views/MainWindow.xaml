@@ -5,6 +5,7 @@
         xmlns:vm="clr-namespace:Raffaello.App.ViewModels"
         xmlns:pages="clr-namespace:Raffaello.App.Views.Pages"
         xmlns:p5="clr-namespace:Raffaello.App.Services.Phase5"
+        xmlns:ivm="clr-namespace:Raffaello.App.ViewModels.Insights"
         Title="Raffaello" Width="1366" Height="768" MinWidth="1080" MinHeight="620"
         WindowStartupLocation="CenterScreen" Icon="pack://application:,,,/Assets/raffaello.ico"
         Background="{DynamicResource BgBrush}" Foreground="{DynamicResource InkBrush}"
@@ -36,6 +37,13 @@
         <DataTemplate DataType="{x:Type vm:OwnerMosViewModel}"><pages:OwnerMosView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BoqViewModel}"><pages:BoqView/></DataTemplate>
         <!-- [phase3] end -->
+        <!-- [insights] begin -->
+        <DataTemplate DataType="{x:Type ivm:InsightsAnomaliesViewModel}"><pages:InsightsAnomaliesView/></DataTemplate>
+        <DataTemplate DataType="{x:Type ivm:InsightsReconViewModel}"><pages:InsightsReconView/></DataTemplate>
+        <DataTemplate DataType="{x:Type ivm:InsightsRatesViewModel}"><pages:InsightsRatesView/></DataTemplate>
+        <DataTemplate DataType="{x:Type ivm:InsightsCashFlowViewModel}"><pages:InsightsCashFlowView/></DataTemplate>
+        <DataTemplate DataType="{x:Type ivm:InsightsEarnedValueViewModel}"><pages:InsightsEarnedValueView/></DataTemplate>
+        <!-- [insights] end -->
 
         <Style x:Key="FilterCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="MinWidth" Value="104"/>

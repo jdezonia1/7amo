@@ -74,5 +74,6 @@ public static class ServerModules
         new Modules.AconexServerModule(),        // [phase6]
         new Modules.VariationsServerModule(),    // [phase6]
         new Modules.DocumentsServerModule(),     // smart document reader + contract intelligence
+        new Modules.InsightsServerModule(),      // [insights]
     };
 }
