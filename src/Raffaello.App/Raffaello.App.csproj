@@ -25,6 +25,8 @@
     <ProjectReference Include="..\Raffaello.Core\Raffaello.Core.csproj" />
     <!-- [phase4] Aconex browser automation (Playwright) -->
     <ProjectReference Include="..\Raffaello.Automation\Raffaello.Automation.csproj" />
+    <!-- offline document reading: PaddleOCR + OpenCV + PDFium -->
+    <ProjectReference Include="..\Raffaello.Ocr\Raffaello.Ocr.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Fonts\*.ttf" />
@@ -45,4 +47,12 @@
     </ItemGroup>
   </Target>
   <!-- [phase4] end -->
+  <!-- Offline OCR native libraries (Paddle inference, OpenCV, PDFium) stay next to Raffaello.exe: their loaders probe the app folder. -->
+  <Target Name="SmartReaderNativeOutsideSingleFile" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.NuGetPackageId)' == 'Sdcb.PaddleInference.runtime.win64.mkl' Or '%(ResolvedFileToPublish.NuGetPackageId)' == 'OpenCvSharp4.runtime.win' Or ('%(ResolvedFileToPublish.NuGetPackageId)' == 'Docnet.Core' And '%(ResolvedFileToPublish.AssetType)' == 'native')">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 </Project>

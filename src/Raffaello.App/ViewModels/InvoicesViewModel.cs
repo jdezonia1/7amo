@@ -61,7 +61,43 @@ public sealed class ConfirmRow
 /// <summary>Subcontractor invoices: build from the ledger in the template layout, revisions, Aconex submission, approval lock, diff, Excel/PDF.</summary>
 public sealed partial class InvoicesViewModel : PageViewModel
 {
-    public InvoicesViewModel(PageContext ctx) : base(ctx) { }
+    private readonly Raffaello.Core.Documents.IDocumentStore _docs;
+    public InvoicesViewModel(PageContext ctx, Raffaello.Core.Documents.IDocumentStore docs) : base(ctx) { _docs = docs; }
+
+    // ---- contract checks: rules read from the signed contract give WARNINGS only; a bypass needs a reason and is recorded
+    public ObservableCollection<Raffaello.Core.Contracts.Rules.RuleWarning> ContractWarnings { get; } = new();
+    [ObservableProperty] private Raffaello.Core.Contracts.Rules.RuleWarning? _selectedContractWarning;
+    [ObservableProperty] private string _bypassReason = "";
+    [ObservableProperty] private string _contractChecksText = "";
+
+    private void FillContractWarnings()
+    {
+        ContractWarnings.Clear();
+        if (_build is null) { ContractChecksText = ""; return; }
+        try
+        {
+            foreach (var w in Raffaello.Core.Contracts.Rules.ContractRulesPackage.WarningsFor(_build, Project.Snapshot, _docs, DateTime.Today).OrderBy(w => w.IsBypassed)) ContractWarnings.Add(w);
+            ContractChecksText = ContractWarnings.Count == 0 ? "No contract rules for this contract (import the signed contract PDF on Contracts & BOQ to get them)."
+                : $"{ContractWarnings.Count(w => !w.IsBypassed)} warning(s), {ContractWarnings.Count(w => w.IsBypassed)} bypassed - warnings never block; they are printed in the package (09_Contract_checks.pdf).";
+        }
+        catch (Exception ex) { ContractChecksText = "Contract checks unavailable: " + ex.Message; }
+    }
+
+    [RelayCommand]
+    private void BypassContractWarning()
+    {
+        if (SelectedContractWarning is not { } w) { Ctx.Toasts.Show("PICK A WARNING FIRST", kind: ToastKind.Warn); return; }
+        if (w.IsBypassed) { Ctx.Toasts.Show("ALREADY BYPASSED", $"{w.Bypass!.BypassedBy}: {w.Bypass.Reason}"); return; }
+        if (BypassReason.Trim().Length < 3) { Ctx.Toasts.Show("REASON NEEDED", "Type a short reason for the bypass (who agreed, why).", ToastKind.Warn); return; }
+        try
+        {
+            Raffaello.Core.Documents.DocumentStoreExtensions.RecordBypass(_docs, w, BypassReason.Trim(), DateTime.Now);
+            Ctx.Toasts.Show("BYPASS RECORDED", $"{w.RuleType}: {BypassReason.Trim()}", ToastKind.Good);
+            BypassReason = "";
+            FillContractWarnings();
+        }
+        catch (Exception ex) { Ctx.Toasts.Show("BYPASS NOT SAVED", ex.Message, ToastKind.Error); }
+    }
 
     public override string Key => "Invoices";
     public override string Title => "INVOICES";
@@ -226,6 +262,7 @@ public sealed partial class InvoicesViewModel : PageViewModel
         Warnings.Clear();
         foreach (var w in build.Warnings) Warnings.Add(w);
         foreach (var hq in m.Held.GroupBy(x => x.HeldReason)) Warnings.Add($"HELD: {hq.Count()} line(s) - {hq.Key}");
+        FillContractWarnings();
         FillLines();
     }
 

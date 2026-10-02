@@ -176,3 +176,47 @@ public static class SiteStatementExtractor
         return mc;
     }
 }
+
+/// <summary>Turns a reviewed handwritten-statement draft into ledger claim lines (then checked against the room caps like any statement).</summary>
+public static class StatementDraftConverter
+{
+    /// <summary>
+    /// One claim line per room x system of each row. Quantity per room = the count written on the marked typical-unit drawing for that
+    /// system (same unit type when known), else 0 for the user to fill. Site % = the row %.
+    /// </summary>
+    public static Statements.StatementImportResult ToImport(StatementDraft d, Data.ProjectSnapshot s, string subcontractor, string statementNo, int invoiceNo, string building)
+    {
+        var res = new Statements.StatementImportResult { Subcontractor = subcontractor.ToUpperInvariant(), StatementNo = statementNo };
+        var rooms = s.Rooms.GroupBy(r => r.Code, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        foreach (var row in d.Rows.Where(r => r.Stage.Length > 0))
+        {
+            var counts = d.Drawings.FirstOrDefault(m => m.UnitType.Length > 0 && row.UnitType.StartsWith(m.UnitType, StringComparison.OrdinalIgnoreCase))?.PerUnit
+                         ?? (d.Drawings.Count == 1 ? d.Drawings[0].PerUnit : new Dictionary<string, double>());
+            foreach (var room in row.Rooms)
+                foreach (var sys in row.Systems)
+                {
+                    rooms.TryGetValue(room, out var r);
+                    if (r is null) res.Issues.Add(new(0, Import.IssueLevel.Warning, $"{room} is not a known room."));
+                    var qty = counts.GetValueOrDefault(sys);
+                    if (qty <= 0) res.Issues.Add(new(0, Import.IssueLevel.Warning, $"{room} {row.Stage} {sys}: no count on the marked drawing - enter the quantity."));
+                    var line = new Domain.ClaimLine
+                    {
+                        Building = r?.Building ?? building, Subcontractor = res.Subcontractor, InvoiceNo = invoiceNo, Stage = row.Stage, Floor = r?.Level ?? "", Room = room, Item = sys,
+                        Qty = qty, SitePct = row.Pct ?? 1, WirNo = row.WirNo, Notes = "read from handwritten statement: " + row.Raw, AreaType = r?.AreaType ?? "",
+                        Source = "STATEMENT SCAN", StatementNo = statementNo, SourceKey = $"STSCAN|{res.Subcontractor}|{statementNo}|{room}|{row.Stage}|{sys}", EnteredAt = DateTime.Now,
+                    };
+                    res.Claims.Add(line);
+                }
+        }
+        var pending = new List<Domain.ClaimLine>(s.Claims);
+        foreach (var c in res.Claims)
+        {
+            var bal = Ledger.LedgerRules.Balance(s.RoomQtys, pending, c.Room, c.Stage, c.Item);
+            var check = Ledger.LedgerRules.Check(bal, c.Qty, null);
+            res.Checks.Add((c, check));
+            pending.Add(c);
+        }
+        res.Hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(string.Join(";", res.Claims.Select(c => c.SourceKey + "|" + c.Qty)))));
+        return res;
+    }
+}

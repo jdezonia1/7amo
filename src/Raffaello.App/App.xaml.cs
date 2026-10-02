@@ -115,8 +115,12 @@ public partial class App : Application
                 // [phase6] SQLite data file or the server, chosen per call by the current data source
                 s.AddSingleton<Raffaello.Core.Materials.IMaterialsStore>(sp => new Raffaello.Core.Remote.MaterialsStoreSelector(() => sp.GetRequiredService<ProjectService>().Store));
                 s.AddSingleton<Raffaello.Core.Materials.MaterialsService>();
-                s.AddSingleton<Raffaello.Core.Documents.IOcrEngine, WindowsOcrEngine>();
-                s.AddSingleton<Raffaello.Core.Documents.IPageRenderer, WindowsPdfRenderer>();
+                s.AddSingleton<WindowsOcrEngine>();
+                s.AddSingleton<Raffaello.Core.Documents.IOcrEngine>(sp => sp.GetRequiredService<WindowsOcrEngine>());
+                // smart document reader: PDFium renders pages for OCR and for the review screens (Windows.Data.Pdf stays as fallback)
+                s.AddSingleton<Raffaello.Core.Documents.IPageRenderer>(sp => sp.GetRequiredService<SmartReading>().Rasterizer);
+                s.AddSingleton<Raffaello.Core.Documents.IDocumentStore>(sp => new Raffaello.Core.Remote.DocumentStoreSelector(() => sp.GetRequiredService<ProjectService>().Store));
+                s.AddSingleton<SmartReading>();
                 s.AddSingleton<MaterialsViewModel>();
                 s.AddSingleton<PageViewModel, MaterialsHubViewModel>();
                 s.AddSingleton<PageViewModel, OwnerMosViewModel>();
@@ -161,6 +165,11 @@ public partial class App : Application
             project.QueueSources.Add(p => insights.QueueItems(p));
             Raffaello.Core.Packaging.InvoicePackageBuilder.GlobalSections.Add(Raffaello.Core.Insights.InsightsPackage.Section(insights.LoadData));
             // [insights] end
+            // smart reader + contract intelligence: obligations calendar in "Needs you today", contract checks page in every invoice package
+            var reading = sp.GetRequiredService<SmartReading>();
+            var docStore = reading.Documents;
+            project.QueueSources.Add(p => ContractIntelligenceQueue(p, docStore));
+            Raffaello.Core.Packaging.InvoicePackageBuilder.GlobalSections.Add(Raffaello.Core.Contracts.Rules.ContractRulesPackage.Section(() => docStore));
             try { project.Reload(); } catch (Exception ex) { Log(ex); }
         }
         var main = sp.GetRequiredService<MainViewModel>();
@@ -189,6 +198,16 @@ public partial class App : Application
         // [phase5] begin: live "updated by X" toasts, offline / sync status
         new Services.Phase5.RemoteSyncService(sp.GetRequiredService<DataService>(), sp.GetRequiredService<ToastService>()).Start(project.Store as Raffaello.Core.Remote.RemoteProjectStore);
         // [phase5] end
+    }
+
+    /// <summary>Obligations (handover, warranty end, retention release, penalty start / cap) due within 30 days.</summary>
+    private static IEnumerable<Raffaello.Core.Queue.QueueItem> ContractIntelligenceQueue(ProjectService p, Raffaello.Core.Documents.IDocumentStore docs)
+    {
+        var terms = docs.All<Raffaello.Core.Documents.ContractTerms>();
+        if (terms.Count == 0) return Array.Empty<Raffaello.Core.Queue.QueueItem>();
+        var values = p.Snapshot.ContractItems.GroupBy(i => i.ContractNo).ToDictionary(g => g.Key, g => g.Sum(i => i.Qty * i.Rate));
+        var ob = Raffaello.Core.Contracts.Rules.ObligationsCalendar.Build(terms, docs.All<Raffaello.Core.Contracts.Rules.ContractRule>(), values);
+        return Raffaello.Core.Contracts.Rules.ObligationsCalendar.Queue(ob, DateTime.Today).ToList();
     }
 
     protected override void OnExit(ExitEventArgs e)

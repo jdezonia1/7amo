@@ -34,7 +34,25 @@ public sealed class MaterialsService
         Ocr = ocr ?? NullOcrEngine.Instance,
         Vision = Vision(),
         PipeLengthM = Settings.PipeLengthM,
+        LayoutEngines = LayoutEngines,
+        Rasterizer = Rasterizer,
+        Progress = ReadProgress,
     };
+
+    /// <summary>Offline layout OCR engines (PaddleOCR first, Windows OCR second) set by the host; empty = text layer + legacy OCR only.</summary>
+    public IReadOnlyList<Documents.Ocr.ILayoutOcrEngine> LayoutEngines { get; set; } = Array.Empty<Documents.Ocr.ILayoutOcrEngine>();
+    public Documents.Ocr.IPageRasterizer? Rasterizer { get; set; }
+    public IProgress<string>? ReadProgress { get; set; }
+    /// <summary>Evidence index / full-text search (set by the host).</summary>
+    public IDocumentStore? Documents { get; set; }
+
+    /// <summary>Puts the pages that were read into the document archive (search + evidence), linked to the saved record. Never throws.</summary>
+    public void ArchiveRead(DocText? text, string path, string docType, string linkedTable, string linkedKey)
+    {
+        if (Documents is null || text is null) return;
+        try { DocArchive.Save(Documents, text, path, docType, linkedTable, linkedKey); }
+        catch (Exception) { /* archive is best effort: the record itself is saved */ }
+    }
 
     public IVisionReader Vision() => new ClaudeVisionReader(Settings.CloudReading, Project.Settings.AnthropicApiKey, Project.Settings.AnthropicModel)
     { Effort = Settings.VisionEffort, UseServerFallbacks = Project.Settings.UseServerFallbacks };

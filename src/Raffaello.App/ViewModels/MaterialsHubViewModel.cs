@@ -76,6 +76,7 @@ public sealed partial class MaterialsHubViewModel : PageViewModel
     {
         _m = materials; _ocr = ocr; _renderer = renderer;
         Overview = overview;
+        _m.ReadProgress = new Progress<string>(s => Busy = "READING  " + s);
     }
 
     public override string Key => "Materials";
@@ -207,7 +208,7 @@ public sealed partial class MaterialsHubViewModel : PageViewModel
         _m.CodePoLines(res!.Value);
         if (!MaterialsReviewWindow.Show(new MaterialsReviewViewModel(path, res, _renderer))) return;
         _m.CodePoLines(res.Value);
-        if (await Run("SAVING PO", () => Task.Run(() => _m.CommitPo(res.Value))))
+        if (await Run("SAVING PO", () => Task.Run(() => { _m.CommitPo(res.Value); _m.ArchiveRead(res.Text, path, "PO", "MatPo", res.Value.Header.PoNo); })))
         {
             Ctx.Toasts.Show("PO SAVED", $"{res.Value.Header.PoNo}: {res.Value.Lines.Count} lines, coding {CodingSummary(res.Value)}", ToastKind.Good);
             Changed();
@@ -286,7 +287,7 @@ public sealed partial class MaterialsHubViewModel : PageViewModel
         ExtractionResult<DnDocument>? res = null;
         if (!await Run("READING DN", async () => res = await _m.ReadDnAsync(path, _ocr))) return;
         if (!MaterialsReviewWindow.Show(new MaterialsReviewViewModel(path, res!, _renderer))) return;
-        if (await Run("SAVING DN", () => Task.Run(() => _m.CommitDn(res!.Value))))
+        if (await Run("SAVING DN", () => Task.Run(() => { _m.CommitDn(res!.Value); _m.ArchiveRead(res.Text, path, "DN", "MatDn", res.Value.Header.DnNo); })))
         {
             var rows = _m.LastMatch.Rows.Where(r => r.Dn.DnNo == res!.Value.Header.DnNo).ToList();
             Ctx.Toasts.Show("DN SAVED AND MATCHED", $"{res!.Value.Header.DnNo}: {string.Join(", ", rows.GroupBy(r => r.Status).Select(g => $"{g.Key} {g.Count()}"))}", ToastKind.Good, 6);
@@ -355,7 +356,7 @@ public sealed partial class MaterialsHubViewModel : PageViewModel
         var progress = new Progress<string>(s => Busy = s);
         if (!await Run("READING MIR", async () => res = await _m.ReadMirAsync(path, _ocr, new MirReadOptions { ReadDnPhotos = MirReadDnPhotos, ReadCertificates = MirReadCerts, ReadLabels = MirReadLabels, Progress = progress }))) return;
         if (!MaterialsReviewWindow.Show(new MaterialsReviewViewModel(path, res!, _renderer))) return;
-        if (await Run("SAVING MIR", () => Task.Run(() => _m.CommitMir(res!.Value))))
+        if (await Run("SAVING MIR", () => Task.Run(() => { _m.CommitMir(res!.Value); _m.ArchiveRead(res.Text, path, "MIR", "MatMir", res.Value.Header.MirNo); })))
         {
             Ctx.Toasts.Show("MIR SAVED", $"{res!.Value.Header.MirNo}: {res.Value.Dns.Count} DN ref(s), {res.Value.Evidence.Count} evidence rows", ToastKind.Good);
             Changed();

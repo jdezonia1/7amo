@@ -141,12 +141,20 @@ public static class MirReader
                     Qty = Units.ParseNumber(q.Groups["qty"].Value) ?? 0, Unit = Units.M, Source = p.Source,
                 });
             }
-        // DN pages with a text layer inside the bundle
-        foreach (var p in text.Pages.Where(p => p.Kind == MirPageKind.DnText))
+        // DN pages with a text layer inside the bundle, and DN photos read by the offline OCR
+        foreach (var p in text.Pages.Where(p => p.Kind == MirPageKind.DnText || p.Kind == MirPageKind.DnPhoto && p.Source == TextSource.Ocr))
         {
             var one = new DocText { FileName = $"{text.FileName} p{p.Number}" };
             one.Pages.Add(p);
-            MergeDn(res, DnReader.Parse(one), p.Number);
+            var dn = DnReader.Parse(one);
+            if (dn.Value.Lines.Count > 0 || dn.Value.Header.DnNo.Length > 0) MergeDn(res, dn, p.Number);
+        }
+        // certificates and drum labels read by the offline OCR
+        foreach (var p in text.Pages.Where(p => p.Source == TextSource.Ocr && p.Kind is MirPageKind.Cert or MirPageKind.Label))
+        {
+            var sp = new Documents.Smart.SmartPage { Number = p.Number, Text = p.Text, ReadingText = p.Text, Source = p.Source };
+            var ev = p.Kind == MirPageKind.Cert ? Documents.Smart.EvidenceExtractor.TestCertificate(sp) : Documents.Smart.EvidenceExtractor.DrumLabel(sp);
+            doc.Evidence.AddRange(ev);
         }
         Validate(res);
         return res;
