@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Offline document reading: PaddleOCR (PP-OCRv5 Arabic + English models shipped inside the NuGet packages), OpenCV
+       pre-processing (rotation, deskew, perspective crop, contrast, rulings) and PDFium page rendering. Kept out of
+       Raffaello.Core so Core and the server stay free of native OCR libraries. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Raffaello.Ocr</RootNamespace>
+    <Version>1.0.0</Version>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Sdcb.PaddleOCR" Version="3.3.1" />
+    <PackageReference Include="Sdcb.PaddleOCR.Models.Local" Version="3.3.1" />
+    <!-- Models.Local 3.3.1 declares LocalV5 3.0.0, which lacks the Arabic / English V5 recognisers: pin 3.3.1 -->
+    <PackageReference Include="Sdcb.PaddleOCR.Models.LocalV5" Version="3.3.1" />
+    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
+    <PackageReference Include="Docnet.Core" Version="2.6.0" />
+  </ItemGroup>
+  <!-- Native runtimes for the machine that builds: win-x64 on Windows (the app, RUN_ONE_CLICK.bat), linux-x64 elsewhere (CI / tests). -->
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="3.3.1.70" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260627" />
+  </ItemGroup>
+  <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageReference Include="Sdcb.PaddleInference.runtime.linux-x64.mkl" Version="3.3.1.70" />
+    <PackageReference Include="OpenCvSharp4.official.runtime.linux-x64" Version="4.13.0.20260627" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Raffaello.Core\Raffaello.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Raffaello.Ocr.Tests" />
+  </ItemGroup>
+</Project>
