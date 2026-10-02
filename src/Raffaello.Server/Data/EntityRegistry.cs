@@ -81,5 +81,8 @@ public static class ServerModules
         new Trust.TrustServerModule(),
         new Portal.PortalServerModule(),
         // [trust] end
+        // [assemblies] begin
+        new Modules.AssembliesServerModule(),
+        // [assemblies] end
     };
 }

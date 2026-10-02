@@ -196,4 +196,13 @@ public sealed partial class BoqViewModel : PageViewModel
             Rows = Rows.Select(r => new object?[] { r.Sheet, r.RowNo, r.ItemNo, r.BoqCode, r.Description, r.Unit, r.Qty, r.Rate, r.Amount, r.System, r.Category, r.CatSource, r.CatScore }).ToList(),
         };
     }
+
+    // [assemblies] begin
+    [RelayCommand]
+    private void BreakdownLine()
+    {
+        if (Selected is not { } r || r.IsHeading || r.Id <= 0) { Ctx.Toasts.Show("PICK A SAVED BOQ ITEM", kind: ToastKind.Warn); return; }
+        Ctx.Nav.Go("Assemblies", new Raffaello.Core.Queue.NavTarget("Assemblies", r.Id, Raffaello.Core.Assemblies.SourceKinds.BoqLine));
+    }
+    // [assemblies] end
 }

@@ -145,6 +145,13 @@ public partial class App : Application
                 s.AddSingleton<Raffaello.Core.Cables.ICableStore>(sp => new Raffaello.Core.Cables.CableStoreSelector(() => sp.GetRequiredService<ProjectService>().Store));
                 s.AddSingleton<PageViewModel, CablesViewModel>();
                 // [cables] end
+                // [assemblies] begin - BOQ item breakdown (SQLite data file or the server, chosen per call)
+                s.AddSingleton<Raffaello.Core.Assemblies.IAssemblyStore>(sp => new Raffaello.Core.Assemblies.AssemblyStoreSelector(
+                    () => sp.GetRequiredService<ProjectService>().Store, () => sp.GetRequiredService<ProjectService>().DataLocation, () => settings.EffectiveUserName));
+                s.AddSingleton(sp => new Raffaello.Core.Assemblies.AssemblyService(sp.GetRequiredService<Raffaello.Core.Assemblies.IAssemblyStore>(),
+                    () => sp.GetRequiredService<ProjectService>().Snapshot, () => sp.GetRequiredService<Raffaello.Core.Materials.IMaterialsStore>().Load()));
+                s.AddSingleton<PageViewModel, AssembliesViewModel>();
+                // [assemblies] end
                 s.AddSingleton<PageViewModel, WirViewModel>();
                 s.AddSingleton<PageViewModel, ContractsViewModel>();
                 s.AddSingleton<PageViewModel, InvoicesViewModel>();

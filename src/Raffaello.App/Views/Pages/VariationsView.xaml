@@ -101,6 +101,9 @@
                 <StackPanel Orientation="Horizontal">
                     <Button Style="{StaticResource BtnPrimary}" Content="SAVE" Command="{Binding SaveCommand}" Margin="0,0,6,0"/>
                     <Button Style="{StaticResource BtnGhost}" Content="+ NEW ITEM" Command="{Binding AddNewItemCommand}" Margin="0,0,6,0"/>
+                    <!-- [assemblies] begin -->
+                    <Button Style="{StaticResource BtnGhost}" Content="BREAKDOWN" Command="{Binding BreakdownLineCommand}" Margin="0,0,6,0" ToolTip="Rate build-up of the selected line from the BOQ item breakdown (components, quantities, prices)"/>
+                    <!-- [assemblies] end -->
                     <Button Style="{StaticResource BtnGhost}" Content="REMOVE LINE" Command="{Binding RemoveLineCommand}" CommandParameter="{Binding SelectedLine}" Margin="0,0,6,0"/>
                     <Button Style="{StaticResource BtnYellow}" Content="SUBMISSION EXCEL" Command="{Binding ExportSubmissionCommand}" CommandParameter="XLSX" Margin="0,0,6,0"/>
                     <Button Style="{StaticResource BtnYellow}" Content="PDF" Command="{Binding ExportSubmissionCommand}" CommandParameter="PDF" Margin="0,0,6,0"/>

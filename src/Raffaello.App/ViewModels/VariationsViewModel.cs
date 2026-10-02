@@ -452,4 +452,20 @@ public sealed partial class VariationsViewModel : PageViewModel
     }
 
     public override IEnumerable<ExportSheet> ExportCurrentView() => RegisterSheets();
+
+    // [assemblies] begin - NEW ITEM rate build-up from the BOQ item breakdown page
+    [RelayCommand]
+    private void BreakdownLine()
+    {
+        if (SelectedLine is not { } l || l.Description.Trim().Length == 0) { Ctx.Toasts.Show("PICK A LINE WITH A DESCRIPTION", "the breakdown reads the description", ToastKind.Warn); return; }
+        AssembliesBridge.Pending = new AssembliesBridge.Request(l.Description, l.Unit, l.Qty, b =>
+        {
+            l.Kind = VariationLineKinds.NewItem;
+            l.Material = b.Material; l.Labour = b.Labour; l.Equipment = b.Equipment;
+            l.OverheadPercent = Math.Round(b.OverheadPct * 100, 4); l.ProfitPercent = Math.Round(b.ProfitPct * 100, 4);
+            l.Notes = $"Rate build-up: template {b.TemplateCode}, {b.Spec.Summary}" + (b.UnknownPrices > 0 ? $"; {b.UnknownPrices} unknown prices" : "");
+        }, "Variations", $"{Number}: NEW ITEM '{(l.Description.Length > 40 ? l.Description[..40] + "..." : l.Description)}'");
+        Ctx.Nav.Go("Assemblies", new NavTarget("Assemblies", Key: "BRIDGE"));
+    }
+    // [assemblies] end
 }

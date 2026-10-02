@@ -1,0 +1,341 @@
+<UserControl x:Class="Raffaello.App.Views.Pages.AssembliesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Raffaello.App.ViewModels">
+    <!-- [assemblies] BOQ ITEM BREAKDOWN: item -> components, quantities, prices, built-up rate -->
+    <Grid Margin="24,0,24,20">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,8">
+            <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding Tab, Mode=TwoWay}" HorizontalAlignment="Left"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Visibility="{Binding HasBridge, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding BridgeLabel}" Style="{StaticResource Label}" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="APPLY TO VARIATION LINE" Command="{Binding ApplyToBridgeCommand}"/>
+                <Button Style="{StaticResource BtnGhost}" Content="CANCEL" Command="{Binding CancelBridgeCommand}" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Grid>
+        <TextBlock Grid.Row="1" Text="{Binding Summary}" Style="{StaticResource Small}" Margin="0,0,0,8"/>
+
+        <!-- ============================================================ BREAKDOWN -->
+        <Grid Grid.Row="2" Visibility="{Binding IsBreakdownTab, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition Width="290"/></Grid.ColumnDefinitions>
+
+            <!-- item picker -->
+            <Border Style="{StaticResource Card}" Padding="10">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock Text="SOURCE" Style="{StaticResource Label}"/>
+                        <ComboBox ItemsSource="{Binding SourceKindChoices}" SelectedItem="{Binding SourceKind, Mode=TwoWay}"/>
+                        <TextBlock Text="SECTION / BILL" Style="{StaticResource Label}" Margin="0,6,0,0"/>
+                        <ComboBox ItemsSource="{Binding Groups}" SelectedItem="{Binding Group, Mode=TwoWay}"/>
+                        <TextBlock Text="SEARCH" Style="{StaticResource Label}" Margin="0,6,0,0"/>
+                        <TextBox Style="{StaticResource Input}" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="OR TYPE A DESCRIPTION" Style="{StaticResource Label}" Margin="0,8,0,0"/>
+                        <TextBox Style="{StaticResource Input}" Text="{Binding FreeText}" TextWrapping="Wrap" AcceptsReturn="True" Height="54"/>
+                        <Grid Margin="0,4,0,8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="60"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <TextBox Style="{StaticResource Input}" Text="{Binding FreeUnit}" ToolTip="unit (PT, M, NO, END)"/>
+                            <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="BREAK DOWN TEXT" Command="{Binding BreakdownTextCommand}" Margin="6,0,0,0"/>
+                        </Grid>
+                    </StackPanel>
+                    <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource, Mode=TwoWay}" VirtualizingPanel.IsVirtualizing="True">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding KindLabel}" Style="{StaticResource Small}" FontSize="9"/>
+                                    <TextBlock Text="{Binding Title}" Style="{StaticResource Body}" FontSize="11" TextWrapping="Wrap" MaxHeight="44"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- spec + breakdown table -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Border Style="{StaticResource Card}" Padding="10" Margin="0,0,0,8">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CurrentDescription}" TextWrapping="Wrap" MaxHeight="48" Style="{StaticResource Small}"/>
+                        <TextBlock Text="PARSED SPEC (EDIT, THEN RECALCULATE)" Style="{StaticResource PanelTitle}"/>
+                        <WrapPanel Margin="0,4,0,0">
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="ITEM TYPE" Style="{StaticResource Label}"/>
+                                <ComboBox Width="160" ItemsSource="{x:Static vm:AssembliesViewModel.ItemTypeChoices}" SelectedItem="{Binding Spec.ItemType, Mode=TwoWay}"/></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="TEMPLATE" Style="{StaticResource Label}"/>
+                                <ComboBox Width="120" ItemsSource="{Binding TemplateCodes}" SelectedItem="{Binding TemplateCode, Mode=TwoWay}" ToolTip="empty = by item type"/></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="CONDUIT" Style="{StaticResource Label}"/>
+                                <ComboBox Width="70" ItemsSource="{x:Static vm:AssembliesViewModel.ConduitChoices}" SelectedItem="{Binding Spec.Conduit, Mode=TwoWay}"/></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="SIZE MM" Style="{StaticResource Label}"/>
+                                <TextBox Width="50" Style="{StaticResource Input}" Text="{Binding Spec.ConduitSizeMm}"/></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="WIRE CORES x MM²" Style="{StaticResource Label}"/>
+                                <StackPanel Orientation="Horizontal"><TextBox Width="34" Style="{StaticResource Input}" Text="{Binding Spec.WireCores}"/><TextBox Width="44" Style="{StaticResource Input}" Text="{Binding Spec.WireSizeMm2}" Margin="4,0,0,0"/></StackPanel></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="CABLE CORES x MM²" Style="{StaticResource Label}"/>
+                                <StackPanel Orientation="Horizontal"><TextBox Width="34" Style="{StaticResource Input}" Text="{Binding Spec.CableCores}"/><TextBox Width="50" Style="{StaticResource Input}" Text="{Binding Spec.CableSizeMm2}" Margin="4,0,0,0"/></StackPanel></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="MOUNT" Style="{StaticResource Label}"/>
+                                <ComboBox Width="80" ItemsSource="{x:Static vm:AssembliesViewModel.MountChoices}" SelectedItem="{Binding Spec.Mount, Mode=TwoWay}"/></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="HEIGHT" Style="{StaticResource Label}"/>
+                                <ComboBox Width="64" ItemsSource="{x:Static vm:AssembliesViewModel.HeightChoices}" SelectedItem="{Binding Spec.Height, Mode=TwoWay}"/></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="STAGES (1ST FIX + 2ND FIX ...)" Style="{StaticResource Label}"/>
+                                <TextBox Width="180" Style="{StaticResource Input}" Text="{Binding StagesText}"/></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="SCOPE" Style="{StaticResource Label}"/>
+                                <ComboBox Width="130" ItemsSource="{x:Static vm:AssembliesViewModel.SupplyChoices}" SelectedItem="{Binding Spec.Supply, Mode=TwoWay}"/></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="GANGS / WAYS / AMPS" Style="{StaticResource Label}"/>
+                                <StackPanel Orientation="Horizontal"><TextBox Width="34" Style="{StaticResource Input}" Text="{Binding Spec.Gangs}"/><TextBox Width="40" Style="{StaticResource Input}" Text="{Binding Spec.Ways}" Margin="4,0,0,0"/><TextBox Width="44" Style="{StaticResource Input}" Text="{Binding Spec.Amps}" Margin="4,0,0,0"/></StackPanel></StackPanel>
+                            <StackPanel Margin="0,0,8,4"><TextBlock Text="TRAY MM" Style="{StaticResource Label}"/>
+                                <TextBox Width="50" Style="{StaticResource Input}" Text="{Binding Spec.TrayWidthMm}"/></StackPanel>
+                            <CheckBox Content="FIRE RATED" IsChecked="{Binding Spec.FireRated}" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                            <CheckBox Content="EARTH CABLE" IsChecked="{Binding Spec.EarthCable}" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <Button Style="{StaticResource BtnPrimary}" Content="RECALCULATE" Command="{Binding RecalculateCommand}"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="SAVE SPEC FOR THIS ITEM" Command="{Binding SaveSpecCommand}" Margin="6,0,0,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="RE-PARSE" Command="{Binding ReparseCommand}" Margin="6,0,0,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="ASK CLAUDE FOR COMPONENTS" Command="{Binding AskClaudeCommand}" Margin="6,0,0,0" ToolTip="Only with an API key: proposes a component list; you confirm it as a new template"/>
+                            <TextBlock Text="{Binding AssistNote}" Style="{StaticResource Small}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <TextBlock Grid.Row="1" Text="BREAKDOWN PER UNIT (QTY INCLUDES WASTE IN TOTAL)" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
+                <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding Lines}" SelectedItem="{Binding SelectedLine, Mode=TwoWay}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="62" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="COMPONENT" Binding="{Binding Component}" Width="150" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="SPECIFICATION" Binding="{Binding Spec}" Width="*" MinWidth="180" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="40" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="QTY/UNIT" Binding="{Binding QtyPerUnit, StringFormat=N3}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="WASTE" Binding="{Binding WastePct, StringFormat=P0}" Width="48" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="TOTAL" Binding="{Binding TotalQty, StringFormat=N3}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="PRICE" Binding="{Binding UnitPrice, StringFormat=N2}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount, StringFormat=N2}" Width="70" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTextColumn Header="SOURCE" Binding="{Binding PriceSource}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="REF / DATE" Binding="{Binding PriceRef}" Width="150" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="FLAG" Binding="{Binding Flag}" Width="100" ElementStyle="{StaticResource CellText}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBlock Text="PRICE FOR THE SELECTED LINE" Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                    <TextBox Width="70" Style="{StaticResource Input}" Text="{Binding ManualPrice}" Margin="6,0,0,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="SET MANUAL PRICE" Command="{Binding SetManualPriceForLineCommand}" Margin="6,0,0,0"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="EXCEL" Command="{Binding ExportBreakdownCommand}" Margin="18,0,0,0"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="PDF RATE ANALYSIS" Command="{Binding ExportPdfCommand}" Margin="6,0,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- parameters + rate build-up -->
+            <ScrollViewer Grid.Column="4" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="RATE BUILD-UP" Style="{StaticResource PanelTitle}"/>
+                            <TextBlock Text="{Binding RateCard}" Style="{StaticResource BodyStrong}" FontFamily="{StaticResource FontMono}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,6"/>
+                            <ContentControl Style="{StaticResource Tag}" Content="{Binding Verdict}" HorizontalAlignment="Left"/>
+                            <ItemsControl ItemsSource="{Binding Flags}" Margin="0,6,0,0">
+                                <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,3"/></DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}" Padding="12">
+                        <StackPanel>
+                            <Grid>
+                                <TextBlock Text="PARAMETERS (THIS ITEM)" Style="{StaticResource PanelTitle}"/>
+                                <Button Style="{StaticResource BtnLink}" Content="RESET" Command="{Binding ResetParamsCommand}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <TextBlock Text="Defaults to be confirmed by Mohamed. Changed values are kept with SAVE SPEC." Style="{StaticResource Small}" TextWrapping="Wrap" FontSize="10" Margin="0,2,0,6"/>
+                            <ItemsControl ItemsSource="{Binding Params}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,4" ToolTip="{Binding Name}">
+                                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="64"/><ColumnDefinition Width="40"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Label}" Style="{StaticResource Small}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="1" Style="{StaticResource Input}" Text="{Binding Value}"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Unit}" Style="{StaticResource Small}" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ============================================================ BULK -->
+        <Grid Grid.Row="2" Visibility="{Binding IsBulkTab, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="Runs every item in the BREAKDOWN list (source / section / search filters) x its quantity." Style="{StaticResource Small}" VerticalAlignment="Center"/>
+                <CheckBox Content="INSTALLED FROM APPROVED INVOICES" IsChecked="{Binding BulkUseInstalled}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="RUN BULK BREAKDOWN" Command="{Binding RunBulkCommand}" Margin="12,0,0,0"/>
+                <Button Style="{StaticResource BtnYellow}" Content="EXCEL" Command="{Binding ExportBulkCommand}" Margin="6,0,0,0"/>
+                <Button Style="{StaticResource BtnYellow}" Content="PDF (ONE SHEET PER ITEM)" Command="{Binding ExportBulkPdfCommand}" Margin="6,0,0,0"/>
+                <TextBlock Text="{Binding BulkSummary}" Style="{StaticResource Label}" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap" MaxWidth="560"/>
+            </StackPanel>
+            <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding Requirements}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="MATERIAL" Binding="{Binding Spec}" Width="*" MinWidth="220" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="44" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="REQUIRED" Binding="{Binding RequiredQty, StringFormat=N1}" Width="90" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="ORDERED" Binding="{Binding OrderedQty, StringFormat=N1}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="PO BALANCE" Binding="{Binding PoBalance, StringFormat=N1}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DELIVERED" Binding="{Binding DeliveredQty, StringFormat=N1}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="INSTALLED" Binding="{Binding InstalledQty, StringFormat=N1}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="SITE BAL." Binding="{Binding SiteBalance, StringFormat=N1}" Width="80" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="130" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="COST" Binding="{Binding Cost, StringFormat=N0}" Width="90" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="PO LINES" Binding="{Binding PoRefsText}" Width="140" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <DataGrid Grid.Row="3" Style="{StaticResource CardGrid}" ItemsSource="{Binding BulkRows}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="CODE" Binding="{Binding Source.Code}" Width="110" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Source.Description}" Width="*" MinWidth="220" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="TYPE" Binding="{Binding ItemType}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="QTY" Binding="{Binding Qty, StringFormat=N1}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="RATE" Binding="{Binding Rate, StringFormat=N2}" Width="70" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="REF RATE" Binding="{Binding Breakdown.ReferenceRate, StringFormat=N2}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount, StringFormat=N0}" Width="90" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="VERDICT" Binding="{Binding Verdict}" Width="160" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!-- ============================================================ TEMPLATES -->
+        <Grid Grid.Row="2" Visibility="{Binding IsTemplatesTab, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="240"/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="10">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="TEMPLATES" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                        <Button Style="{StaticResource BtnGhost}" Content="RESTORE SEEDED DEFAULTS" Command="{Binding RestoreDefaultsCommand}"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="EXPORT LIBRARY" Command="{Binding ExportTemplatesCommand}" Margin="0,6,0,0"/>
+                    </StackPanel>
+                    <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Code}" Style="{StaticResource BodyStrong}" FontSize="12"/>
+                                    <TextBlock Text="{Binding Header.Name}" Style="{StaticResource Small}" FontSize="10"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="150"/><RowDefinition Height="8"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Border Style="{StaticResource Card}" Padding="10" Margin="0,0,0,8">
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="CODE" Style="{StaticResource Label}"/><TextBox Width="120" Style="{StaticResource Input}" Text="{Binding EditTemplate.Header.Code}"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="NAME" Style="{StaticResource Label}"/><TextBox Width="220" Style="{StaticResource Input}" Text="{Binding EditTemplate.Header.Name}"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="ITEM TYPE" Style="{StaticResource Label}"/><ComboBox Width="160" ItemsSource="{x:Static vm:AssembliesViewModel.ItemTypeChoices}" SelectedItem="{Binding EditTemplate.Header.ItemType, Mode=TwoWay}"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="UNIT" Style="{StaticResource Label}"/><TextBox Width="50" Style="{StaticResource Input}" Text="{Binding EditTemplate.Header.Unit}"/></StackPanel>
+                        <CheckBox Content="CONFIRMED BY MOHAMED" IsChecked="{Binding EditTemplate.Header.Confirmed}" VerticalAlignment="Bottom" Margin="0,0,8,6"/>
+                        <CheckBox Content="ACTIVE" IsChecked="{Binding EditTemplate.Header.Active}" VerticalAlignment="Bottom" Margin="0,0,8,6"/>
+                        <TextBlock Text="{Binding EditTemplate.Header.Origin}" Style="{StaticResource Label}" VerticalAlignment="Bottom" Margin="0,0,0,8"/>
+                    </WrapPanel>
+                </Border>
+                <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding EditParams}" IsReadOnly="False" CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="PARAMETER" Binding="{Binding Name}" Width="130"/>
+                        <DataGridTextColumn Header="VALUE" Binding="{Binding Value}" Width="70"/>
+                        <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="60"/>
+                        <DataGridTextColumn Header="LABEL" Binding="{Binding Label}" Width="*"/>
+                        <DataGridTextColumn Header="NOTE" Binding="{Binding Note}" Width="*"/>
+                        <DataGridCheckBoxColumn Header="CONFIRMED" Binding="{Binding Confirmed}" Width="80"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <DataGrid Grid.Row="3" Style="{StaticResource CardGrid}" ItemsSource="{Binding EditComponents}" SelectedItem="{Binding SelectedComponent, Mode=TwoWay}" IsReadOnly="False" CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="KEY" Binding="{Binding Key}" Width="80"/>
+                        <DataGridTextColumn Header="COMPONENT" Binding="{Binding Name}" Width="130"/>
+                        <DataGridTextColumn Header="SPECIFICATION {placeholders}" Binding="{Binding Spec}" Width="*" MinWidth="160"/>
+                        <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="44"/>
+                        <DataGridTextColumn Header="QTY FORMULA" Binding="{Binding QtyFormula}" Width="200"/>
+                        <DataGridTextColumn Header="WASTE" Binding="{Binding WastePct}" Width="50"/>
+                        <DataGridComboBoxColumn Header="STAGE" SelectedItemBinding="{Binding Stage}" Width="74" ItemsSource="{x:Static vm:AssembliesViewModel.StageChoices}"/>
+                        <DataGridComboBoxColumn Header="KIND" SelectedItemBinding="{Binding Kind}" Width="86" ItemsSource="{x:Static vm:AssembliesViewModel.KindChoices}"/>
+                        <DataGridComboBoxColumn Header="LABOUR BASIS" SelectedItemBinding="{Binding LabourBasis}" Width="96" ItemsSource="{x:Static vm:AssembliesViewModel.BasisChoices}"/>
+                        <DataGridComboBoxColumn Header="CONTRACT LOOKUP" SelectedItemBinding="{Binding LabourCategory}" Width="96" ItemsSource="{x:Static vm:AssembliesViewModel.LabourCategoryChoices}"/>
+                        <DataGridTextColumn Header="DEFAULT PRICE" Binding="{Binding DefaultPrice}" Width="120"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <Grid Grid.Row="4" Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+                        <Button Style="{StaticResource BtnPrimary}" Content="SAVE TEMPLATE" Command="{Binding SaveTemplateCommand}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="CHECK FORMULAS" Command="{Binding CheckTemplateCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="+ COMPONENT" Command="{Binding AddComponentCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="UP" Command="{Binding MoveComponentUpCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="REMOVE" Command="{Binding RemoveComponentCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="+ PARAMETER" Command="{Binding AddParamCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="DUPLICATE" Command="{Binding DuplicateTemplateCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="DELETE" Command="{Binding DeleteTemplateCommand}" Margin="6,0,0,0"/>
+                    </StackPanel>
+                    <ItemsControl Grid.Column="1" ItemsSource="{Binding TemplateProblems}" Margin="12,0,0,0">
+                        <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Style="{StaticResource Small}" TextWrapping="Wrap"/></DataTemplate></ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- ============================================================ PRICES -->
+        <Grid Grid.Row="2" Visibility="{Binding IsPricesTab, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="SUPPLIER" Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                <TextBox Width="160" Style="{StaticResource Input}" Text="{Binding PriceListSupplier}" Margin="6,0,0,0"/>
+                <Button Style="{StaticResource BtnYellow}" Content="IMPORT PRICE LIST" Command="{Binding ImportPriceListCommand}" Margin="6,0,0,0"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="SAVE SELECTED" Command="{Binding SavePriceCommand}" Margin="12,0,0,0"/>
+                <Button Style="{StaticResource BtnGhost}" Content="DELETE SELECTED" Command="{Binding DeletePriceCommand}" Margin="6,0,0,0"/>
+                <TextBlock Text="{Binding PriceSummary}" Style="{StaticResource Small}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            </StackPanel>
+            <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding PriceRows}" SelectedItem="{Binding SelectedPrice, Mode=TwoWay}" IsReadOnly="False" CanUserAddRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="80" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*"/>
+                    <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="50"/>
+                    <DataGridTextColumn Header="PRICE" Binding="{Binding Price}" Width="80"/>
+                    <DataGridTextColumn Header="SUPPLIER" Binding="{Binding Supplier}" Width="120"/>
+                    <DataGridTextColumn Header="REF" Binding="{Binding SourceRef}" Width="140"/>
+                    <DataGridTextColumn Header="DATE" Binding="{Binding PriceDate, StringFormat=dd-MMM-yy}" Width="80"/>
+                    <DataGridTextColumn Header="NOTES" Binding="{Binding Notes}" Width="160"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!-- ============================================================ SETTINGS -->
+        <Grid Grid.Row="2" Visibility="{Binding IsSettingsTab, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="420"/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="14" VerticalAlignment="Top">
+                <StackPanel>
+                    <TextBlock Text="RATE BUILD-UP" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="OVERHEAD %" Style="{StaticResource Label}" Margin="0,8,0,0"/>
+                    <TextBox Style="{StaticResource Input}" Text="{Binding OverheadPercent}"/>
+                    <TextBlock Text="PROFIT %" Style="{StaticResource Label}" Margin="0,6,0,0"/>
+                    <TextBox Style="{StaticResource Input}" Text="{Binding ProfitPercent}"/>
+                    <TextBlock Text="LABOUR" Style="{StaticResource Label}" Margin="0,6,0,0"/>
+                    <ComboBox ItemsSource="{x:Static vm:AssembliesViewModel.LabourModeChoices}" SelectedItem="{Binding LabourMode, Mode=TwoWay}"/>
+                    <TextBlock Text="AUTO = subcontract rates for BOQ items, man-hours for subcontract (labour-only) items." Style="{StaticResource Small}" TextWrapping="Wrap" FontSize="10"/>
+                    <TextBlock Text="PO MATCH SCORE (0.3 - 1)" Style="{StaticResource Label}" Margin="0,6,0,0"/>
+                    <TextBox Style="{StaticResource Input}" Text="{Binding PoMatchScore}"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="SAVE SETTINGS" Command="{Binding SaveSettingsCommand}" Margin="0,10,0,0"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="14">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="GLOBAL PARAMETERS (ALL TEMPLATES) - DEFAULTS TO BE CONFIRMED" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <Button DockPanel.Dock="Bottom" Style="{StaticResource BtnPrimary}" Content="SAVE GLOBAL PARAMETERS" Command="{Binding SaveGlobalsCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding GlobalParams}" IsReadOnly="False" CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="130" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="VALUE" Binding="{Binding Value}" Width="80"/>
+                            <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="60"/>
+                            <DataGridTextColumn Header="LABEL" Binding="{Binding Label}" Width="*"/>
+                            <DataGridCheckBoxColumn Header="CONFIRMED" Binding="{Binding Confirmed}" Width="80"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

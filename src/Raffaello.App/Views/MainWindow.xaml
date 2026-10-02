@@ -53,6 +53,9 @@
         <DataTemplate DataType="{x:Type ivm:InsightsEarnedValueViewModel}"><pages:InsightsEarnedValueView/></DataTemplate>
         <!-- [insights] end -->
         <!-- [cables] --><DataTemplate DataType="{x:Type vm:CablesViewModel}"><pages:CablesView/></DataTemplate>
+        <!-- [assemblies] begin -->
+        <DataTemplate DataType="{x:Type vm:AssembliesViewModel}"><pages:AssembliesView/></DataTemplate>
+        <!-- [assemblies] end -->
 
         <Style x:Key="FilterCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="MinWidth" Value="104"/>

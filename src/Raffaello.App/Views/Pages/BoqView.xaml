@@ -74,6 +74,9 @@
                     <TextBlock Text="CATEGORY" Style="{StaticResource Label}" Margin="0,6,0,0"/>
                     <ComboBox ItemsSource="{Binding CategoryChoices}" SelectedItem="{Binding EditCategory, Mode=TwoWay}"/>
                     <Button Style="{StaticResource BtnPrimary}" Content="APPLY AND LEARN" Command="{Binding ApplyAndLearnCommand}" Margin="0,10,0,0"/>
+                    <!-- [assemblies] begin -->
+                    <Button Style="{StaticResource BtnGhost}" Content="BREAKDOWN (MATERIALS + RATE)" Command="{Binding BreakdownLineCommand}" Margin="0,6,0,0"/>
+                    <!-- [assemblies] end -->
                     <TextBlock Text="The same description gets this system / category automatically from now on." Style="{StaticResource Small}" TextWrapping="Wrap" FontSize="10" Margin="0,6,0,0"/>
                     <Button Style="{StaticResource BtnGhost}" Content="ASK CLAUDE FOR UNCATEGORISED ROWS" Command="{Binding AskClaudeCommand}" Margin="0,14,0,0"/>
                 </StackPanel>

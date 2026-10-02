@@ -442,3 +442,27 @@ What to verify on Windows / real systems: DPAPI key creation and the app page (n
 AutoCAD / Revit (compiled only against stubs); the Aconex API against Oracle (mock-tested only); an E-Promise import of an exported
 file by finance; the portal from a phone over HTTPS published by IT; a signed PDF opened in Adobe Reader.
 <!-- [trust] end -->
+
+<!-- [assemblies] begin -->
+## BOQ item breakdown (assembly / rate analysis)
+
+**BOQ BREAKDOWN** (DOCUMENTS group; also BREAKDOWN buttons on CONTRACTS & BOQ, BOQ and VARIATIONS NEW ITEM lines) reads a contract /
+owner BOQ / typed description (English or Arabic) into a spec (item type, conduit type + size, wiring cores x mm², cable cores x size + CPC,
+mount, height band, stages, supply scope, boxes, accessories), applies an editable template (components with quantity formulas, waste %,
+stage, labour basis) and prices every line: manual price > PO line (Materials module, Coding fingerprints, KM / ROLL / PCS converted) >
+supplier price list > template default (flagged DEFAULT) > UNKNOWN. Labour = subcontract rate per stage looked up in the contract items
+(AUTO for BOQ items) or man-hours x rate (AUTO for labour-only subcontract items). Built-up rate = direct x (1 + OH) x (1 + profit), compared
+with the BOQ / contract rate. BULK REQUIREMENTS runs the filtered item list x quantities -> material requirements vs PO / DN / installed
+(last approved invoice). Exports: Excel (house style) and a PDF "Rate analysis" page per item.
+
+- Code: `src/Raffaello.Core/Assemblies` (ItemParser, Formula, DefaultLibrary, AssemblyCalculator, PriceBook, ContractLabour, BulkRequirements,
+  AssemblyStore (SQLite + server), AssemblyExporter, ClaudeAssemblyAssist, AssemblyService), `AssembliesServerModule`, tables `Asm*`.
+- Formulas: `+ - * / ^ ( )`, comparisons, `and / or / not`, `ceil floor round roundup min max abs sqrt if(c,a,b)`; names = global parameters,
+  template parameters, spec values (`conduit_size wire_size wire_cores cable_size cable_cores cpc_size gangs ways amps tray_width is_pvc is_emt
+  is_rs is_flex is_ceiling is_high is_earth ...`) and earlier component keys. Spec text `{placeholders}`: `{conduit} {conduit_size} {box}
+  {wire_size} {cable} {cpc} {gangs_txt} {ways} {amps} {tray_width} {system}`.
+- **All seeded quantities, waste %, man-hours and indicative prices are defaults to be confirmed by Mohamed** (CONFIRMED flags in the
+  template editor). Subcontract labour defaults are the HOTEL SUB-ELE-028-2026 schedule rates.
+- CLI: `raffaello-cli asm-coverage --hotel F --residence F [--arabic F] [--epromise F] --out DIR`, `asm-examples --hotel F --epromise F --po PDF --out DIR`,
+  `asm-bulk --hotel F --po PDF --out DIR`.
+<!-- [assemblies] end -->

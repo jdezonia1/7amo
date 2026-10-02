@@ -52,6 +52,9 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 // [phase3] begin
                 Item("Boq", "BOQ", "IconDatabase", ""),
                 // [phase3] end
+                // [assemblies] begin
+                Item("Assemblies", "BOQ BREAKDOWN", "IconQuantities", ""),
+                // [assemblies] end
             }),
             // [insights] begin
             new NavGroup("INSIGHTS", new[] { Item("Anomalies", "ANOMALIES", "IconAlert", ""), Item("MaterialRecon", "MATERIAL RECON", "IconMaterials", ""),
@@ -170,6 +173,9 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         new PaletteEntry("ACTION", "Cables: duplicate FROM-TO claims", "Cable claims that repeat a route already claimed", "", () => Go("Cables", new NavTarget("Cables", Key: "FLAGS|" + Raffaello.Core.Cables.CableFlagCodes.Duplicate))),
         new PaletteEntry("ACTION", "Cables: read SLD / cable schedule", "Panels and FROM -> TO runs from PDF, DWG / DXF, Excel", "", () => Go("Cables")),
         // [cables] end
+        // [assemblies] begin
+        new PaletteEntry("ACTION", "BOQ item breakdown", "Components, quantities, prices and built-up rate of a BOQ / contract item", "", () => Go("Assemblies")),
+        // [assemblies] end
     };
 
     [RelayCommand] private void Navigate(string key) => Go(key);
