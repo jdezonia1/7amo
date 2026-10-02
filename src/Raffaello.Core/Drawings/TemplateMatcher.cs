@@ -180,6 +180,7 @@ public static class TemplateMatcher
     /// </summary>
     public static GrayImage Isolate(GrayImage t, byte inkThreshold = 200)
     {
+        t = RemoveThroughLines(t, inkThreshold);
         var ink = t.Ink(inkThreshold);
         var merged = ink.Dilate(1);
         var comps = merged.Components(1);
@@ -198,6 +199,30 @@ public static class TemplateMatcher
         var o = t.Clone();
         for (var i = 0; i < o.Data.Length; i++) if (!keep.Bits[i] || !ink.Bits[i]) o.Data[i] = keep.Bits[i] ? o.Data[i] : (byte)255;
         // strokes of a kept component that run out of the box (a conduit ending at the symbol) are cut at a margin
+        return o;
+    }
+
+    /// <summary>
+    /// Thin horizontal / vertical lines crossing the whole box (a conduit or dimension line under the example) are painted white;
+    /// thick parts of the symbol on the same row / column are kept.
+    /// </summary>
+    public static GrayImage RemoveThroughLines(GrayImage t, byte inkThreshold = 200)
+    {
+        var ink = t.Ink(inkThreshold);
+        int w = t.Width, h = t.Height;
+        int ColRun(int x, int y) { int a = y, b = y; while (a > 0 && ink[x, a - 1]) a--; while (b < h - 1 && ink[x, b + 1]) b++; return b - a + 1; }
+        int RowRun(int x, int y) { int a = x, b = x; while (a > 0 && ink[a - 1, y]) a--; while (b < w - 1 && ink[b + 1, y]) b++; return b - a + 1; }
+        var erase = new List<int>();
+        for (var y = 0; y < h; y++)
+            for (var x = 0; x < w; x++)
+            {
+                if (!ink[x, y]) continue;
+                if (RowRun(x, y) >= 0.85 * w && ColRun(x, y) <= 3) erase.Add(y * w + x);
+                else if (ColRun(x, y) >= 0.85 * h && RowRun(x, y) <= 3) erase.Add(y * w + x);
+            }
+        if (erase.Count == 0) return t;
+        var o = t.Clone();
+        foreach (var i in erase) o.Data[i] = 255;
         return o;
     }
 

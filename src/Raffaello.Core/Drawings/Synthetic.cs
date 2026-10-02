@@ -60,7 +60,11 @@ public static class Synthetic
     }
 
     /// <summary>Paints one symbol (vector definition in a unit box, mirrored then turned clockwise by quarter turns).</summary>
-    public static void DrawSymbol(ColorImage img, string type, double cx, double cy, double size, int quarter, bool mirror, Rgb ink, double stroke = 1.6)
+    public static void DrawSymbol(ColorImage img, string type, double cx, double cy, double size, int quarter, bool mirror, Rgb ink, double stroke = 1.6) =>
+        DrawSymbol((a, b) => img.Line(a.X, a.Y, b.X, b.Y, ink, stroke), (c, r) => img.Disc(c.X, c.Y, r, ink), type, cx, cy, size, quarter, mirror);
+
+    /// <summary>Symbol geometry through a pen (raster or vector PDF).</summary>
+    public static void DrawSymbol(Action<PointD, PointD> line, Action<PointD, double> disc, string type, double cx, double cy, double size, int quarter, bool mirror)
     {
         var h = size / 2;
         PointD T(double u, double v)
@@ -69,7 +73,7 @@ public static class Synthetic
             for (var q = 0; q < ((quarter % 4) + 4) % 4; q++) (u, v) = (-v, u);
             return new PointD(cx + u * h, cy + v * h);
         }
-        void L(double u0, double v0, double u1, double v1) { var a = T(u0, v0); var b = T(u1, v1); img.Line(a.X, a.Y, b.X, b.Y, ink, stroke); }
+        void L(double u0, double v0, double u1, double v1) => line(T(u0, v0), T(u1, v1));
         void Arc(double uc, double vc, double r, double a0, double a1)
         {
             const int n = 24;
@@ -79,7 +83,7 @@ public static class Synthetic
                 L(uc + r * Math.Cos(t0), vc + r * Math.Sin(t0), uc + r * Math.Cos(t1), vc + r * Math.Sin(t1));
             }
         }
-        void Dot(double u, double v, double r) { var p = T(u, v); img.Disc(p.X, p.Y, r * h, ink); }
+        void Dot(double u, double v, double r) => disc(T(u, v), r * h);
         switch (type)
         {
             case "SOCKET":

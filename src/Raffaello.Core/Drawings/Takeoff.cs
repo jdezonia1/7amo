@@ -75,11 +75,14 @@ public static class TakeoffCounter
             var targets = QtyTarget.Parse(c.Targets);
             if (targets.Count == 0) continue;
             var pts = Poly.ParsePoints(r.Points);
-            var perRoom = rooms is { IsEmpty: false } ? rooms.SplitLength(pts) : new Dictionary<string, double> { [r.Room.Length > 0 ? r.Room : RoomAssigner.Unassigned] = Poly.PolylineLength(pts) };
+            Dictionary<string, double> perRoom;
+            if (pts.Count < 2 || rooms is null || rooms.IsEmpty || r.Room.Length > 0 && r.Origin is DwgOrigins.Ifc or DwgOrigins.Json)
+                perRoom = new Dictionary<string, double> { [r.Room.Length > 0 ? r.Room : RoomAssigner.Unassigned] = pts.Count >= 2 ? Poly.PolylineLength(pts) : 1 };
+            else perRoom = rooms.SplitLength(pts);
             var total = perRoom.Values.Sum();
             foreach (var (room, units) in perRoom)
             {
-                // the stored LengthM may include manual corrections; share it by the geometric split
+                // the stored LengthM may include manual corrections (or come from the model); share it by the geometric split
                 var m = total > 0 && r.LengthM > 0 ? r.LengthM * units / total : units * metresPerUnit;
                 foreach (var t in targets)
                 {
