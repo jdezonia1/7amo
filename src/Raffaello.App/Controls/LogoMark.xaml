@@ -1,0 +1,16 @@
+<UserControl x:Class="Raffaello.App.Controls.LogoMark"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="32" Height="32">
+    <!-- "The Link": two interlocking diamond outlines, links of the QS -> GIVEN -> DONE -> CLAIMED -> DELIVERED chain.
+         Gold diamond behind, red (accent) diamond in front, gold segment redrawn on top at the upper crossing. -->
+    <Viewbox Stretch="Uniform">
+        <Canvas Width="64" Height="64">
+            <Rectangle Width="64" Height="64" RadiusX="14" RadiusY="14" Fill="{StaticResource SidebarBrush}"
+                       Visibility="{Binding ShowTile, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+            <Path Data="M40,16 L56,32 L40,48 L24,32 Z" Stroke="{StaticResource BrandGoldBrush}" StrokeThickness="6" StrokeLineJoin="Miter"/>
+            <Path x:Name="RedLink" Data="M24,16 L40,32 L24,48 L8,32 Z" Stroke="{DynamicResource AccentBrush}" StrokeThickness="6" StrokeLineJoin="Miter"/>
+            <Path Data="M36,20 L28,28" Stroke="{StaticResource BrandGoldBrush}" StrokeThickness="6" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat"/>
+        </Canvas>
+    </Viewbox>
+</UserControl>

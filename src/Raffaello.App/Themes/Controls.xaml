@@ -254,7 +254,7 @@
                 <ControlTemplate TargetType="ContentControl">
                     <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
                             CornerRadius="{StaticResource RadiusTag}" Padding="6,1,6,1">
-                        <TextBlock Text="{TemplateBinding Content}" FontFamily="{StaticResource FontSansSemi}" FontWeight="Bold"
+                        <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="{StaticResource FontSansSemi}" FontWeight="Bold"
                                    FontSize="{StaticResource SizeTag}" Foreground="{TemplateBinding Foreground}"/>
                     </Border>
                 </ControlTemplate>
