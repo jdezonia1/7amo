@@ -53,6 +53,9 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 // [phase3] begin
                 Item("OwnerMos", "OWNER MOS", "IconExport", ""),
                 // [phase3] end
+                // [trust] begin
+                Item("Trust", "TRUST & INTEGRATIONS", "IconChecks", ""),
+                // [trust] end
             }),
         };
         SettingsItem = Item("Settings", "SETTINGS", "IconSettings", "");

@@ -5,6 +5,7 @@
         xmlns:vm="clr-namespace:Raffaello.App.ViewModels"
         xmlns:pages="clr-namespace:Raffaello.App.Views.Pages"
         xmlns:p5="clr-namespace:Raffaello.App.Services.Phase5"
+        xmlns:trust="clr-namespace:Raffaello.App.Views.Trust"
         Title="Raffaello" Width="1366" Height="768" MinWidth="1080" MinHeight="620"
         WindowStartupLocation="CenterScreen" Icon="pack://application:,,,/Assets/raffaello.ico"
         Background="{DynamicResource BgBrush}" Foreground="{DynamicResource InkBrush}"
@@ -27,6 +28,7 @@
         <DataTemplate DataType="{x:Type vm:InvoicesViewModel}"><pages:InvoicesView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ReportsViewModel}"><pages:ReportsView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><pages:SettingsView/></DataTemplate>
+        <!-- [trust] --><DataTemplate DataType="{x:Type vm:TrustViewModel}"><trust:TrustView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:LedgerViewModel}"><pages:LedgerView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ChecksViewModel}"><pages:ChecksView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SiteStatementsViewModel}"><pages:SiteStatementsView/></DataTemplate>

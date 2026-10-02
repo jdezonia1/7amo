@@ -127,6 +127,7 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, InvoicesViewModel>();
                 s.AddSingleton<PageViewModel, ReportsViewModel>();
                 s.AddSingleton<PageViewModel, SettingsViewModel>();
+                s.AddSingleton<PageViewModel, TrustViewModel>();   // [trust]
                 s.AddSingleton<AskViewModel>();
                 s.AddSingleton<CommandPaletteViewModel>();
                 s.AddSingleton<ImportViewModel>();
