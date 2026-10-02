@@ -68,6 +68,9 @@ public sealed class PermissionGuard : IWriteGuard
             return new[] { Permissions.PrepareInvoices };
         }
         if (t == typeof(SubInvoiceLine) || t == typeof(InvoiceLine)) return new[] { Permissions.PrepareInvoices };
+        // [assistant] begin: every signed-in user keeps his own chat history, reminders and notification rules (owner checked by AssistantOwnerGuard)
+        if (Raffaello.Core.Assistant.AssistantEntityTypes.All.Contains(t)) return new[] { Permissions.Read };
+        // [assistant] end
         return new[] { Permissions.EditData };
     }
 

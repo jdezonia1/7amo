@@ -38,6 +38,10 @@ public static class ServerApp
         builder.Services.AddSingleton(_ => new BackupRunner(cs, opt, contentRoot));
         builder.Services.AddSingleton(_ => new Auth.LoginThrottle(opt));   // [phase6] sign-in rate limit
         builder.Services.AddHostedService<NightlyBackupService>();
+        // [assistant] begin: scheduled morning briefs / notifications (section Raffaello:Notify, off by default)
+        builder.Services.AddSingleton<Modules.AssistantNotifyService>();
+        builder.Services.AddHostedService(sp => sp.GetRequiredService<Modules.AssistantNotifyService>());
+        // [assistant] end
         builder.Services.AddSignalR().AddJsonProtocol(o =>
         {
             o.PayloadSerializerOptions.PropertyNamingPolicy = null;

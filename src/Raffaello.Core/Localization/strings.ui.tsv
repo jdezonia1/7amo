@@ -1,0 +1,636 @@
+(go into the invoice package)	(تدخل في حزمة الفاتورة)
+CATEGORY	الفئة
+CERT	معتمد
+CLAIMED	المطالب به
+DONE	المنفذ
+GIVEN	المُسند
+RATE	السعر
+REM	المتبقي
+|  click a row to pre-fill the entry	|  انقر على صف لتعبئة الإدخال مسبقاً
++ ADD	+ إضافة
++ ADDITION	+ إضافة
++ NEW ITEM	+ بند جديد
+- OMISSION	- حذف
+1  YOU AND THE DATA	1  أنت والبيانات
+15 M ROUNDING (DP)	تقريب قاعدة 15 م (منازل عشرية)
+15 M RULE PER SUBCONTRACTOR  |  CLAIMED vs INVOICED (REJECTED EXTRA IS NOT PAID)	قاعدة 15 م لكل مقاول  |  المطالب به مقابل المفوتر (الزيادة المرفوضة لا تُدفع)
+2  DOCUMENTS FOLDER	2  مجلد المستندات
+3  FIRST IMPORTS (optional)	3  أول عمليات استيراد (اختياري)
+4  ACONEX	4  أكونكس
+= QTY	= الكمية
+ACCENT	لون التمييز
+ACCEPT	قبول
+ACCEPT AND SAVE	قبول وحفظ
+ACCEPT CLAIM	قبول المطالبة
+ACCEPTED QTY ABOVE 4.5 M (for PARTLY)	الكمية المقبولة فوق 4.5 م (للقبول الجزئي)
+ACONEX	أكونكس
+ACONEX ADDRESS	عنوان أكونكس
+ACONEX CONFIG FILE (EMPTY = %APPDATA%\Raffaello\aconex.config.json)	ملف إعدادات أكونكس (فارغ = %APPDATA%\Raffaello\aconex.config.json)
+ACONEX USER NAME	اسم مستخدم أكونكس
+ACONEX WORKFLOW (SUBMISSION)	سير عمل أكونكس (التقديم)
+ACONEX WORKFLOW NO	رقم سير عمل أكونكس
+ACTIVITY	النشاط
+ADD (AS OF PERIOD TO)	إضافة (حتى نهاية الفترة)
+ADD CLAIM	إضافة مطالبة
+ADD DN	إضافة إشعار تسليم
+ADD DN TO MIR	إضافة إشعار التسليم إلى طلب المواد
+ADD ROW	إضافة صف
+ADDITIONS	الإضافات
+AGEING  |  OPEN	التقادم  |  مفتوح
+ALARMS	الإنذارات
+ALL	الكل
+AMOUNT	المبلغ
+ANTHROPIC API KEY (OR SET ANTHROPIC_API_KEY)	مفتاح ANTHROPIC API (أو عيّن ANTHROPIC_API_KEY)
+APP ACCOUNT	حساب التطبيق
+APPLY AND LEARN	تطبيق وتعلّم
+APPROVE	اعتماد
+APPROVE + LOCK	اعتماد + قفل
+APPROVE AND LOCK	اعتماد وقفل
+APPROVED	معتمد
+APPROVED AMOUNT	المبلغ المعتمد
+APPROVED NET	الصافي المعتمد
+AREA	المنطقة
+AREA TYPE (selects the lighting BOQ row)	نوع المنطقة (يحدد بند الإنارة في جدول الكميات)
+AS OF	حتى تاريخ
+ASK CLAUDE FOR UNCATEGORISED ROWS	اسأل Claude عن الصفوف غير المصنفة
+ASK RAFFAELLO	اسأل رافاييلو
+ASK RAFFAELLO (CLAUDE)	اسأل رافاييلو (Claude)
+ASSIGNED TO	مسند إلى
+ATTACH	إرفاق
+ATTACH SCAN	إرفاق النسخة الممسوحة
+ATTACH SIGNED INVOICE	إرفاق الفاتورة الموقعة
+ATTACHED TO THE INVOICE REVISION	مرفق بمراجعة الفاتورة
+AUTO-CODING AND OWNER MOS	الترميز التلقائي ومواد الموقع للمالك
+AUTO-FILL AT SCORE %	تعبئة تلقائية عند نسبة تطابق %
+Addresses, selectors and folders are in aconex.config.json (fixable without a new version). Download folders default to the documents folder above.	العناوين والمحددات والمجلدات في aconex.config.json (يمكن تعديلها دون إصدار جديد). مجلدات التنزيل افتراضياً ضمن مجلد المستندات أعلاه.
+Adds a negative line; the reason is taken from NOTES in the entry form	يضيف بنداً سالباً؛ يؤخذ السبب من الملاحظات في نموذج الإدخال
+Any room list (e.g. the HOTEL keys): columns found by header text, optional STAGE|ITEM PROJECT QTY columns	أي قائمة غرف (مثل غرف الفندق): الأعمدة تُعرف من عناوينها، مع أعمدة اختيارية لكمية المشروع STAGE|ITEM
+Approved WIR / QS - stages side by side	طلبات الفحص المعتمدة / الحصر - المراحل جنباً إلى جنب
+Ask about the selected line, the current filter or today's queue. Raffaello knows the house rules: stages are never summed, EMT is rework, PROJECT QTY caps claims, claimed above WIR is held.	اسأل عن البند المحدد أو الفلتر الحالي أو مهام اليوم. يعرف رافاييلو قواعد المشروع: لا تُجمع المراحل، EMT إعادة عمل، كمية المشروع سقف للمطالبات، والمطالب به فوق طلب الفحص يُحجز.
+BAND	النطاق
+BATCH	الدفعة
+BATCH / DRUM	الدفعة / البكرة
+BATCH CHECK	فحص الدفعة
+BEFORE	قبل
+BILL	القسم
+BLDG	المبنى
+BOQ  |  RATES AND PROJECT QTY	جدول الكميات  |  الأسعار وكمية المشروع
+BOQ CODE	كود جدول الكميات
+BOQ CODE (linked to the item)	كود جدول الكميات (مرتبط بالبند)
+BOQ CODES LINKED TO THIS ITEM	أكواد جدول الكميات المرتبطة بهذا البند
+BOQ FILE	ملف جدول الكميات
+BOQ NO.	رقم جدول الكميات
+BOQ code, description, cost code	كود جدول الكميات، الوصف، كود التكلفة
+BOQ codes with cost code / budget resource	أكواد جدول الكميات مع كود التكلفة / مورد الميزانية
+BOQ screen: ask Claude for rows no keyword rule covers	شاشة جدول الكميات: اسأل Claude عن الصفوف التي لا تغطيها قواعد الكلمات
+BROWSE	استعراض
+BROWSER CHANNEL (msedge = the Edge installed on Windows; chrome; empty = Playwright Chromium)	قناة المتصفح (msedge = متصفح Edge المثبت؛ chrome؛ فارغ = Playwright Chromium)
+BROWSER EXE (OPTIONAL, OVERRIDES THE CHANNEL)	ملف المتصفح التنفيذي (اختياري، يتجاوز القناة)
+BROWSER PROFILE (KEEPS THE LOGIN)	ملف تعريف المتصفح (يحتفظ بتسجيل الدخول)
+BUDGET RESOURCE CODE	كود مورد الميزانية
+BUILD	بناء
+BUILD FROM DN LINES	بناء من بنود إشعارات التسليم
+BUILD FROM LEDGER	بناء من السجل
+BUILDING	المبنى
+BY	بواسطة
+BY STAGE  |  DONE / GIVEN / REMAINING	حسب المرحلة  |  المنفذ / المُسند / المتبقي
+BY STAGE  |  NEVER SUMMED	حسب المرحلة  |  لا تُجمع أبداً
+BY SUBCONTRACTOR	حسب المقاول
+BY SYSTEM	حسب النظام
+Building shown in every module	المبنى المعروض في كل الأقسام
+CANCEL	إلغاء
+CAP	السقف
+CASH FLOW  |  CLAIMED vs CERTIFIED	التدفق النقدي  |  المطالب به مقابل المعتمد
+CERTIFIED TO DATE	المعتمد حتى تاريخه
+CERTIFY...	اعتماد...
+CHANGED	تم التغيير
+CHECK	فحص
+CHECKED	تم الفحص
+CHECKS	الفحوصات
+CHECKS / CHANGES / ATTACHMENTS	الفحوصات / التغييرات / المرفقات
+CHOOSE FILE	اختيار ملف
+CLAIM	مطالبة
+CLAIM %	نسبة المطالبة
+CLAUSE = the PO conditions (e.g. ±5 % per item) win over the header block; HEADER = the header tolerance only.	البند = شروط أمر الشراء (مثل ±5 % لكل بند) تتقدم على الترويسة؛ الترويسة = سماحية الترويسة فقط.
+CLEAR	مسح
+CLEAR QUEUE	مسح قائمة الانتظار
+CLOSE	إغلاق
+CLOSE BROWSER	إغلاق المتصفح
+CLOUD READING OF PHOTO / SCAN PAGES	القراءة السحابية لصفحات الصور / المسح الضوئي
+CODE	الكود
+CODING	الترميز
+COLOUR BY	التلوين حسب
+COMMIT IMPORT	تنفيذ الاستيراد
+COMPLETED	مكتمل
+CONDUIT	المواسير
+CONF.	الثقة
+CONFIDENCE	درجة الثقة
+CONFIG FILE (SELECTORS, COLUMN NAMES, URLS - EDIT WITHOUT RECOMPILING)	ملف الإعدادات (المحددات، أسماء الأعمدة، الروابط - تعديل دون إعادة بناء)
+CONFIRM + LEARN	تأكيد + تعلّم
+CONFIRM SUGGESTION	تأكيد الاقتراح
+CONSULTANT	الاستشاري
+CONSULTANT DOCUMENTS	مستندات الاستشاري
+CONSULTANT REF	مرجع الاستشاري
+CONTRACT	العقد
+CONTRACT DOCUMENTS	مستندات العقد
+CONTRACT ITEM	بند العقد
+CONTRACT LINK WORKBOOK	ملف ربط العقد
+CONTRACT NO	رقم العقد
+COPY LOCAL DATA TO SERVER	نسخ البيانات المحلية إلى الخادم
+CORRECT THE ROW	تصحيح الصف
+COST CODE	كود التكلفة
+CREATE FOLDERS	إنشاء المجلدات
+CUM	تراكمي
+CUM AFTER	التراكمي بعد
+CUM BEFORE	التراكمي قبل
+CUM SAR	التراكمي ر.س
+CUMULATIVE DELIVERIES  |  % OF PO VALUE	التسليمات التراكمية  |  % من قيمة أمر الشراء
+CUMULATIVE GROSS	الإجمالي التراكمي
+CURR	الحالي
+CURR SAR	الحالي ر.س
+CURRENT STEP	الخطوة الحالية
+CUSTOM %	نسبة مخصصة
+Changes you made offline that the server could not apply as they were. KEEP MINE writes your version, KEEP THEIRS drops your change, MERGE keeps their row with the fields you tick.	تغييرات أجريتها دون اتصال ولم يتمكن الخادم من تطبيقها كما هي. "احتفظ بنسختي" يكتب نسختك، "احتفظ بنسختهم" يلغي تغييرك، "دمج" يحتفظ بصفهم مع الحقول التي تحددها.
+Close (Esc)	إغلاق (Esc)
+Cloud reading: send scan / photo pages to Claude when the text layer and local OCR are not enough (uses the API key and model from Settings)	القراءة السحابية: إرسال صفحات المسح / الصور إلى Claude عندما لا تكفي طبقة النص والتعرف المحلي (يستخدم مفتاح API والنموذج من الإعدادات)
+Contract items (English / Arabic), attributes parsed from the text, LINK TABLE item -> BOQ codes	بنود العقد (إنجليزي / عربي)، خصائص مستخرجة من النص، جدول ربط البند -> أكواد جدول الكميات
+Cumulative %, weekly, approved WIR (rework excluded), mean of stages	النسبة التراكمية أسبوعياً، طلبات الفحص المعتمدة (دون إعادة العمل)، متوسط المراحل
+DAILY AUTO REFRESH	تحديث تلقائي يومي
+DATA SOURCE	مصدر البيانات
+DATE	التاريخ
+DATE DUE	تاريخ الاستحقاق
+DATE FROM	من تاريخ
+DATE IN	تاريخ الورود
+DATE TO	إلى تاريخ
+DAYS	الأيام
+DECIDED	تم القرار
+DECISION	القرار
+DELETE DRAFT	حذف المسودة
+DELIV.	المُسلّم
+DELIVERED	المُسلّم
+DELIVERED vs PO  |  PER LINE	المُسلّم مقابل أمر الشراء  |  لكل بند
+DELIVERY NOTES	إشعارات التسليم
+DEMO CHAIN REPORTS	تقارير السلسلة التجريبية
+DEMO MODE (sample project, for training)	الوضع التجريبي (مشروع نموذجي للتدريب)
+DESCRIPTION	الوصف
+DESCRIPTION / CONSULTANT INSTRUCTION	الوصف / تعليمات الاستشاري
+DISCARD	تجاهل
+DISCIPLINE (AS SHOWN IN ACONEX)	التخصص (كما يظهر في أكونكس)
+DN DATE	تاريخ إشعار التسليم
+DN NO / PO NO / BATCH / ORDER NO	رقم إشعار التسليم / أمر الشراء / الدفعة / الطلب
+DN QTY	كمية إشعار التسليم
+DN TIMELINE  |  BUBBLE = VALUE	الجدول الزمني لإشعارات التسليم  |  الفقاعة = القيمة
+DN photos	صور إشعارات التسليم
+DNs IN THIS MIR:	إشعارات التسليم في طلب المواد هذا:
+DOCUMENT	المستند
+DOCUMENT NO	رقم المستند
+DOCUMENT NUMBERS	أرقام المستندات
+DOCUMENT READING	قراءة المستندات
+DOCUMENT TYPE	نوع المستند
+DONE % BY SYSTEM AND STAGE	نسبة المنفذ حسب النظام والمرحلة
+DOWNLOAD	تنزيل
+DOWNLOAD FOLDER	مجلد التنزيل
+DOWNLOAD REGISTER	سجل التنزيل
+DOWNLOADED	تم التنزيل
+DOWNLOADER	أداة التنزيل
+DRAFT -> CHECKED (QS / reviewer) -> APPROVED (reviewer) -> SUBMITTED. Every stamp records who and when; editing the invoice afterwards makes the stamps stale.	مسودة -> تم الفحص (مهندس الكميات / المراجع) -> معتمد (المراجع) -> مقدّم. كل ختم يسجل من ومتى؛ تعديل الفاتورة بعد ذلك يُبطل الأختام.
+DRAFT PACKAGE	حزمة مسودة
+DRUM	البكرة
+DUE	مستحق
+Darker = more given to subcontractors	الأغمق = أكثر إسناداً للمقاولين
+Days since submission, open WIRs in scope	الأيام منذ التقديم، طلبات الفحص المفتوحة ضمن النطاق
+Downloads (or resumes) the selected queue	ينزّل (أو يستأنف) قائمة الانتظار المحددة
+Drum labels (batch)	ملصقات البكرات (الدفعة)
+E-PROMISE BOQ LIST	قائمة جدول كميات E-Promise
+EARLIER CHECKS (CLICK TO VIEW)	فحوصات سابقة (انقر للعرض)
+EFFORT	مستوى الجهد
+EQP.	معدات
+EXCEL (INV LAYOUT)	Excel (تنسيق الفاتورة)
+EXPORT	تصدير
+EXPORT EXCEL + PDF	تصدير Excel + PDF
+EXPORT HEAD-OFFICE TRACKER	تصدير ملف متابعة المكتب الرئيسي
+EXPORT PACKAGE	تصدير الحزمة
+EXPORT PNG	تصدير PNG
+Edit STAGE / CONDUIT / MOUNT / HEIGHT / SYSTEMS / SIZE / STAGE % in the grid, then confirm. Confirmed attributes survive re-imports.	عدّل المرحلة / المواسير / التركيب / الارتفاع / الأنظمة / المقاس / نسبة المرحلة في الجدول ثم أكّد. الخصائص المؤكدة تبقى عند إعادة الاستيراد.
+Empty = take B5/B6 codes as BRANDED, others as they come	فارغ = اعتبار أكواد B5/B6 للمساكن والباقي كما هي
+Errors do not block saving, but every saved line keeps its source (TEXT / OCR / VISION / MANUAL).	الأخطاء لا تمنع الحفظ، لكن كل بند محفوظ يحتفظ بمصدره (نص / تعرف ضوئي / رؤية / يدوي).
+Every confirmation is learned: the same supplier code, description or cable attributes are coded automatically next time.	كل تأكيد يتم تعلّمه: نفس كود المورد أو الوصف أو خصائص الكابل تُرمّز تلقائياً في المرة القادمة.
+Every quantity. One chain.	كل كمية. سلسلة واحدة.
+Excel is import / export only. Nothing is written until you commit; errors are skipped, warnings are imported and flagged.	Excel للاستيراد والتصدير فقط. لا يُكتب شيء حتى تنفذ الاستيراد؛ الأخطاء تُتجاوز والتحذيرات تُستورد وتُعلَّم.
+Excel keeps every template row with SUM formulas, retention and a QTY BACKUP sheet. The PDF prints only rows with quantities.	ملف Excel يحتفظ بكل صفوف القالب مع معادلات المجموع والمحتجزات وورقة إسناد الكميات. ملف PDF يطبع الصفوف التي بها كميات فقط.
+Explain a flag, draft an email, summarise the day	شرح تنبيه، كتابة مسودة بريد، تلخيص اليوم
+Export current view to Excel (Ctrl+E)	تصدير العرض الحالي إلى Excel (Ctrl+E)
+FIELD	الحقل
+FILE	الملف
+FILL EMPTY LINES FROM BOQ	تعبئة البنود الفارغة من جدول الكميات
+FILTER	الفلتر
+FINAL PACKAGE	الحزمة النهائية
+FINISH	إنهاء
+FIT	ملاءمة
+FLAG FOR REVIEW AT %	تعليم للمراجعة عند %
+FOLDERS (SHARED PARTITION)	المجلدات (القسم المشترك)
+FORECAST COMPLETION	الإنجاز المتوقع
+FOUND BY	وُجد بواسطة
+FROM EXCEL...	من Excel...
+Fit the plan to the window (wheel = zoom, drag = pan)	ملاءمة المخطط للنافذة (العجلة = تكبير، السحب = تحريك)
+Four quick steps. Everything can be changed later in Settings. Nothing is imported unless you confirm.	أربع خطوات سريعة. يمكن تغيير كل شيء لاحقاً من الإعدادات. لا يتم استيراد شيء دون تأكيدك.
+GENERATE EXCEL	إنشاء Excel
+GROUP / CATEGORY	المجموعة / الفئة
+GROUPS  (n x length, e.g. 10x20;5x35)	المجموعات  (عدد × طول، مثل 10x20;5x35)
+Gross this period  SAR	إجمالي هذه الفترة  ر.س
+HEAD OFFICE	المكتب الرئيسي
+HEAD-OFFICE PACKAGE	حزمة المكتب الرئيسي
+HEATMAP  |  LEVEL x SYSTEM, % GIVEN	خريطة حرارية  |  الطابق × النظام، نسبة الإسناد
+HEIGHT	الارتفاع
+HEIGHT CHECK  >4.5 M QTY	فحص الارتفاع  كمية فوق 4.5 م
+HH:mm, e.g. 08:30 - empty = off	HH:mm، مثل 08:30 - فارغ = متوقف
+HIGH AREA NOTE	ملاحظة المنطقة المرتفعة
+HISTORY	السجل
+IMPORT	استيراد
+IMPORT BOQ	استيراد جدول الكميات
+IMPORT CHECKS	فحوصات الاستيراد
+IMPORT CONTRACT LINK WORKBOOK	استيراد ملف ربط العقد
+IMPORT DN	استيراد إشعار تسليم
+IMPORT MIR	استيراد طلب مواد
+IMPORT PO	استيراد أمر شراء
+IMPORT ROOM LIST	استيراد قائمة الغرف
+IMPORT THE TRACKER (rooms, PROJECT QTY, ledger, plans)	استيراد ملف المتابعة (الغرف، كمية المشروع، السجل، المخططات)
+IMPORT TRACKER	استيراد ملف المتابعة
+IN WF (D)	في سير العمل (أيام)
+INPUT EXCEL (DOCUMENT NUMBERS)	ملف Excel الإدخال (أرقام المستندات)
+INSTALLED	المركّب
+INSTALLED QTY (CUMULATIVE ADDITION)	الكمية المركبة (إضافة تراكمية)
+INV STATUS	حالة الفاتورة
+INVOICE	الفاتورة
+INVOICE APPROVALS	اعتمادات الفواتير
+INVOICE HEADER	ترويسة الفاتورة
+INVOICE HISTORY  |  SAR	سجل الفواتير  |  ر.س
+INVOICE NO	رقم الفاتورة
+INVOICE REVISION (SCREENSHOTS ARE ATTACHED TO IT)	مراجعة الفاتورة (تُرفق بها لقطات الشاشة)
+INVOICE TEMPLATE (INV SHEET)	قالب الفاتورة (ورقة INV)
+INVOICED	المفوتر
+ISSUE	إصدار
+ISSUE A STATEMENT	إصدار كشف
+ITEM	البند
+ITEM CODE	كود البند
+Import Excel / CSV (Ctrl+I)	استيراد Excel / CSV (Ctrl+I)
+Import the subcontractor's earlier invoice files (template layout): splits a cumulative ledger block into INV 1..N and stores them as approved invoices	استيراد ملفات فواتير المقاول السابقة (بتنسيق القالب): تقسيم كتلة السجل التراكمية إلى الفواتير 1..N وحفظها كفواتير معتمدة
+Incl. VAT  SAR	شامل الضريبة  ر.س
+Invoice the full claimed 15 m quantity	فوترة كامل الكمية المطالب بها بقاعدة 15 م
+Invoice the plan quantity only	فوترة كمية المخطط فقط
+Invoice the revised (or override) quantity	فوترة الكمية المعدلة (أو المُدخلة يدوياً)
+Item no, description, system	رقم البند، الوصف، النظام
+KEEP MINE	احتفظ بنسختي
+KEEP THEIRS	احتفظ بنسختهم
+KEYBOARD	لوحة المفاتيح
+KIND	النوع
+Keep this workflow number on the selected invoice revision	احتفظ برقم سير العمل هذا على مراجعة الفاتورة المحددة
+LAB.	عمالة
+LATE (D)	متأخر (أيام)
+LEDGER LINES  |  APPEND-ONLY (corrections are reversal lines)	بنود السجل  |  إضافة فقط (التصحيح ببنود عكسية)
+LENGTH CHECK  15 M CLAIMED QTY	فحص الطول  الكمية المطالب بها بقاعدة 15 م
+LEVEL	الطابق
+LINE	البند
+LINES	البنود
+LINK	ربط
+LINKS	الروابط
+LOCKED - approved invoices cannot be edited	مقفلة - لا يمكن تعديل الفواتير المعتمدة
+LOG	السجل
+LOOK	عرض
+LOOK UP	بحث
+Light / dark (Ctrl+Shift+L)	فاتح / داكن (Ctrl+Shift+L)
+Local (this PC / shared file)	محلي (هذا الجهاز / ملف مشترك)
+MARK RECEIVED	تعليم كمستلم
+MAT.	مواد
+MATCH	المطابقة
+MATCH AND UNITS	المطابقة والوحدات
+MATCHED LINES	البنود المتطابقة
+MERGE	دمج
+MESSAGE	الرسالة
+MIGRATION DRY RUN	تجربة النقل
+MINE	نسختي
+MIR STATUS	حالة طلب المواد
+MIR TRACKER (EXCEL)	متابعة طلبات المواد (Excel)
+MODEL	النموذج
+MOS NO	رقم MOS
+MOS TEMPLATE (OPTIONAL)	قالب MOS (اختياري)
+MOUNT	التركيب
+Monthly increments of cumulative statements, SAR, with cumulative certified	الزيادات الشهرية للمستخلصات التراكمية بالريال مع المعتمد التراكمي
+NEED A LOOK	بحاجة إلى مراجعة
+NEEDS YOU TODAY	المطلوب منك اليوم
+NET	الصافي
+NET INCL. VAT	الصافي شامل الضريبة
+NET THIS PERIOD	صافي هذه الفترة
+NEW CLAIM LINE	بند مطالبة جديد
+NEW REVISION	مراجعة جديدة
+NO	لا
+NOT CHECKED YET	لم يُفحص بعد
+NOTE	ملاحظة
+NOTE (OPTIONAL)	ملاحظة (اختياري)
+NOTES (also the reversal reason)	ملاحظات (وأيضاً سبب العكس)
+NOTES / OVER REASON	ملاحظات / سبب التجاوز
+NUMBER	الرقم
+Needs the signed invoice attached	يلزم إرفاق الفاتورة الموقعة
+New conversation	محادثة جديدة
+Note for the status change (consultant comment, reason ...)	ملاحظة لتغيير الحالة (تعليق الاستشاري، السبب ...)
+OH %	المصاريف العامة %
+OMISSIONS	المحذوفات
+ON SITE	في الموقع
+ONE PC / SHARED FILE - a Raffaello data file (put it on the shared drive so the team sees the same data)	جهاز واحد / ملف مشترك - ملف بيانات رافاييلو (ضعه على القرص المشترك ليرى الفريق نفس البيانات)
+ONLINE	متصل
+ONLY FLAGGED LINES	البنود المعلّمة فقط
+ONLY ROWS TO CHECK	الصفوف المطلوب فحصها فقط
+ONLY ROWS WITH QUANTITIES	الصفوف التي بها كميات فقط
+OPEN	فتح
+OPEN > 90 DAYS	مفتوح > 90 يوماً
+OPEN ACONEX / LOG IN	فتح أكونكس / تسجيل الدخول
+OPEN CONFIG	فتح الإعدادات
+OPEN DASHBOARD	فتح لوحة المتابعة
+OPEN FILE	فتح الملف
+OPEN FILLED STATEMENT	فتح الكشف المعبأ
+OPEN FOLDER	فتح المجلد
+OPEN IN LEDGER	فتح في السجل
+OPEN INVOICE REVISIONS	مراجعات الفواتير المفتوحة
+OPEN NET	الصافي المفتوح
+OPEN ROOM IN LEDGER	فتح الغرفة في السجل
+OPEN WIR AGEING	تقادم طلبات الفحص المفتوحة
+OPEN WORKFLOW	فتح سير العمل
+OR TOTAL ROUTE LENGTH (M)	أو إجمالي طول المسار (م)
+OR TYPE THE CODE	أو اكتب الكود
+OR TYPE THE CODES	أو اكتب الأكواد
+ORIG. DUE	الاستحقاق الأصلي
+OTHER DOCUMENTS	مستندات أخرى
+OUTCOME	النتيجة
+OVER PO TOLERANCE	تجاوز سماحية أمر الشراء
+OVER REASON (needed to post above remaining)	سبب التجاوز (مطلوب للتسجيل فوق المتبقي)
+OVER REASON (posts OVER lines at full qty; empty = skip them)	سبب التجاوز (يسجل بنود التجاوز بالكمية كاملة؛ فارغ = تجاوزها)
+OVERDUE IN ACONEX	متأخر في أكونكس
+OWNER BOQ	جدول كميات المالك
+OWNER BOQ CODE FOR THE DN LINE	كود جدول كميات المالك لبند إشعار التسليم
+One folder on the shared partition for WIR / MIR downloads, invoice packages, variation documents and Aconex screenshots.	مجلد واحد على القسم المشترك لتنزيلات طلبات الفحص والمواد، وحزم الفواتير، ومستندات الأوامر التغييرية، ولقطات أكونكس.
+One row per room x stage, one column per system. Remaining quantities are in the cell comments; the sheet is protected except the input cells.	صف لكل غرفة × مرحلة، وعمود لكل نظام. الكميات المتبقية في تعليقات الخلايا؛ الورقة محمية ما عدا خلايا الإدخال.
+Only DNs with a MIR count as materials on site	فقط إشعارات التسليم التي لها طلب مواد تُحتسب مواداً في الموقع
+PACKAGE NAME ({CONTRACT} {SUB} {INV} {REV})	اسم الحزمة ({CONTRACT} {SUB} {INV} {REV})
+PACKAGE OUTPUT FOLDER (empty = Documents\Raffaello\Packages)	مجلد إخراج الحزم (فارغ = Documents\Raffaello\Packages)
+PAGE	الصفحة
+PARSER NOTES	ملاحظات القراءة
+PARTLY	جزئي
+PASSWORD	كلمة المرور
+PASSWORD (ENCRYPTED WITH WINDOWS DPAPI, NEVER SHOWN AGAIN)	كلمة المرور (مشفرة بـ Windows DPAPI ولن تُعرض مجدداً)
+PAST INVOICE FILES	ملفات الفواتير السابقة
+PDF (FILTERED)	PDF (مُصفّى)
+PDF WITH SCREENSHOTS	PDF مع لقطات الشاشة
+PERIOD	الفترة
+PERIOD TO	نهاية الفترة
+PICK A VARIATION ON THE LEFT, OR CREATE ONE (+ VO / + EI / + SI)	اختر أمراً تغييرياً من القائمة أو أنشئ واحداً (+ VO / + EI / + SI)
+PIN	تثبيت
+PIN THE SELECTED DN LINE TO A PO LINE (kept on every later match; empty = remove the pin)	تثبيت بند إشعار التسليم المحدد على بند أمر شراء (يبقى في كل مطابقة لاحقة؛ فارغ = إزالة التثبيت)
+PIPE LENGTH (M / PCS)	طول الماسورة (م / قطعة)
+PIPE LENGTH (M PER PCS)	طول الماسورة (م لكل قطعة)
+PO LINE	بند أمر الشراء
+PO QTY	كمية أمر الشراء
+PO QTY UNIT	وحدة كمية أمر الشراء
+PO REF	مرجع أمر الشراء
+POINTS BY SYSTEM	النقاط حسب النظام
+POST AS INVOICE NO	تسجيل كفاتورة رقم
+POST CLAIM LINE	تسجيل بند مطالبة
+POST TO LEDGER	تسجيل في السجل
+PREV	السابق
+PREVIEW	معاينة
+PREVIOUS GROSS	الإجمالي السابق
+PROFIT %	الربح %
+PROGRESS PER ROOM  |  GIVEN vs DONE (MEAN OF STAGES)	التقدم لكل غرفة  |  المُسند مقابل المنفذ (متوسط المراحل)
+PROJ	المشروع
+PROJECT	المشروع
+PROJECT CODE	كود المشروع
+PROJECT DIRECTOR	مدير المشروع
+PROJECT ID (FROM THE ACONEX URL, IF THE SEARCH PAGES NEED IT)	معرّف المشروع (من رابط أكونكس، إن احتاجته صفحات البحث)
+PROJECT QTY (EDIT)	كمية المشروع (تعديل)
+PROJECT REPORTS (ROOM LEDGER, INVOICES, MATERIALS, VARIATIONS, ACONEX)	تقارير المشروع (سجل الغرف، الفواتير، المواد، الأوامر التغييرية، أكونكس)
+PURCHASE ORDERS	أوامر الشراء
+Page on the left, what was read on the right. Fix any value in place, RE-CHECK runs qty x rate, totals, sub-totals and unit conversions again. Nothing is saved until ACCEPT.	الصفحة على اليسار وما تمت قراءته على اليمين. صحّح أي قيمة مكانها، وإعادة الفحص تعيد حساب الكمية × السعر والمجاميع وتحويل الوحدات. لا يُحفظ شيء حتى القبول.
+Part of QTY installed above 4.5 m (priced at the HIGH item once accepted)	جزء الكمية المركب فوق 4.5 م (يُسعّر بالبند الأعلى بعد قبوله)
+Paste document numbers (one per line, or any text containing them) and / or set filters. Revisions already downloaded are skipped.	الصق أرقام المستندات (رقم في كل سطر أو أي نص يحتويها) و/أو حدد الفلاتر. المراجعات المنزلة سابقاً تُتجاوز.
+Pick an existing subcontractor	اختر مقاولاً موجوداً
+Point everyone at the same file on the shared drive (e.g. \\server\RAFFLES\raffaello.db). Each save is checked against RowVersion; if someone else changed the row you get a warning instead of overwriting.	وجّه الجميع إلى نفس الملف على القرص المشترك (مثل \\server\RAFFLES\raffaello.db). كل حفظ يُفحص مقابل رقم الإصدار؛ إذا عدّل غيرك الصف تظهر لك رسالة تنبيه بدلاً من الكتابة فوقه.
+Project	المشروع
+Protected values-only workbook: dashboard, plans with clickable rooms, room details, ledger, control	ملف محمي بالقيم فقط: لوحة متابعة، مخططات بغرف قابلة للنقر، تفاصيل الغرف، السجل، الضبط
+Pulling qty the subcontractor claims under the 15 m rule (more than QTY). Held from invoicing until the LENGTH CHECK is decided.	كمية السحب التي يطالب بها المقاول بقاعدة 15 م (أكثر من الكمية). تُحجز من الفوترة حتى يُبت في فحص الطول.
+QS LINES	بنود الحصر
+QS points of one stage (stages measure the same points)	نقاط الحصر لمرحلة واحدة (المراحل تقيس نفس النقاط)
+QTY	الكمية
+QTY CHANGE	تغير الكمية
+QTY x RATE	الكمية × السعر
+QUEUE	قائمة الانتظار
+QUEUE MISSING	إضافة الناقص لقائمة الانتظار
+RATE (EDIT)	السعر (تعديل)
+RE-CHECK	إعادة الفحص
+RE-RUN AUTO-CODE	إعادة الترميز التلقائي
+READ AS	قُرئ كـ
+REASON	السبب
+REASON TO POST IT OVER THE REMAINING QTY (KEEP MINE)	سبب تسجيله فوق الكمية المتبقية (احتفظ بنسختي)
+REBUILD DEMO DATA	إعادة بناء البيانات التجريبية
+RECENT FILES & IMPORTS	الملفات والاستيرادات الأخيرة
+REDO	إعادة
+REFRESH ALL	تحديث الكل
+REGISTER EXCEL	سجل Excel
+REJECT	رفض
+REJECTED	مرفوض
+REJECTED EXTRA	الزيادة المرفوضة
+REJECTION REASON	سبب الرفض
+RELATED BOQ / CONTRACT ITEMS	بنود جدول الكميات / العقد ذات الصلة
+RELOAD	إعادة تحميل
+REMAIN	المتبقي
+REMAINING	المتبقي
+REMOVE	إزالة
+REMOVE LINE	إزالة البند
+REMOVE ROW	إزالة الصف
+RESPONSE	الرد
+RETENTION %	المحتجزات %
+RETENTION THIS PERIOD	محتجزات هذه الفترة
+RETRY NOW	إعادة المحاولة الآن
+REV	المراجعة
+REVERSE SELECTED	عكس المحدد
+REVISE	تعديل
+REVISED QTY OVERRIDE (optional)	الكمية المعدلة يدوياً (اختياري)
+REWORK	إعادة عمل
+ROLE	الدور
+ROOM	الغرفة
+ROOM / SYSTEM / STAGE	الغرفة / النظام / المرحلة
+ROOM BALANCE  |	رصيد الغرفة  |
+ROOM LABELS	أسماء الغرف
+ROOMS	الغرف
+ROOMS WITHOUT A PLAN SHAPE	غرف بدون شكل على المخطط
+RULES	القواعد
+RUN	تشغيل
+RUN MATCH	تشغيل المطابقة
+Raffaello - Import	رافاييلو - استيراد
+Raffaello - Invoice approvals	رافاييلو - اعتمادات الفواتير
+Raffaello - Sync conflicts	رافاييلو - تعارضات المزامنة
+Raffaello - first start	رافاييلو - التشغيل الأول
+Read the tracker workbook (ROOMS, PROJECT QTY, LEDGER, PLANS) into the building chosen at the top. Shows a preview first.	قراءة ملف المتابعة (الغرف، كمية المشروع، السجل، المخططات) في المبنى المختار بالأعلى. تُعرض معاينة أولاً.
+Reload shared data (F5)	إعادة تحميل البيانات المشتركة (F5)
+Retention  SAR	المحتجزات  ر.س
+Rows are the workflow steps as Aconex lists them. A rejected outcome anywhere marks the invoice REJECTED (fix and upload the next revision).	الصفوف هي خطوات سير العمل كما يعرضها أكونكس. أي نتيجة رفض تجعل الفاتورة مرفوضة (صحّح وارفع المراجعة التالية).
+Run hidden (headless) - only after the first login worked	تشغيل مخفي (بدون واجهة) - فقط بعد نجاح أول تسجيل دخول
+Runs your aconex_downloader.py with Python; the log streams below. Login and filters are handled by the script.	يشغّل aconex_downloader.py باستخدام Python ويظهر السجل بالأسفل. تسجيل الدخول والفلاتر يتولاها السكربت.
+S-CURVE  |  PLANNED vs ACTUAL	منحنى S  |  المخطط مقابل الفعلي
+SAR CHANGE	تغير المبلغ ر.س
+SAVE	حفظ
+SAVE + CONFIRM ATTRIBUTES	حفظ + تأكيد الخصائص
+SAVE CHANGES	حفظ التغييرات
+SAVE DRAFT	حفظ المسودة
+SAVE IMPORT	حفظ الاستيراد
+SAVE MATERIALS SETTINGS	حفظ إعدادات المواد
+SAVE QUEUE AS INPUT EXCEL	حفظ قائمة الانتظار كملف Excel إدخال
+SAVE ROOM	حفظ الغرفة
+SAVE SETTINGS	حفظ الإعدادات
+SAVE TYPED CODES	حفظ الأكواد المكتوبة
+SAVED	تم الحفظ
+SAVED INVOICES	الفواتير المحفوظة
+SCAN DOWNLOAD FOLDER	فحص مجلد التنزيل
+SCORE	الدرجة
+SCORECARD  |  CLAIMED % vs WIR %	بطاقة الأداء  |  نسبة المطالب به مقابل نسبة الفحص
+SCREENSHOT	لقطة الشاشة
+SCRIPT (aconex_downloader.py)	السكربت (aconex_downloader.py)
+SEARCH	بحث
+SERVER - the office Raffaello server (several users at once, live updates)	الخادم - خادم رافاييلو في المكتب (عدة مستخدمين معاً، تحديثات فورية)
+SERVER ADDRESS (e.g. http://RAFFAELLO-SRV:5180)	عنوان الخادم (مثل http://RAFFAELLO-SRV:5180)
+SET AND LEARN	تعيين وتعلّم
+SET STATUS	تعيين الحالة
+SETTINGS	الإعدادات
+SHARED DATA FILE	ملف البيانات المشترك
+SHARED DATA FILE (SQLITE, WAL MODE)	ملف البيانات المشترك (SQLite، وضع WAL)
+SHARED DOCUMENTS FOLDER (root on the shared partition; module folders below default to sub-folders)	مجلد المستندات المشترك (الجذر على القسم المشترك؛ مجلدات الأقسام أدناه مجلدات فرعية افتراضياً)
+SHOW	عرض
+SHOW APPROVED / DRAFTS	عرض المعتمد / المسودات
+SIGN IN	تسجيل الدخول
+SIGNATURE NAMES (separated by ;)	أسماء التوقيعات (مفصولة بـ ;)
+SITE %	نسبة الموقع
+SITE %  /  WIR %	نسبة الموقع  /  نسبة الفحص
+SITE % TOLERANCE (%)	سماحية نسبة الموقع (%)
+SITE AND BROWSER	الموقع والمتصفح
+SIZE	المقاس
+SKIP	تجاوز
+SOURCE	المصدر
+SRC	المصدر
+SSO and 2FA are always done by you in the browser window. A stored password only fills the classic Aconex login form.	الدخول الموحد والتحقق الثنائي تقوم بهما أنت دائماً في نافذة المتصفح. كلمة المرور المحفوظة تملأ فقط نموذج الدخول التقليدي لأكونكس.
+STAGE	المرحلة
+STAGE %	نسبة المرحلة
+STAGES	المراحل
+STAMPS	الأختام
+START EMPTY	البدء فارغاً
+STATE	الحالة
+STATEMENT NO	رقم الكشف
+STATEMENTS	المستخلصات
+STATUS	الحالة
+STEP CHANGES	تغيرات الخطوات
+STEP NAME	اسم الخطوة
+STOP	إيقاف
+STOP (RESUME LATER)	إيقاف (استئناف لاحقاً)
+STORE PASSWORD	حفظ كلمة المرور
+STORED LOGIN (OPTIONAL)	تسجيل الدخول المحفوظ (اختياري)
+SUB	المقاول
+SUB-FOLDER ({yyyy-MM}, {type}, {discipline} - EMPTY = FLAT)	مجلد فرعي ({yyyy-MM}، {type}، {discipline} - فارغ = بدون مجلدات)
+SUBCONTRACT NO.	رقم عقد الباطن
+SUBCONTRACT VALUE	قيمة عقد الباطن
+SUBCONTRACTOR	المقاول
+SUBCONTRACTORS	المقاولون
+SUBCONTRACTS	عقود الباطن
+SUBMISSION EXCEL	Excel التقديم
+SUBMIT	تقديم
+SUBMITTED	مقدّم
+SUBMITTED vs APPROVED  |  WEEKLY	المقدّم مقابل المعتمد  |  أسبوعياً
+SUGGEST	اقتراح
+SUGGESTIONS (TOP 3)	الاقتراحات (أفضل 3)
+SUPPLIER	المورد
+SUPPLIER INVOICES	فواتير الموردين
+SYNC CONFLICTS	تعارضات المزامنة
+SYSTEM	النظام
+SYSTEM / ITEM	النظام / البند
+SYSTEMS	الأنظمة
+Search document number or title	ابحث برقم المستند أو العنوان
+Search number, title or file	ابحث بالرقم أو العنوان أو الملف
+Search number, title, consultant ref	ابحث بالرقم أو العنوان أو مرجع الاستشاري
+Search or jump to...	ابحث أو انتقل إلى...
+Search room, system, item, subcontractor	ابحث بالغرفة أو النظام أو البند أو المقاول
+Search room, type, level	ابحث بالغرفة أو النوع أو الطابق
+Seed the demo project when the data file is empty	إنشاء المشروع التجريبي عندما يكون ملف البيانات فارغاً
+Server (URL)	الخادم (رابط)
+Server mode: the data lives on the office server (PostgreSQL). If the server is unreachable you keep working on the last copy; changes are sent when it is back. The migration copies the local file named on the left (ids kept, safe to run twice; ADMIN only).	وضع الخادم: البيانات على خادم المكتب (PostgreSQL). إذا تعذر الوصول للخادم تواصل العمل على آخر نسخة وتُرسل التغييرات عند عودته. النقل ينسخ الملف المحلي المذكور يساراً (المعرّفات محفوظة، آمن للتكرار؛ للمسؤول فقط).
+Server-side fallback if a request is declined (fallbacks: default)	بديل من جهة الخادم إذا رُفض الطلب (fallbacks: default)
+Sign in with my Windows account (domain PC)	تسجيل الدخول بحساب Windows (جهاز ضمن النطاق)
+Starting...	جارٍ البدء...
+Stores the choice as a rule (same stage/system/band and item/system/area) and rebuilds	يحفظ الاختيار كقاعدة (نفس المرحلة/النظام/النطاق والبند/النظام/المنطقة) ويعيد البناء
+Subcontractor	المقاول
+Subcontractor / supplier / owner MOS invoices	فواتير المقاولين / الموردين / مواد الموقع للمالك
+TEST	اختبار
+TEST CONNECTION	اختبار الاتصال
+THE CHAIN  |  FUNNEL	السلسلة  |  القمع
+THEIRS	نسختهم
+THEME	المظهر
+THIS PERIOD GROSS	إجمالي هذه الفترة
+THIS WEEK AT A GLANCE	هذا الأسبوع بنظرة سريعة
+TITLE	العنوان
+TOTALS	المجاميع
+TOTALS (SAR)	المجاميع (ر.س)
+TRACKER PASSWORD	كلمة مرور ملف المتابعة
+TRIES	المحاولات
+TYPE	النوع
+Test certificates (drum no + length)	شهادات الاختبار (رقم البكرة + الطول)
+The key is stored only in your own settings.json. The selected line's chain, the filter scope and today's queue are sent as context with each question.	يُحفظ المفتاح مشفراً على هذا الجهاز فقط. سياق الشاشة ونتائج الأدوات تُرسل مع كل سؤال.
+The same description gets this system / category automatically from now on.	نفس الوصف سيأخذ هذا النظام / الفئة تلقائياً من الآن.
+The subcontractor's invoice layout: item x BOQ rows, stage %, sections	تنسيق فاتورة المقاول: البند × صفوف جدول الكميات، نسبة المرحلة، الأقسام
+Thinking...	جارٍ التفكير...
+Type part of a number - punctuation does not matter (RAF-P.O-E-045 = RAFPOE045).	اكتب جزءاً من الرقم - علامات الترقيم لا تهم (RAF-P.O-E-045 = RAFPOE045).
+UNIT	الوحدة
+UP / DOWN to move  |  ENTER to open  |  ESC to close  |  type a room, WIR, invoice, PO or a line like  L2 201 LIGHT	أعلى / أسفل للتنقل  |  ENTER للفتح  |  ESC للإغلاق  |  اكتب غرفة أو طلب فحص أو فاتورة أو أمر شراء أو بنداً مثل  L2 201 LIGHT
+UP TO INVOICE	حتى الفاتورة
+USE MINE	استخدم نسختي
+USE THIS DATA SOURCE	استخدم مصدر البيانات هذا
+USED RATE	السعر المستخدم
+VALIDATION	التحقق
+VALUATIONS	التقييمات
+VALUE SAR	القيمة ر.س
+VALUED	المُقيّم
+VAT 15 %	ضريبة القيمة المضافة 15 %
+VAT 15%  SAR	ضريبة القيمة المضافة 15%  ر.س
+VENDOR NO	رقم المورد
+Variations: re-rank BOQ suggestions with Claude (sends the variation text and item descriptions, no prices)	الأوامر التغييرية: إعادة ترتيب اقتراحات جدول الكميات بواسطة Claude (يرسل نص الأمر ووصف البنود دون أسعار)
+WARNINGS	التحذيرات
+WELCOME TO RAFFAELLO	مرحباً بك في رافاييلو
+WHAT ARE YOU IMPORTING	ماذا تستورد
+WHAT TO DOWNLOAD	ماذا تنزّل
+WHEN	متى
+WHERE IS IT?	أين هي؟
+WHO ELSE IS EDITING	من يعدّل أيضاً
+WHY	لماذا
+WHY NOT	لماذا لا
+WIR %	نسبة الفحص
+WIR DUE AFTER (DAYS)	استحقاق طلب الفحص بعد (أيام)
+WIR FOLDER (searched by WIR no.)	مجلد طلبات الفحص (يُبحث برقم الطلب)
+WIR NO	رقم طلب الفحص
+WIR QTY	كمية طلب الفحص
+WITH	مع
+WORKFLOW	سير العمل
+WORKFLOW NO	رقم سير العمل
+WORKFLOW SCREENSHOTS	لقطات سير العمل
+Welcome (Ctrl+H)	الترحيب (Ctrl+H)
+While Raffaello is open, every invoice workflow is checked once a day at this time (first PC on the shared file does it).	أثناء تشغيل رافاييلو يُفحص كل سير عمل للفواتير مرة يومياً في هذا الوقت (يقوم بذلك أول جهاز على الملف المشترك).
+YOU AND THE DATA FILE	أنت وملف البيانات
+YOUR NAME (SHOWN IN AUDIT LOG AND PRESENCE)	اسمك (يظهر في سجل التدقيق والتواجد)
+YOUR NAME (stamped on every change)	اسمك (يُختم على كل تغيير)
+ZIP without the signed invoice (marked DRAFT)	ملف ZIP بدون الفاتورة الموقعة (معلّم كمسودة)
+delivered value	القيمة المُسلّمة
+e.g. http://raffaello-server:5180	مثال: http://raffaello-server:5180
+MOBCO  |  RAFFLES HOTEL & BRANDED RESIDENCES  |  RIYADH	موبكو  |  فندق رافلز والمساكن ذات العلامة  |  الرياض
+OTHER	أخرى
+Cumulative statements per subcontractor - capped by PROJECT QTY, checked against WIR	المستخلصات التراكمية لكل مقاول - بسقف كمية المشروع ومطابقة مع طلبات الفحص
+MIRs	طلبات المواد
+MOS %	نسبة MOS
+|  batches	|  الدفعات
+|  MAR	|  طلب اعتماد المواد
+QSEXPORT  |  WIR  |  DN  |  INVOICE  |  PO  |  GIVEN	تصدير الحصر  |  طلب فحص  |  إشعار تسليم  |  فاتورة  |  أمر شراء  |  المُسند
++ VO	+ أمر تغييري
++ EI	+ تعليمات هندسية
++ SI	+ تعليمات موقع
