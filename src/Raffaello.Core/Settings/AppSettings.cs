@@ -42,6 +42,15 @@ public sealed class AppSettings
     /// <summary>Same for GRMS 1ST FIX: WALL (200, confirmed) or CEILING (199).</summary>
     public string Grms1stFixMount { get; set; } = "WALL";
 
+    // [phase4] begin
+    /// <summary>aconex.config.json (URLs, selectors, columns, folders); empty = %APPDATA%\Raffaello\aconex.config.json.</summary>
+    public string AconexConfigPath { get; set; } = "";
+    /// <summary>Re-rank variation BOQ suggestions with Claude (needs the API key; sends variation text + candidate descriptions).</summary>
+    public bool VariationsUseClaude { get; set; }
+    /// <summary>Where attached variation documents are copied (empty = keep the original path).</summary>
+    public string VariationDocsFolder { get; set; } = "";
+    // [phase4] end
+
     // session memory
     public DateTime? LastSeenAt { get; set; }
     public string LastModule { get; set; } = "Dashboard";

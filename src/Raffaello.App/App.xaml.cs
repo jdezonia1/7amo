@@ -102,7 +102,12 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, QuantitiesViewModel>();
                 s.AddSingleton<PageViewModel, StatementsViewModel>();
                 s.AddSingleton<PageViewModel, MaterialsViewModel>();
-                s.AddSingleton<PageViewModel, AconexViewModel>();
+                // [phase4] begin - the ACONEX item is now the hub; the script runner page lives inside it as a tab
+                s.AddSingleton<AconexAutomationService>();
+                s.AddSingleton<AconexViewModel>();
+                s.AddSingleton<PageViewModel, AconexHubViewModel>();
+                s.AddSingleton<PageViewModel, VariationsViewModel>();
+                // [phase4] end
                 s.AddSingleton<PageViewModel, WirViewModel>();
                 s.AddSingleton<PageViewModel, ContractsViewModel>();
                 s.AddSingleton<PageViewModel, InvoicesViewModel>();

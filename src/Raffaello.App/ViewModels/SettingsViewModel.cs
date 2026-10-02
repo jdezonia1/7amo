@@ -42,6 +42,10 @@ public sealed partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private string _invoiceVendorNo = "";
     [ObservableProperty] private string _invoiceSignatureNames = "";
     [ObservableProperty] private string _lengthRoundingDecimals = "1";
+    // [phase4] begin
+    [ObservableProperty] private bool _variationsUseClaude;
+    [ObservableProperty] private string _aconexConfigPath = "";
+    // [phase4] end
 
     private bool _loading;
     partial void OnThemeChanged(string value) { if (IsActive && !_loading) Ctx.Theme.Apply(value, Accent); }
@@ -69,6 +73,10 @@ public sealed partial class SettingsViewModel : PageViewModel
         InvoiceVendorNo = s.InvoiceVendorNo;
         InvoiceSignatureNames = s.InvoiceSignatureNames;
         LengthRoundingDecimals = s.LengthRoundingDecimals.ToString(CultureInfo.InvariantCulture);
+        // [phase4] begin
+        VariationsUseClaude = s.VariationsUseClaude;
+        AconexConfigPath = s.AconexConfigPath;
+        // [phase4] end
         KeyStatus = AnthropicClient.ResolveKey(s.AnthropicApiKey) is null ? "NO KEY - Ask Raffaello runs offline (rules engine only)"
             : string.IsNullOrWhiteSpace(s.AnthropicApiKey) ? "USING ANTHROPIC_API_KEY FROM THE ENVIRONMENT" : "KEY SAVED IN SETTINGS";
     }
@@ -95,6 +103,10 @@ public sealed partial class SettingsViewModel : PageViewModel
         s.InvoiceVendorNo = InvoiceVendorNo.Trim();
         s.InvoiceSignatureNames = InvoiceSignatureNames.Trim();
         if (int.TryParse(LengthRoundingDecimals, out var lr)) s.LengthRoundingDecimals = Math.Clamp(lr, 0, 3);
+        // [phase4] begin
+        s.VariationsUseClaude = VariationsUseClaude;
+        s.AconexConfigPath = AconexConfigPath.Trim();
+        // [phase4] end
         s.Save();
         Project.CurrentUser = s.EffectiveUserName;
         if (pathChanged)

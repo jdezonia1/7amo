@@ -21,6 +21,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Raffaello.Core\Raffaello.Core.csproj" />
+    <!-- [phase4] Aconex browser automation (Playwright) -->
+    <ProjectReference Include="..\Raffaello.Automation\Raffaello.Automation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Fonts\*.ttf" />
