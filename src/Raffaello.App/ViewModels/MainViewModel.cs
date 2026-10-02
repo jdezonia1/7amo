@@ -38,7 +38,7 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         _pages = pages.ToDictionary(p => p.Key);
         Groups = new[]
         {
-            new NavGroup("TRACK", new[] { Item("Dashboard", "DASHBOARD", "IconDashboard", "Ctrl+1"), Item("Ledger", "ROOMS & LEDGER", "IconLedger", "Ctrl+2"), Item("Quantities", "QUANTITIES", "IconQuantities", "Ctrl+4"),
+            new NavGroup("TRACK", new[] { Item("Dashboard", "DASHBOARD", "IconDashboard", "Ctrl+1"), Item("Ledger", "ROOMS & LEDGER", "IconLedger", "Ctrl+2"), Item("Quantities", "QUANTITIES", "IconQuantities", "Ctrl+4"), Item("Plan", "PLAN VIEW", "IconPlan", ""),
                 Item("Checks", "CHECKS", "IconChecks", "Ctrl+3"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+5"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+6") }),
             new NavGroup("DOCUMENTS", new[] { Item("Aconex", "ACONEX", "IconAconex", ""), Item("Wir", "WIR / MIR", "IconWir", ""), Item("Contracts", "CONTRACTS & BOQ", "IconContracts", "Ctrl+7"),
                 Item("SiteStatements", "SITE STATEMENTS", "IconSend", "Ctrl+9") }),

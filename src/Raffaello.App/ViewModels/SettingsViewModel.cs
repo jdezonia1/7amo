@@ -42,6 +42,10 @@ public sealed partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private string _invoiceVendorNo = "";
     [ObservableProperty] private string _invoiceSignatureNames = "";
     [ObservableProperty] private string _lengthRoundingDecimals = "1";
+    [ObservableProperty] private string _packageOutputFolder = "";
+    [ObservableProperty] private string _wirFolder = "";
+    [ObservableProperty] private string _packageNamePattern = "";
+    [ObservableProperty] private string _trackerPassword = "";
 
     private bool _loading;
     partial void OnThemeChanged(string value) { if (IsActive && !_loading) Ctx.Theme.Apply(value, Accent); }
@@ -69,6 +73,10 @@ public sealed partial class SettingsViewModel : PageViewModel
         InvoiceVendorNo = s.InvoiceVendorNo;
         InvoiceSignatureNames = s.InvoiceSignatureNames;
         LengthRoundingDecimals = s.LengthRoundingDecimals.ToString(CultureInfo.InvariantCulture);
+        PackageOutputFolder = s.PackageOutputFolder;
+        WirFolder = s.WirFolder;
+        PackageNamePattern = s.PackageNamePattern;
+        TrackerPassword = s.TrackerPassword;
         KeyStatus = AnthropicClient.ResolveKey(s.AnthropicApiKey) is null ? "NO KEY - Ask Raffaello runs offline (rules engine only)"
             : string.IsNullOrWhiteSpace(s.AnthropicApiKey) ? "USING ANTHROPIC_API_KEY FROM THE ENVIRONMENT" : "KEY SAVED IN SETTINGS";
     }
@@ -95,6 +103,10 @@ public sealed partial class SettingsViewModel : PageViewModel
         s.InvoiceVendorNo = InvoiceVendorNo.Trim();
         s.InvoiceSignatureNames = InvoiceSignatureNames.Trim();
         if (int.TryParse(LengthRoundingDecimals, out var lr)) s.LengthRoundingDecimals = Math.Clamp(lr, 0, 3);
+        s.PackageOutputFolder = PackageOutputFolder.Trim();
+        s.WirFolder = WirFolder.Trim();
+        s.PackageNamePattern = string.IsNullOrWhiteSpace(PackageNamePattern) ? Raffaello.Core.Packaging.PackageNames.DefaultPattern : PackageNamePattern.Trim();
+        s.TrackerPassword = string.IsNullOrWhiteSpace(TrackerPassword) ? "RAFFAELLO" : TrackerPassword.Trim();
         s.Save();
         Project.CurrentUser = s.EffectiveUserName;
         if (pathChanged)

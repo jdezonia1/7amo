@@ -99,6 +99,16 @@ public static class NeedsTodayQueue
                 q.Add(new(Verdict.Over, "LEDGER", $"{overCap.Count} room / stage / item keys claimed above PROJECT QTY",
                     $"Worst: {overCap[0].Room} {overCap[0].Stage} {overCap[0].Item} claimed {overCap[0].Claimed:N1} of {overCap[0].ProjectQty:N1}.", new("Ledger", Key: overCap[0].Room), 3.5e8 + overCap.Count));
         }
+        foreach (var inv in s.SubInvoices.Where(i => i.Status is SubInvoiceStatus.Submitted or SubInvoiceStatus.Approved && !i.Notes.StartsWith("Imported from")))
+        {
+            var key = Attachment.InvoiceKey(inv.ContractNo, inv.Subcontractor, inv.InvoiceNo, inv.Revision);
+            if (!s.Attachments.Any(a => a.OwnerKind == AttachmentKinds.Invoice && a.OwnerKey == key && a.Kind == AttachmentKinds.Signed))
+                q.Add(new(Verdict.Due, "PACKAGE", $"{inv.Title}: package missing the signed invoice", "Attach the signed scan on the Invoices page, then build the FINAL package.",
+                    new("Invoices", Key: $"{inv.ContractNo}|{inv.Subcontractor}|{inv.InvoiceNo}"), 1.5e8));
+            if (inv.PackageMissingWirs > 0)
+                q.Add(new(Verdict.Check, "PACKAGE", $"{inv.PackageMissingWirs} WIRs missing for {inv.Subcontractor} INV-{inv.InvoiceNo:00}", "Put the WIR PDFs in the WIR folder (Settings) and rebuild the package.",
+                    new("Invoices", Key: $"{inv.ContractNo}|{inv.Subcontractor}|{inv.InvoiceNo}"), 1.4e8));
+        }
         foreach (var blk in Ledger.CumulativeSplit.Pending(s.Claims))
             q.Add(new(Verdict.Due, "CUMULATIVE", $"{blk.Sub} INV 1-{blk.InvoiceNo} cumulative - awaiting invoice files to split",
                 $"{blk.Lines:N0} ledger lines count once as INV {blk.InvoiceNo}. Import his INV 1..{blk.InvoiceNo} files on the Invoices page to split them.", new("Invoices", Key: $"{blk.Sub}|{blk.InvoiceNo}"), 3e8));

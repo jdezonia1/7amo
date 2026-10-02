@@ -186,6 +186,13 @@ public sealed class SubInvoice : Entity
     public bool Locked { get; set; }
 
     public string Title => $"{Subcontractor} INV-{InvoiceNo:00} Rev {Revision}";
+
+    // last head-office package built for this revision
+    public string PackageFile { get; set; } = "";
+    public string PackageSha256 { get; set; } = "";
+    public string PackageKind { get; set; } = "";
+    public DateTime? PackageBuiltAt { get; set; }
+    public int PackageMissingWirs { get; set; }
 }
 
 public sealed class SubInvoiceLine : Entity
@@ -278,4 +285,32 @@ public sealed class RoomShape : Entity
     public double Right { get; set; }
     public double Bottom { get; set; }
     public string Description { get; set; } = "";
+}
+
+
+/// <summary>
+/// A document attached to something (contract PDF, signed invoice scan, site statement scan ...). The file stays on the shared
+/// partition; the record keeps its path and SHA-256.
+/// </summary>
+public sealed class Attachment : Entity
+{
+    /// <summary>CONTRACT / INVOICE / STATEMENT.</summary>
+    public string OwnerKind { get; set; } = "";
+    /// <summary>Contract no.; "contract|sub|invoice|revision" for an invoice; statement no.</summary>
+    public string OwnerKey { get; set; } = "";
+    /// <summary>CONTRACT / SIGNED / SCAN / OTHER.</summary>
+    public string Kind { get; set; } = "OTHER";
+    public string FilePath { get; set; } = "";
+    public string FileName { get; set; } = "";
+    public string Sha256 { get; set; } = "";
+    public long Bytes { get; set; }
+    public DateTime AddedAt { get; set; }
+
+    public static string InvoiceKey(string contractNo, string sub, int invoiceNo, int revision) => $"{contractNo}|{sub}|{invoiceNo}|{revision}".ToUpperInvariant();
+}
+
+public static class AttachmentKinds
+{
+    public const string Contract = "CONTRACT", Invoice = "INVOICE", Statement = "STATEMENT";
+    public const string Signed = "SIGNED", Scan = "SCAN", Document = "OTHER";
 }

@@ -195,6 +195,50 @@ public sealed class WorkflowService
         return $"{r.Summary}; {stored} invoice files stored as approved invoices";
     }
 
+    // ------------------------------------------------------------------ attachments, head-office tracker, packages
+
+    public Attachment AddAttachment(string ownerKind, string ownerKey, string kind, string filePath)
+    {
+        var fi = new FileInfo(filePath);
+        if (!fi.Exists) throw new FileNotFoundException("File not found.", filePath);
+        var a = new Attachment
+        {
+            OwnerKind = ownerKind, OwnerKey = ownerKey, Kind = kind, FilePath = fi.FullName, FileName = fi.Name, Bytes = fi.Length,
+            Sha256 = Packaging.Deterministic.Sha256(fi.FullName), AddedAt = DateTime.Now,
+        };
+        _p.Store.Insert(a, $"Attached {kind} {fi.Name} to {ownerKind} {ownerKey}");
+        _p.Reload();
+        return a;
+    }
+
+    public void RemoveAttachment(Attachment a) { _p.Store.Delete(a, $"Removed attachment {a.FileName} from {a.OwnerKind} {a.OwnerKey}"); _p.Reload(); }
+
+    public List<Attachment> AttachmentsOf(string ownerKind, string ownerKey) =>
+        _p.Snapshot.Attachments.Where(a => a.OwnerKind == ownerKind && a.OwnerKey.Equals(ownerKey, StringComparison.OrdinalIgnoreCase)).OrderBy(a => a.FileName).ToList();
+
+    public HeadOffice.TrackerExportResult ExportTracker(string path, string? sub, int? invoiceNo, string contractNo, bool ledgerAll, InvoiceBuild? invoice = null) =>
+        HeadOffice.TrackerExporter.Export(path, _p.Snapshot, _p.LoadPlans(), new HeadOffice.TrackerExportScope
+        {
+            Subcontractor = sub, InvoiceNo = invoiceNo, ContractNo = contractNo, LedgerAllSubcontractors = ledgerAll, AsOf = DateTime.Today, Password = _p.Settings.TrackerPassword,
+        }, invoice);
+
+    public string PackageFolder() => string.IsNullOrWhiteSpace(_p.Settings.PackageOutputFolder)
+        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Raffaello", "Packages") : _p.Settings.PackageOutputFolder;
+
+    /// <summary>Builds the head-office ZIP for a saved invoice revision and records file + SHA-256 on it.</summary>
+    public Packaging.PackageResult BuildPackage(SubInvoice inv, bool final)
+    {
+        var res = Packaging.InvoicePackageBuilder.Build(new Packaging.PackageRequest
+        {
+            Snapshot = _p.Snapshot, Plans = _p.LoadPlans(), Build = Stored(inv), Info = HeaderInfo(), OutputFolder = PackageFolder(),
+            WirFolder = _p.Settings.WirFolder, NamePattern = _p.Settings.PackageNamePattern, Final = final,
+        });
+        inv.PackageFile = res.ZipPath; inv.PackageSha256 = res.Sha256; inv.PackageKind = res.Kind; inv.PackageBuiltAt = DateTime.Now; inv.PackageMissingWirs = res.MissingWirs.Count;
+        _p.Store.Update(inv, $"{inv.Title} {res.Kind} package built: {Path.GetFileName(res.ZipPath)} SHA-256 {res.Sha256}");
+        _p.Reload();
+        return res;
+    }
+
     // ------------------------------------------------------------------ site statements
 
     public int GenerateStatement(string path, string sub, string statementNo, string building, IEnumerable<string>? stages = null, IEnumerable<string>? systems = null)

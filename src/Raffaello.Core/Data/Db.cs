@@ -32,7 +32,7 @@ public sealed class Db : IProjectStore
         typeof(BoqItem), typeof(Contract), typeof(AconexDoc), typeof(ImportBatch),
         // phase 1: real workflow
         typeof(RoomQty), typeof(ClaimLine), typeof(ContractItem), typeof(ContractItemBoq), typeof(MappingRule),
-        typeof(SubInvoice), typeof(SubInvoiceLine), typeof(InvoiceTemplateRow), typeof(SiteStatement), typeof(PlanImage), typeof(RoomShape),
+        typeof(SubInvoice), typeof(SubInvoiceLine), typeof(InvoiceTemplateRow), typeof(SiteStatement), typeof(PlanImage), typeof(RoomShape), typeof(Attachment),
     };
 
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropCache = new();

@@ -94,9 +94,47 @@ raffaello-cli approve         --contract NO --sub NAME --invoice N [--aconex WF]
 raffaello-cli export          --contract NO --sub NAME --invoice N --out FOLDER
 raffaello-cli statement       --sub NAME --no ST-01 --out FILE.xlsx
 raffaello-cli report
+raffaello-cli analyze-sub     --sub NAME --contract NO            (totals, shared / over-cap keys, BOQ codes cited in notes vs mapping)
+raffaello-cli split           --contract NO --sub NAME FILE... [--commit]   (past invoice files -> split a cumulative block)
+raffaello-cli tracker-export  --out FILE.xlsx [--contract NO --sub NAME --invoice N] [--all]
+raffaello-cli package         --contract NO --sub NAME --invoice N --out FOLDER [--final] [--wir-folder DIR]
+mapping options: --data-mount WALL|CEILING  --grms-mount WALL|CEILING   (default WALL, confirmed)
 ```
 
 Keep `--db` and `--out` outside the repository when running against real company files.
+
+### Rules confirmed by Mohamed (Phase 1 follow-up)
+
+- Site % applies to DB panels like every other item.
+- DATA / GRMS 1ST FIX = the WALL outlet items (183 / 200). One setting (`Data1stFixMount`, `Grms1stFixMount`) if that ever changes.
+- Lighting in apartments = "to apartment".
+- GAS in the ledger = gas meter points -> the contract's Metering items (1st fix PVC wall / EMT ...); an item whose text says "gas" wins.
+- DATA RACK in the ledger = extra data points for long routes (15 m rule): read as a LENGTH claim on DATA 2ND FIX with plan qty 0,
+  so it never counts against PROJECT QTY; tracker lines already invoiced come in ACCEPTED; same BOQ row as DATA 2nd fix.
+- A CUMULATIVE invoice (notes "INV-9 (cumulative)") replaces that subcontractor's earlier lines for the same room / stage / item.
+  Until his INV 1..N files are imported the block counts once as INV N ("INV 1-N CUMULATIVE", banner "awaiting invoice files to split").
+  Invoices page > PAST INVOICE FILES reads the files (template layout, O prev / P curr / Q cum), takes current(n) = cum(n) - cum(n-1)
+  per item x BOQ row and splits every ledger line by those shares (largest remainder, whole points stay whole; every line and every
+  invoice total reconciles exactly); the files are stored as approved invoices so "previous" is right for the next one.
+
+## Phase 2 - plan view, head-office tracker, invoice package
+
+- **PLAN VIEW** (TRACK): level tabs, the plan image with every room shape from the tracker PLANS drawing; wheel = zoom, drag = pan,
+  FIT; colour by STATUS (over cap / in progress / done / not started / no project qty), SUBCONTRACTOR (main sub per room),
+  % USED (white -> dark red) or PENDING CHECKS; filters stage / item / subcontractor / up to invoice; hover tooltip; click a room
+  for its stage x item balance, ledger lines and checks, with ADD CLAIM / OPEN IN LEDGER; labels on/off; rooms without a shape
+  listed; EXPORT PNG.
+- **HEAD-OFFICE TRACKER** (Invoices page, also inside the package): macro-free .xlsx, values only, every sheet protected
+  (select / filter / sort allowed), workbook structure protected (password in Settings). Sheets DASHBOARD, PLANS (each level image
+  + one DrawingML shape per room named `RM_<room>-<level>`, filled with the status colour, hyperlinked to the room block),
+  ROOM DETAILS (per room: stage x item project / all subs / this invoice / remaining / % used / status, "back to plan" link),
+  LEDGER (incl. height and length check columns), PROJECT QTY, CONTROL (over cap, unknown location, item not in stage,
+  site % missing, pending checks), INVOICE SUMMARY. Cells via ClosedXML, drawing via DocumentFormat.OpenXml.
+- **INVOICE PACKAGE** (Invoices page, DRAFT / FINAL): `<CONTRACT>_<SUB>_INV-<n>_Rev<r>.zip` with 00_INDEX.pdf (cover, totals,
+  contents with SHA-256, missing WIRs), 01_Invoice.xlsx, 02_Invoice_filtered.pdf, 03_Signed_invoice (FINAL only - attach it first),
+  04_Contract/ (Contracts page attachments), 05_WIRs/ (found by WIR no. in the WIR folder, Settings), 06_Site_statements/
+  (attached scans), 07_Tracker_<SUB>_INV-<n>.xlsx, 08_Checks.pdf. Same inputs give the same bytes (fixed dates, entry order and
+  timestamps); file and SHA-256 are recorded on the invoice revision. Needs-today flags a missing signed invoice and missing WIRs.
 
 ## House rules (Core/Rules, all unit tested)
 

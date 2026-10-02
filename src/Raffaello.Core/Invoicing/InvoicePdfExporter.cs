@@ -36,8 +36,10 @@ public static class InvoicePdfExporter
         return keep;
     }
 
-    public static void Export(string path, InvoiceBuild build, InvoiceHeaderInfo? info = null, bool a3 = true)
+    /// <param name="stamp">Fixed print date + PDF metadata dates: makes the file reproducible (package builds).</param>
+    public static void Export(string path, InvoiceBuild build, InvoiceHeaderInfo? info = null, bool a3 = true, DateTime? stamp = null)
     {
+        var printed = stamp ?? DateTime.Now;
         info ??= new InvoiceHeaderInfo();
         var h = build.Header;
         var t = build.Totals;
@@ -126,11 +128,12 @@ public static class InvoicePdfExporter
                 });
                 page.Footer().Row(r =>
                 {
-                    r.RelativeItem().Text($"Raffaello  |  {h.Subcontractor} INV-{h.InvoiceNo:00} Rev {h.Revision}  |  printed {DateTime.Now:dd-MMM-yyyy HH:mm}").FontColor(Colors.Grey.Darken1);
+                    r.RelativeItem().Text($"Raffaello  |  {h.Subcontractor} INV-{h.InvoiceNo:00} Rev {h.Revision}  |  printed {printed:dd-MMM-yyyy HH:mm}").FontColor(Colors.Grey.Darken1);
                     r.ConstantItem(80).AlignRight().Text(x => { x.Span("Page "); x.CurrentPageNumber(); x.Span(" / "); x.TotalPages(); });
                 });
             });
-        }).GeneratePdf(path);
+        }).WithMetadata(new DocumentMetadata { Title = $"{h.Title}", Author = "Raffaello", Creator = "Raffaello", Producer = "Raffaello", CreationDate = printed, ModifiedDate = printed })
+          .GeneratePdf(path);
     }
 
     private static string Short(string s, int n)

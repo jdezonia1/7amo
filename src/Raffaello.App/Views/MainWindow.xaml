@@ -25,6 +25,7 @@
         <DataTemplate DataType="{x:Type vm:LedgerViewModel}"><pages:LedgerView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ChecksViewModel}"><pages:ChecksView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SiteStatementsViewModel}"><pages:SiteStatementsView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PlanViewModel}"><pages:PlanView/></DataTemplate>
 
         <Style x:Key="FilterCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="MinWidth" Value="104"/>

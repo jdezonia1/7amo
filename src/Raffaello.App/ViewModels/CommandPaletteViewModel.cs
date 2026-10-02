@@ -31,6 +31,7 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
             new("GO TO", "Welcome", "Start screen", "", () => nav.Go("Welcome")),
             new("GO TO", "Dashboard", "Needs you today + charts", "Ctrl+1", () => nav.Go("Dashboard")),
             new("GO TO", "Rooms & Ledger", "Claims per room x stage x item, remaining, plan", "Ctrl+2", () => nav.Go("Ledger")),
+            new("GO TO", "Plan view", "Rooms on the level plans by status / subcontractor / % used", "", () => nav.Go("Plan")),
             new("GO TO", "Checks", "HEIGHT CHECK (>4.5 m) and LENGTH CHECK (15 m)", "Ctrl+3", () => nav.Go("Checks")),
             new("GO TO", "Quantities", "REMAINING = QS - GIVEN", "Ctrl+4", () => nav.Go("Quantities")),
             new("GO TO", "Statements", "Subcontractor statements", "Ctrl+5", () => nav.Go("Statements")),

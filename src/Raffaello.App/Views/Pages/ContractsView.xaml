@@ -39,6 +39,15 @@
                         <Button Style="{StaticResource BtnGhost}" Content="E-PROMISE BOQ LIST" Command="{Binding ImportEPromiseCommand}" Margin="0,0,6,6"
                                 ToolTip="BOQ codes with cost code / budget resource"/>
                     </WrapPanel>
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource Label}" VerticalAlignment="Center"><Run Text="CONTRACT DOCUMENTS  "/><Run Text="{Binding SelectedContractNo, Mode=OneWay}"/><Run Text="  (go into the invoice package)"/></TextBlock>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Style="{StaticResource BtnLink}" Content="ATTACH" Command="{Binding AttachContractDocCommand}" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource BtnLink}" Content="REMOVE" Command="{Binding RemoveContractDocCommand}"/>
+                        </StackPanel>
+                    </Grid>
+                    <ListBox ItemsSource="{Binding ContractDocs}" SelectedItem="{Binding SelectedDoc, Mode=TwoWay}" DisplayMemberPath="FileName" MaxHeight="70" Margin="0,4,0,0"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">

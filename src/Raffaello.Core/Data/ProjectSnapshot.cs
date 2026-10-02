@@ -32,6 +32,7 @@ public sealed class ProjectSnapshot
     public List<InvoiceTemplateRow> TemplateRows { get; init; } = new();
     public List<SiteStatement> Statements { get; init; } = new();
     public List<RoomShape> RoomShapes { get; init; } = new();
+    public List<Attachment> Attachments { get; init; } = new();
     public DateTime LoadedAt { get; init; } = DateTime.Now;
 
     public static ProjectSnapshot Load(IProjectStore db) => new()
@@ -62,6 +63,7 @@ public sealed class ProjectSnapshot
         TemplateRows = db.All<InvoiceTemplateRow>(),
         Statements = db.All<SiteStatement>(),
         RoomShapes = db.All<RoomShape>(),
+        Attachments = db.All<Attachment>(),
         LoadedAt = DateTime.Now,
     };
 

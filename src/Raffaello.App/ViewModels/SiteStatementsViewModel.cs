@@ -49,6 +49,7 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
     [ObservableProperty] private string _previewText = "No statement opened";
     [ObservableProperty] private string _previewFile = "";
     [ObservableProperty] private bool _hasPreview;
+    [ObservableProperty] private SiteStatement? _selectedHistory;
 
     private StatementImportResult? _preview;
 
@@ -128,6 +129,16 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
             Ctx.Toasts.Show("STATEMENT POSTED", $"{posted} claim lines into the ledger", ToastKind.Good);
             _preview = null; HasPreview = false; Preview.Clear(); Issues.Clear(); PreviewText = "No statement opened"; OverReason = "";
         }
+    }
+
+    /// <summary>Attaches the signed / stamped scan of a statement (it goes into the invoice package, 06_Site_statements).</summary>
+    [RelayCommand]
+    private async Task AttachScan()
+    {
+        if (SelectedHistory is not { } st) { Ctx.Toasts.Show("PICK A STATEMENT IN HISTORY", kind: ToastKind.Warn); return; }
+        var file = Ctx.Dialogs.OpenFile($"{st.StatementNo}: scan or file", "PDF / image / Excel|*.pdf;*.jpg;*.jpeg;*.png;*.xlsx|All files|*.*");
+        if (file is null) return;
+        await Ctx.Data.WriteAsync(p => p.Workflow.AddAttachment(AttachmentKinds.Statement, st.StatementNo, AttachmentKinds.Scan, file), Ctx.Toasts, "STATEMENT FILE ATTACHED");
     }
 
     public override IEnumerable<ExportSheet> ExportCurrentView()

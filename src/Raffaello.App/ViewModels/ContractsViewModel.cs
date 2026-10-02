@@ -67,6 +67,7 @@ public sealed partial class ContractsViewModel : PageViewModel
     public ObservableCollection<ContractItemRow> Items { get; } = new();
     public ObservableCollection<ContractItemBoq> ItemLinks { get; } = new();
     public ObservableCollection<string> ContractNos { get; } = new();
+    public ObservableCollection<Attachment> ContractDocs { get; } = new();
     public string[] Tabs { get; } = { "CONTRACT ITEMS", "BOQ" };
     public static string[] FixStageOptions { get; } = { "", FixStages.First, FixStages.Second, FixStages.Third };
     public static string[] ConduitOptions { get; } = { "", Conduits.Pvc, Conduits.Emt, Conduits.Rs, Conduits.Flex, Conduits.None };
@@ -81,6 +82,7 @@ public sealed partial class ContractsViewModel : PageViewModel
     [ObservableProperty] private string _selectedContractNo = "";
     [ObservableProperty] private ContractItemRow? _selectedItem;
     [ObservableProperty] private string _itemsText = "";
+    [ObservableProperty] private Attachment? _selectedDoc;
 
     // import fields
     [ObservableProperty] private string _importContractNo = "";
@@ -119,8 +121,33 @@ public sealed partial class ContractsViewModel : PageViewModel
         FillBoq();
     }
 
+    private void FillDocs()
+    {
+        ContractDocs.Clear();
+        foreach (var a in Project.Workflow.AttachmentsOf(AttachmentKinds.Contract, SelectedContractNo)) ContractDocs.Add(a);
+    }
+
+    [RelayCommand]
+    private async Task AttachContractDoc()
+    {
+        if (SelectedContractNo.Length == 0) { Ctx.Toasts.Show("PICK A CONTRACT FIRST", kind: ToastKind.Warn); return; }
+        var files = Ctx.Dialogs.OpenFiles($"{SelectedContractNo}: contract documents (PDF / Excel)", "Documents|*.pdf;*.xlsx;*.xls;*.docx|All files|*.*");
+        if (files is null) return;
+        var no = SelectedContractNo;
+        await Ctx.Data.WriteAsync(p => { foreach (var f in files) p.Workflow.AddAttachment(AttachmentKinds.Contract, no, AttachmentKinds.Contract, f); }, Ctx.Toasts, $"{files.Length} DOCUMENT(S) ATTACHED");
+    }
+
+    [RelayCommand]
+    private async Task RemoveContractDoc()
+    {
+        if (SelectedDoc is not { } a) return;
+        if (!Ctx.Dialogs.Confirm("Remove document", $"Remove {a.FileName} from {a.OwnerKey}? (The file on disk is not deleted.)")) return;
+        await Ctx.Data.WriteAsync(p => p.Workflow.RemoveAttachment(a), Ctx.Toasts, "DOCUMENT REMOVED");
+    }
+
     private void FillItems()
     {
+        FillDocs();
         var keep = SelectedItem?.Item.ItemNo;
         var s = Project.Snapshot;
         var links = s.ItemBoqs.Where(l => l.ContractNo == SelectedContractNo).GroupBy(l => l.ItemNo).ToDictionary(g => g.Key, g => g.Count());

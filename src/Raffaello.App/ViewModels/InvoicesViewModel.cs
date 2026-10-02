@@ -100,6 +100,7 @@ public sealed partial class InvoicesViewModel : PageViewModel
     [ObservableProperty] private bool _hasBuild;
     [ObservableProperty] private bool _isLocked;
     [ObservableProperty] private string _banner = "";
+    [ObservableProperty] private string _packageText = "";
 
     private InvoiceBuild? _build;
     private bool _buildIsStored;
@@ -207,6 +208,7 @@ public sealed partial class InvoicesViewModel : PageViewModel
             ? $"{h.Status}{(h.AconexWorkflowNo.Length > 0 ? "  |  ACONEX " + h.AconexWorkflowNo : "")}{(h.RejectionReason.Length > 0 && h.Status == SubInvoiceStatus.Rejected ? "  |  " + h.RejectionReason : "")}{(h.Locked ? "  |  LOCKED" : "")}"
             : $"PREVIEW (not saved){(build.PreviousApproved is { } p ? "  |  previous = " + p.Title : "  |  no approved invoice before")}";
         Totals = build.Totals;
+        PackageText = PackageInfo(h, stored);
         var m = build.Mapping;
         MappingText = stored ? "Stored revision - rebuild to see the mapping" :
             $"MAPPED {m.CoveragePct:P1}  |  AUTO {m.AutoPct:P1}  |  {m.Parts.Count} parts  |  {m.NeedsConfirmation.Count()} need confirmation  |  {m.Held.Count} held by pending checks";
@@ -364,6 +366,56 @@ public sealed partial class InvoicesViewModel : PageViewModel
             if (msg.Length > 0) Ctx.Toasts.Show("CUMULATIVE INVOICE SPLIT", msg, ToastKind.Good, 10);
         }
         catch (Exception ex) { Ctx.Toasts.Show("CANNOT SPLIT", ex.Message, ToastKind.Error); }
+    }
+
+    private string PackageInfo(SubInvoice h, bool stored)
+    {
+        if (!stored) return "Save the draft to attach the signed invoice and build the package.";
+        var key = Attachment.InvoiceKey(h.ContractNo, h.Subcontractor, h.InvoiceNo, h.Revision);
+        var signed = Project.Snapshot.Attachments.Where(a => a.OwnerKind == AttachmentKinds.Invoice && a.OwnerKey == key && a.Kind == AttachmentKinds.Signed).OrderByDescending(a => a.AddedAt).FirstOrDefault();
+        return $"SIGNED INVOICE: {(signed is null ? "not attached" : signed.FileName)}\n" +
+               (h.PackageFile.Length == 0 ? "PACKAGE: not built yet" :
+                   $"PACKAGE: {Path.GetFileName(h.PackageFile)} ({h.PackageKind}, {h.PackageBuiltAt:dd MMM HH:mm})\nSHA-256 {h.PackageSha256}{(h.PackageMissingWirs > 0 ? $"\n{h.PackageMissingWirs} WIRs MISSING" : "")}");
+    }
+
+    [RelayCommand]
+    private async Task AttachSigned()
+    {
+        if (StoredHeader() is not { } inv) { Ctx.Toasts.Show("SAVE THE INVOICE FIRST", kind: ToastKind.Warn); return; }
+        var file = Ctx.Dialogs.OpenFile($"{inv.Title}: signed invoice scan", "PDF / image|*.pdf;*.jpg;*.jpeg;*.png;*.tif;*.tiff|All files|*.*");
+        if (file is null) return;
+        var key = Attachment.InvoiceKey(inv.ContractNo, inv.Subcontractor, inv.InvoiceNo, inv.Revision);
+        await Ctx.Data.WriteAsync(p => p.Workflow.AddAttachment(AttachmentKinds.Invoice, key, AttachmentKinds.Signed, file), Ctx.Toasts, "SIGNED INVOICE ATTACHED");
+    }
+
+    [RelayCommand] private Task BuildDraftPackage() => BuildPackage(false);
+    [RelayCommand] private Task BuildFinalPackage() => BuildPackage(true);
+
+    private async Task BuildPackage(bool final)
+    {
+        if (StoredHeader() is not { } inv) { Ctx.Toasts.Show("SAVE THE INVOICE FIRST", kind: ToastKind.Warn); return; }
+        Raffaello.Core.Packaging.PackageResult? r = null;
+        if (!await Ctx.Data.WriteAsync(p => r = p.Workflow.BuildPackage(inv, final), Ctx.Toasts) || r is null) return;
+        Ctx.Toasts.Show(final ? "FINAL PACKAGE BUILT" : "DRAFT PACKAGE BUILT", r.Summary + (r.MissingWirs.Count > 0 ? $"\nMissing WIRs: {string.Join(", ", r.MissingWirs.Take(8))}" : ""),
+            r.MissingWirs.Count > 0 ? ToastKind.Warn : ToastKind.Good, 10);
+        DialogService.OpenWithShell(Path.GetDirectoryName(r.ZipPath)!);
+    }
+
+    [RelayCommand]
+    private async Task ExportTracker()
+    {
+        var h = _build?.Header;
+        var name = h is null ? $"TRACKER_ALL_{DateTime.Today:yyyyMMdd}.xlsx" : $"TRACKER_{Safe(h.Subcontractor)}_INV-{h.InvoiceNo}.xlsx";
+        var path = Ctx.Dialogs.SaveFile("Head-office tracker (values only, protected)", name);
+        if (path is null) return;
+        var build = _build;
+        try
+        {
+            var r = await Task.Run(() => Project.Workflow.ExportTracker(path, h?.Subcontractor, h?.InvoiceNo, h?.ContractNo ?? ContractNo, false, build));
+            Ctx.Toasts.Show("TRACKER EXPORTED", $"{Path.GetFileName(path)}: {r.Plans} plans, {r.Shapes} rooms drawn, {r.RoomBlocks} room blocks, {r.Bytes / 1024:N0} KB", ToastKind.Good, 8);
+            DialogService.OpenWithShell(path);
+        }
+        catch (IOException ex) { Ctx.Toasts.Show("EXPORT FAILED", ex.Message + " (is the file open in Excel?)", ToastKind.Error); }
     }
 
     private static string Safe(string s) => string.Concat(s.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '_' : ch));

@@ -100,6 +100,7 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, ChecksViewModel>();
                 s.AddSingleton<PageViewModel, SiteStatementsViewModel>();
                 s.AddSingleton<PageViewModel, QuantitiesViewModel>();
+                s.AddSingleton<PageViewModel, PlanViewModel>();
                 s.AddSingleton<PageViewModel, StatementsViewModel>();
                 s.AddSingleton<PageViewModel, MaterialsViewModel>();
                 s.AddSingleton<PageViewModel, AconexViewModel>();

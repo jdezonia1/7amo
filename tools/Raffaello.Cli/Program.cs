@@ -29,7 +29,7 @@ namespace Raffaello.Cli;
 public static class Program
 {
     private static MappingOptions MapOptions = MappingOptions.Default;
-    private static readonly HashSet<string> Commands = new() { "import-tracker", "import-contract", "import-epromise", "import-template", "map", "build-invoice", "export", "statement", "report", "approve", "analyze-sub", "split" };
+    private static readonly HashSet<string> Commands = new() { "import-tracker", "import-contract", "import-epromise", "import-template", "map", "build-invoice", "export", "statement", "report", "approve", "analyze-sub", "split", "tracker-export", "package" };
 
     public static int Main(string[] args)
     {
@@ -58,6 +58,8 @@ public static class Program
                 case "export": Export(store, Req(opts, "contract"), Req(opts, "sub"), int.Parse(Req(opts, "invoice")), Req(opts, "out")); break;
                 case "statement": Statement(store, Req(opts, "sub"), Req(opts, "no"), Req(opts, "out")); break;
                 case "report": Report(store); break;
+                case "tracker-export": TrackerExport(store, opts.GetValueOrDefault("contract", ""), opts.GetValueOrDefault("sub"), opts.TryGetValue("invoice", out var ti) ? int.Parse(ti) : null, Req(opts, "out"), opts.ContainsKey("all")); break;
+                case "package": Package(store, Req(opts, "contract"), Req(opts, "sub"), int.Parse(Req(opts, "invoice")), Req(opts, "out"), opts.ContainsKey("final"), opts.GetValueOrDefault("wir-folder", "")); break;
                 case "analyze-sub": AnalyzeSub(store, Req(opts, "sub"), Req(opts, "contract")); break;
                 case "split": SplitCumulative(store, Req(opts, "contract"), Req(opts, "sub"), positional, opts.ContainsKey("commit")); break;
                 case "approve": Approve(store, Req(opts, "contract"), Req(opts, "sub"), int.Parse(Req(opts, "invoice")), opts.GetValueOrDefault("aconex", "")); break;
@@ -253,6 +255,30 @@ public static class Program
         Console.WriteLine("  BOQ codes cited in the notes vs mapping (lines agree / disagree / no citation):");
         foreach (var ((stage, item), v) in agree.OrderBy(kv => kv.Key.Item1).ThenBy(kv => kv.Key.Item2))
             Console.WriteLine($"    {stage,-13} {item,-18} {v.Agree,4} / {v.Disagree,4} / {v.NoCite,4}   cited [{string.Join(" ", v.Cited)}]   picked [{string.Join(" ", v.Picked)}]");
+    }
+
+    private static void TrackerExport(IProjectStore store, string contract, string? sub, int? invoice, string outPath, bool all)
+    {
+        var s = Snap(store);
+        var plans = store.All<PlanImage>();
+        InvoiceBuild? b = sub != null && invoice != null && contract.Length > 0 ? InvoiceBuilder.Build(s, contract, sub, invoice.Value, options: MapOptions) : null;
+        var r = Raffaello.Core.HeadOffice.TrackerExporter.Export(outPath, s, plans,
+            new Raffaello.Core.HeadOffice.TrackerExportScope { Subcontractor = sub?.ToUpperInvariant(), InvoiceNo = invoice, ContractNo = contract, LedgerAllSubcontractors = all, AsOf = new DateTime(2026, 10, 1) }, b);
+        Console.WriteLine($"{r.Path}: {r.Bytes / 1024:N0} KB, {r.Plans} plans, {r.Shapes} room shapes, {r.RoomsWithoutShape} rooms without a shape, {r.RoomBlocks} room blocks, {r.LedgerLines} ledger lines, {r.ControlIssues} control rows");
+    }
+
+    private static void Package(IProjectStore store, string contract, string sub, int invoice, string outDir, bool final, string wirFolder)
+    {
+        var settings = new Raffaello.Core.Settings.AppSettings { SeedDemoData = false, PackageOutputFolder = outDir, WirFolder = wirFolder };
+        var p = new ProjectService(settings, _ => store);
+        p.Initialize();
+        var inv = p.Snapshot.SubInvoices.Where(i => i.ContractNo == contract && i.Subcontractor.Equals(sub, StringComparison.OrdinalIgnoreCase) && i.InvoiceNo == invoice)
+            .OrderByDescending(i => i.Revision).FirstOrDefault() ?? throw new InvalidOperationException("Save the invoice first (build-invoice --save).");
+        var r = p.Workflow.BuildPackage(inv, final);
+        Console.WriteLine(r.Summary);
+        foreach (var e in r.Entries) Console.WriteLine($"  {e.Name,-48} {e.Bytes / 1024.0,9:N1} KB  {e.Sha256[..16]}  {e.Note}");
+        foreach (var w in r.MissingWirs) Console.WriteLine($"  MISSING WIR {w}");
+        foreach (var w in r.Warnings) Console.WriteLine($"  NOTE {w}");
     }
 
     private static void SplitCumulative(IProjectStore store, string contract, string sub, List<string> files, bool commit)

@@ -31,7 +31,8 @@ public static class InvoiceExcelExporter
     private static readonly XLColor Grey = XLColor.FromHtml("#A6A6A6");
     private static readonly XLColor SectionFill = XLColor.FromHtml("#F4E3E3");
 
-    public static void Export(string path, InvoiceBuild build, InvoiceHeaderInfo? info = null, string? sheetName = null)
+    /// <param name="stamp">Fixed document date: makes the file reproducible (package builds).</param>
+    public static void Export(string path, InvoiceBuild build, InvoiceHeaderInfo? info = null, string? sheetName = null, DateTime? stamp = null)
     {
         info ??= new InvoiceHeaderInfo();
         var h = build.Header;
@@ -45,7 +46,9 @@ public static class InvoiceExcelExporter
         wb.FullCalculationOnLoad = true;
         _ = footer;
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        if (stamp is { } st) { wb.Properties.Created = st; wb.Properties.Modified = st; }
         wb.SaveAs(path);
+        if (stamp is { } fixedStamp) Packaging.Deterministic.NormalizeZip(path, fixedStamp);
     }
 
     /// <summary>Returns the footer ('Subcontract Value') row number.</summary>
