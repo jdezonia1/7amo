@@ -348,3 +348,36 @@ cores x size, CU / AL, LSOH, fire rated, conduit size / type, amps, ways, watts,
 Settings), lines OMISSION / ADDITION (contract rate) / NEW ITEM (material + labour + equipment, overhead %, profit %),
 totals and ageing, submission Excel / PDF and register export in the house style.
 <!-- [phase4] end -->
+
+<!-- [trust] begin -->
+## Trust & integrations (roadmap 14-16)
+
+TRUST & INTEGRATIONS page (OUTPUT group); details in `docs/TRUST.md`, `docs/CAD_EXCHANGE.md`, `tools/cad/README.md`.
+
+- **Tamper-evident audit**: every audit row is hash-chained (desktop: in the write transaction; server: sealed authoritatively,
+  head anchored outside the database). VERIFY INTEGRITY / `raffaello-cli verify-audit` reports edited, deleted or rewritten history.
+- **Approvals**: SIGN an invoice revision, its package (ZIP SHA-256) or a variation as PREPARED / CHECKED / APPROVED with your
+  personal ECDSA key (DPAPI-protected, public key registered); VERIFY says "approved by X at T and unchanged" or CHANGED.
+  SIGNED PDF COPY appends the approvals page and optionally an embedded PAdES-style signature (self-issued; legal-grade needs a
+  company certificate).
+- **E-Promise export**: certified invoice -> ERP import Excel / CSV, column mapping in `%APPDATA%\Raffaello\epromise-export.json`.
+- **Aconex API**: `%APPDATA%\Raffaello\aconex-api.json` (`Enabled: true` once MOBCO has API credentials) replaces the browser.
+- **CAD exchange**: AutoCAD `RAFFEXPORT` / Revit add-in / Dynamo script -> JSON -> rooms, plan shapes and PROJECT QTY.
+- **Subcontractor portal**: `http://<server>:5180/portal` (server mode; English / Arabic). Accounts per company, statement
+  template download, submissions with drawings / photos, claims / invoice status, remaining per room, messages; the QS reviews in
+  PORTAL INBOX and posts to the ledger with the site statement importer.
+
+```
+raffaello-cli verify-audit [--db FILE | --server URL --token T [--independent]]
+raffaello-cli verify-signatures --db FILE --invoice-id N [--package ZIP]      raffaello-cli verify-package ZIP --db FILE
+raffaello-cli sign --db FILE --invoice-id N --purpose APPROVED [--kind PACKAGE] --user U [--passphrase P]
+raffaello-cli signed-pdf PDF --db FILE --invoice-id N --out FILE [--sign --user U]      raffaello-cli verify-pdf PDF
+raffaello-cli epromise-export --db FILE --invoice-id N --out FILE.xlsx|.csv [--force]
+raffaello-cli cad-import FILE.json --db FILE [--building B] [--mode REPLACE|ADD_MISSING] [--commit]    raffaello-cli cad-schema
+raffaello-cli aconex-api-test
+```
+
+What to verify on Windows / real systems: DPAPI key creation and the app page (never opened on Linux); the add-ins inside
+AutoCAD / Revit (compiled only against stubs); the Aconex API against Oracle (mock-tested only); an E-Promise import of an exported
+file by finance; the portal from a phone over HTTPS published by IT; a signed PDF opened in Adobe Reader.
+<!-- [trust] end -->

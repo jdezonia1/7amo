@@ -1,0 +1,17 @@
+[
+  { "block": "*TWIN*DATA*", "system": "DATA", "item": "TWIN DATA OUTLET", "qty": 2 },
+  { "block": "*TWIN*SOCKET*", "system": "POWER", "item": "TWIN SOCKET", "qty": 1 },
+  { "block": "*SOCKET*", "system": "POWER", "item": "SOCKET OUTLET", "qty": 1 },
+  { "block": "*ISOLATOR*", "system": "POWER", "item": "ISOLATOR", "qty": 1 },
+  { "block": "*SWITCH*", "system": "LIGHT", "item": "SWITCH", "qty": 1 },
+  { "block": "*DOWNLIGHT*", "system": "LIGHT", "item": "DOWNLIGHT", "qty": 1 },
+  { "block": "*EMERG*", "system": "EMERGENCY LIGHT", "item": "EMERGENCY LUMINAIRE", "qty": 1 },
+  { "block": "*EXIT*", "system": "EMERGENCY LIGHT", "item": "EXIT SIGN", "qty": 1 },
+  { "block": "*DATA*", "system": "DATA", "item": "DATA OUTLET", "qty": 1 },
+  { "block": "*TV*", "system": "AV", "item": "TV OUTLET", "qty": 1 },
+  { "block": "*THERMOSTAT*", "system": "GRMS", "item": "THERMOSTAT (CP-4)", "qty": 1, "stage": "2ND FIX" },
+  { "block": "*GRMS*", "system": "GRMS", "item": "GRMS DEVICE", "qty": 1 },
+  { "block": "*TITLE*", "ignore": true },
+  { "layer": "*LIGHT*", "system": "LIGHT", "item": "LIGHTING POINT", "qty": 1 },
+  { "layer": "*POWER*", "system": "POWER", "item": "POWER POINT", "qty": 1 }
+]
