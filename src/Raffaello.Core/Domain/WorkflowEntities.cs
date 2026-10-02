@@ -62,6 +62,8 @@ public sealed class ClaimLine : Entity
     public string StatementNo { get; set; } = "";
     /// <summary>The line belongs to a cumulative invoice: it states the subcontractor's total to date for the key and replaces his earlier invoices' lines for it.</summary>
     public bool IsCumulative { get; set; }
+    /// <summary>A cumulative line that has been split into per-invoice lines (Source SPLIT); it no longer counts.</summary>
+    public bool ReplacedBySplit { get; set; }
     public DateTime EnteredAt { get; set; }
 
     // ---- height above 4.5 m check
@@ -231,6 +233,9 @@ public sealed class InvoiceTemplateRow : Entity
     public double StagePct { get; set; }
     /// <summary>Executed cumulative quantity found in the imported file (column Q).</summary>
     public double ImportedExecutedCum { get; set; }
+    /// <summary>Executed previous / current quantity in the imported file (columns O / P).</summary>
+    public double ImportedExecutedPrev { get; set; }
+    public double ImportedExecutedCurr { get; set; }
 }
 
 /// <summary>A standard site statement issued to / received from a subcontractor.</summary>

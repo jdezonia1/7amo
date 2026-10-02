@@ -37,9 +37,9 @@ public sealed class AppSettings
     /// <summary>Signature names in role order, separated by ';'.</summary>
     public string InvoiceSignatureNames { get; set; } = "";
     public int LengthRoundingDecimals { get; set; } = 1;
-    /// <summary>Which contract outlet item the tracker's DATA 1ST FIX means: WALL (default, 183) or CEILING (182). Pending Mohamed's confirmation.</summary>
+    /// <summary>Which contract outlet item the tracker's DATA 1ST FIX means: WALL (183, confirmed by Mohamed) or CEILING (182).</summary>
     public string Data1stFixMount { get; set; } = "WALL";
-    /// <summary>Same for GRMS 1ST FIX: WALL (default, 200) or CEILING (199).</summary>
+    /// <summary>Same for GRMS 1ST FIX: WALL (200, confirmed) or CEILING (199).</summary>
     public string Grms1stFixMount { get; set; } = "WALL";
 
     // session memory

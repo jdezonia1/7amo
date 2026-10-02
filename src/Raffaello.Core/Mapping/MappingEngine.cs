@@ -25,7 +25,7 @@ public sealed record BoqMatch(string BoqCode, string BoqDescription, string Conf
 /// <summary>Everything the resolvers need for one contract: items, BOQ links, BOQ descriptions and learned rules.</summary>
 /// <summary>
 /// Named mapping defaults that may be flipped in one place (Settings). DATA / GRMS 1st fix outlets: the residence contract
-/// has a ceiling item (182 / 199) and a wall item (183 / 200); which one the tracker's 1ST FIX means is still being confirmed.
+/// has a ceiling item (182 / 199) and a wall item (183 / 200); the tracker's 1ST FIX means the WALL item (confirmed by Mohamed).
 /// </summary>
 public sealed record MappingOptions
 {

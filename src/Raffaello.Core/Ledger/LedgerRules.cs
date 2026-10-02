@@ -36,11 +36,13 @@ public static class LedgerRules
     public static IEnumerable<ClaimLine> Effective(IEnumerable<ClaimLine> claims)
     {
         var list = claims as IReadOnlyCollection<ClaimLine> ?? claims.ToList();
-        if (!list.Any(c => c.IsCumulative)) return list;
-        var cut = list.Where(c => c.IsCumulative)
+        if (!list.Any(c => c.IsCumulative || c.ReplacedBySplit)) return list;
+        var live = list.Where(c => !c.ReplacedBySplit).ToList();
+        var cut = live.Where(c => c.IsCumulative)
             .GroupBy(c => (Sub: c.Subcontractor.ToUpperInvariant(), c.Key))
             .ToDictionary(g => g.Key, g => g.Max(c => c.InvoiceNo));
-        return list.Where(c => !cut.TryGetValue((c.Subcontractor.ToUpperInvariant(), c.Key), out var n) || c.InvoiceNo >= n).ToList();
+        // lines split out of a cumulative invoice (Source SPLIT) are the per-invoice breakdown - never cut
+        return live.Where(c => c.Source == CumulativeSplit.SplitSource || !cut.TryGetValue((c.Subcontractor.ToUpperInvariant(), c.Key), out var n) || c.InvoiceNo >= n).ToList();
     }
 
     /// <summary>Lines dropped by <see cref="Effective"/> (earlier invoices superseded by a cumulative one).</summary>

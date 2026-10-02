@@ -246,7 +246,7 @@ public static class InvoiceTemplateImporter
                 ContractNo = contractNo, RowOrder = ++order, ItemNo = b.Length > 0 ? ContractLinkImporter.NormalizeItemNo(b) : "",
                 BoqCode = BoqCodes.IsCode(c) ? c.ToUpperInvariant() : "", CostCode = r.Get("D").Trim(), BudgetResourceCode = r.Get("E").Trim(),
                 Description = f, Unit = r.Get("G").Trim(), Qty = r.Num("H") ?? 0, Rate = r.Num("I") ?? 0, StagePct = r.Num("J") ?? 0,
-                ImportedExecutedCum = r.Num("Q") ?? 0,
+                ImportedExecutedCum = r.Num("Q") ?? 0, ImportedExecutedPrev = r.Num("O") ?? 0, ImportedExecutedCurr = r.Num("P") ?? 0,
             };
             row.Kind = row.ItemNo.Length > 0 ? "ITEM" : c.Length > 0 && !BoqCodes.IsCode(c) ? "SECTION" : "NOTE";
             if (row.Kind == "SECTION") row.Description = c;
