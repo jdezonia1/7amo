@@ -45,8 +45,15 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 // [phase4] begin
                 Item("Variations", "VARIATIONS / EI", "IconContracts", ""),
                 // [phase4] end
+                // [phase3] begin
+                Item("Boq", "BOQ", "IconDatabase", ""),
+                // [phase3] end
             }),
-            new NavGroup("OUTPUT", new[] { Item("Invoices", "INVOICES", "IconInvoices", "Ctrl+8"), Item("Reports", "REPORTS", "IconReports", "Ctrl+0") }),
+            new NavGroup("OUTPUT", new[] { Item("Invoices", "INVOICES", "IconInvoices", "Ctrl+8"), Item("Reports", "REPORTS", "IconReports", "Ctrl+0"),
+                // [phase3] begin
+                Item("OwnerMos", "OWNER MOS", "IconExport", ""),
+                // [phase3] end
+            }),
         };
         SettingsItem = Item("Settings", "SETTINGS", "IconSettings", "");
         palette.SetNavigator(this);

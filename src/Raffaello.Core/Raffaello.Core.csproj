@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.31" />
     <!-- [phase5] end -->
     <!-- [phase4] text from variation / EI documents -->
+    <!-- [phase3] PDF text layer for the document reader pipeline -->
     <PackageReference Include="PdfPig" Version="0.1.16" />
   </ItemGroup>
   <ItemGroup>

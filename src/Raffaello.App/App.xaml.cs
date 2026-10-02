@@ -104,13 +104,24 @@ public partial class App : Application
                 s.AddSingleton<PageViewModel, QuantitiesViewModel>();
                 s.AddSingleton<PageViewModel, PlanViewModel>();
                 s.AddSingleton<PageViewModel, StatementsViewModel>();
-                s.AddSingleton<PageViewModel, MaterialsViewModel>();
                 // [phase4] begin - the ACONEX item is now the hub; the script runner page lives inside it as a tab
                 s.AddSingleton<AconexAutomationService>();
                 s.AddSingleton<AconexViewModel>();
                 s.AddSingleton<PageViewModel, AconexHubViewModel>();
                 s.AddSingleton<PageViewModel, VariationsViewModel>();
                 // [phase4] end
+                // [phase3] begin - the Materials nav item is the phase-3 hub; the earlier PO vs DN screen is its OVERVIEW tab
+                s.AddSingleton(_ => Raffaello.Core.Materials.MaterialsSettings.Load());
+                s.AddSingleton<Raffaello.Core.Materials.IMaterialsStore>(sp => new Raffaello.Core.Materials.SqliteMaterialsStore(
+                    () => sp.GetRequiredService<ProjectService>().Store as Raffaello.Core.Data.Db ?? throw new InvalidOperationException("Materials need the SQLite data file.")));
+                s.AddSingleton<Raffaello.Core.Materials.MaterialsService>();
+                s.AddSingleton<Raffaello.Core.Documents.IOcrEngine, WindowsOcrEngine>();
+                s.AddSingleton<Raffaello.Core.Documents.IPageRenderer, WindowsPdfRenderer>();
+                s.AddSingleton<MaterialsViewModel>();
+                s.AddSingleton<PageViewModel, MaterialsHubViewModel>();
+                s.AddSingleton<PageViewModel, OwnerMosViewModel>();
+                s.AddSingleton<PageViewModel, BoqViewModel>();
+                // [phase3] end
                 s.AddSingleton<PageViewModel, WirViewModel>();
                 s.AddSingleton<PageViewModel, ContractsViewModel>();
                 s.AddSingleton<PageViewModel, InvoicesViewModel>();
