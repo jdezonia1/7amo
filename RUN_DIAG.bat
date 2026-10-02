@@ -1,6 +1,6 @@
 @echo off
 REM ============================================================
-REM  RAFFAELLO - start-up diagnostics. Starts publish\Raffaello.exe, waits 25 s and writes diag_log.txt
+REM  RAFFAELLO - start-up diagnostics. Starts Raffaello.exe (fast build if present, else publish), waits 25 s and writes diag_log.txt
 REM  (start-up steps, error.log, running processes, Windows crash events). Send diag_log.txt.
 REM ============================================================
 setlocal
@@ -8,14 +8,18 @@ cd /d "%~dp0"
 set OUT=%~dp0diag_log.txt
 set RAF=%APPDATA%\Raffaello
 echo RAFFAELLO DIAG %DATE% %TIME% > "%OUT%"
-if not exist "publish\Raffaello.exe" (
-  echo publish\Raffaello.exe not found - run RUN_ONE_CLICK.bat first >> "%OUT%"
-  echo publish\Raffaello.exe not found - run RUN_ONE_CLICK.bat first
+set EXE=%~dp0publish\Raffaello.exe
+if exist "%~dp0src\Raffaello.App\bin\Debug\net8.0-windows10.0.19041.0\Raffaello.exe" set EXE=%~dp0src\Raffaello.App\bin\Debug\net8.0-windows10.0.19041.0\Raffaello.exe
+if not exist "%EXE%" (
+  echo Raffaello.exe not found - run UPDATE_AND_RUN.bat or RUN_ONE_CLICK.bat first >> "%OUT%"
+  echo Raffaello.exe not found - run UPDATE_AND_RUN.bat or RUN_ONE_CLICK.bat first
   pause
   exit /b 1
 )
 echo Starting Raffaello... (waiting 25 seconds)
-start "" "%~dp0publish\Raffaello.exe"
+taskkill /IM Raffaello.exe /F > nul 2>&1
+echo %EXE% >> "%OUT%"
+start "" "%EXE%"
 timeout /t 25 /nobreak > nul
 
 echo. >> "%OUT%"
