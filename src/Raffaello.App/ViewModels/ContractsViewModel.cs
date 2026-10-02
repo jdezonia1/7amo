@@ -54,7 +54,7 @@ public sealed partial class ContractsViewModel : PageViewModel
 {
     public const int BoqPageSize = 400;
 
-    public ContractsViewModel(PageContext ctx) : base(ctx) { }
+    public ContractsViewModel(PageContext ctx, Services.SmartReading reading, Raffaello.Core.Documents.IPageRenderer renderer) : base(ctx) { _reading = reading; _renderer = renderer; }
 
     public override string Key => "Contracts";
     public override string Title => "CONTRACTS & BOQ";
@@ -68,7 +68,7 @@ public sealed partial class ContractsViewModel : PageViewModel
     public ObservableCollection<ContractItemBoq> ItemLinks { get; } = new();
     public ObservableCollection<string> ContractNos { get; } = new();
     public ObservableCollection<Attachment> ContractDocs { get; } = new();
-    public string[] Tabs { get; } = { "CONTRACT ITEMS", "BOQ" };
+    public string[] Tabs { get; } = { "CONTRACT ITEMS", "TERMS, RULES & OBLIGATIONS", "COMPARE CONTRACTS", "BOQ" };
     public static string[] FixStageOptions { get; } = { "", FixStages.First, FixStages.Second, FixStages.Third };
     public static string[] ConduitOptions { get; } = { "", Conduits.Pvc, Conduits.Emt, Conduits.Rs, Conduits.Flex, Conduits.None };
     public static string[] MountOptions { get; } = { "", Mounts.Wall, Mounts.Ceiling, Mounts.Both };
@@ -92,7 +92,12 @@ public sealed partial class ContractsViewModel : PageViewModel
     public bool IsItems => Tab == "CONTRACT ITEMS";
     public bool IsBoq => Tab == "BOQ";
 
-    partial void OnTabChanged(string value) { OnPropertyChanged(nameof(IsItems)); OnPropertyChanged(nameof(IsBoq)); }
+    partial void OnTabChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsItems)); OnPropertyChanged(nameof(IsBoq)); OnPropertyChanged(nameof(IsTerms)); OnPropertyChanged(nameof(IsCompare));
+        if (IsTerms) FillTerms();
+        if (IsCompare) FillCompare();
+    }
     partial void OnSearchChanged(string value) => FillBoq();
     partial void OnItemSearchChanged(string value) => FillItems();
     partial void OnSelectedContractNoChanged(string value) { FillItems(); var c = Project.Snapshot.Contracts.FirstOrDefault(x => x.ContractNo == value); if (c != null) { ImportContractNo = c.ContractNo; ImportSub = c.Subcontractor; ImportBuilding = c.Building; } }
@@ -120,6 +125,8 @@ public sealed partial class ContractsViewModel : PageViewModel
         if (!ContractNos.Contains(SelectedContractNo)) SelectedContractNo = ContractNos.FirstOrDefault() ?? "";
         else FillItems();
         FillBoq();
+        if (IsTerms) FillTerms();
+        if (IsCompare) FillCompare();
     }
 
     private void FillDocs()

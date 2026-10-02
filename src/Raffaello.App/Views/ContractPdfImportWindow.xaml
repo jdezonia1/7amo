@@ -1,0 +1,165 @@
+<Window x:Class="Raffaello.App.Views.ContractPdfImportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Raffaello.App.ViewModels"
+        Title="{Binding Title}" Width="1440" Height="880" WindowStartupLocation="CenterOwner" Icon="pack://application:,,,/Assets/raffaello.ico"
+        Background="{DynamicResource BgBrush}" Foreground="{DynamicResource InkBrush}" FontFamily="{StaticResource FontSans}">
+    <Window.InputBindings>
+        <KeyBinding Key="F8" Command="{Binding NextLowCommand}"/>
+        <KeyBinding Key="Add" Modifiers="Control" Command="{Binding ZoomInCommand}"/>
+        <KeyBinding Key="Subtract" Modifiers="Control" Command="{Binding ZoomOutCommand}"/>
+    </Window.InputBindings>
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="280"/></Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}"/>
+                <TextBlock Text="Every extracted field has a box on the page: green = sure, yellow = check, dark red = conflict / low / derived, blue = confirmed by you. Click a box or a row; F8 = next field that needs a look. Nothing is saved until SAVE." Style="{StaticResource Small}" TextWrapping="Wrap"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+                <TextBlock Text="CONTRACT NO" Style="{StaticResource Label}"/>
+                <TextBox Text="{Binding ContractNo, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,12,0,12">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="5*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="6*"/></Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource Card}" Padding="10">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage, Mode=TwoWay}" DisplayMemberPath="Caption"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
+                            <Button Style="{StaticResource BtnGhost}" Content="-" Command="{Binding ZoomOutCommand}" Width="34"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="+" Command="{Binding ZoomInCommand}" Width="34" Margin="4,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock DockPanel.Dock="Bottom" Text="{Binding PageNote}" Style="{StaticResource Small}" TextWrapping="Wrap" FontSize="10" Margin="0,4,0,0"/>
+                    <ScrollViewer x:Name="PageScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <Grid Width="{Binding ImageWidth}" Height="{Binding ImageHeight}" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <Grid.LayoutTransform><ScaleTransform ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}"/></Grid.LayoutTransform>
+                            <Image Source="{Binding PageImage}" Stretch="Fill"/>
+                            <ItemsControl ItemsSource="{Binding PageBoxes}">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                        <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:ReviewField}">
+                                        <Border Width="{Binding W}" Height="{Binding H}" BorderBrush="{Binding Stroke}" Cursor="Hand" MouseLeftButtonDown="OnBoxClick"
+                                                ToolTip="{Binding Value}">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="BorderThickness" Value="3"/>
+                                                    <Setter Property="Background" Value="#10000000"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                            <Setter Property="BorderThickness" Value="7"/>
+                                                            <Setter Property="Background" Value="#40FFFF00"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding Tab, Mode=TwoWay}" HorizontalAlignment="Left"/>
+                <Grid Grid.Row="1" Margin="0,8,0,8">
+                    <TextBlock Text="{Binding Summary}" Style="{StaticResource BodyStrong}" FontSize="11" TextWrapping="Wrap" Margin="0,0,330,0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                        <Button Style="{StaticResource BtnGhost}" Content="NEXT TO REVIEW (F8)" Command="{Binding NextLowCommand}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="RE-CHECK" Command="{Binding RecheckCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="ACCEPT SUGGESTIONS" Command="{Binding AcceptSuggestionsCommand}" Margin="6,0,0,0"
+                                ToolTip="Signed PDF where it was read with confidence, else the Excel; you can still change each row"/>
+                    </StackPanel>
+                </Grid>
+
+                <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding Diffs}" SelectedItem="{Binding SelectedDiff, Mode=TwoWay}" IsReadOnly="False"
+                          Visibility="{Binding IsDiffs, Converter={StaticResource BoolToVis}}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ITEM" Binding="{Binding ItemNo}" Width="46" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="FIELD" Binding="{Binding Field}" Width="96" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="SIGNED PDF" Binding="{Binding PdfValue}" Width="*" MinWidth="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="READ" Binding="{Binding PdfInfo}" Width="90" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="EXCEL" Binding="{Binding ExcelValue}" Width="*" MinWidth="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="SUGGEST" Binding="{Binding Suggested}" Width="64" IsReadOnly="True"/>
+                        <DataGridComboBoxColumn Header="USE" SelectedItemBinding="{Binding Choice, UpdateSourceTrigger=PropertyChanged}" Width="76" ItemsSource="{x:Static vm:DiffRow.Choices}"/>
+                        <DataGridTextColumn Header="EDITED VALUE" Binding="{Binding EditedValue, UpdateSourceTrigger=LostFocus}" Width="110"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding Fields}" SelectedItem="{Binding SelectedField, Mode=TwoWay}" IsReadOnly="False"
+                          Visibility="{Binding IsFields, Converter={StaticResource BoolToVis}}" VirtualizingPanel.IsVirtualizing="True" x:Name="FieldGrid">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="" Width="10" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate><DataTemplate><Rectangle Fill="{Binding Stroke}" Width="6"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="ROW" Binding="{Binding Row}" Width="76" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="FIELD" Binding="{Binding Name}" Width="90" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="VALUE (EDIT = CONFIRM)" Binding="{Binding Value, UpdateSourceTrigger=LostFocus}" Width="*" MinWidth="200"/>
+                        <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="84" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="CONF" Binding="{Binding Confidence, StringFormat=0.00}" Width="46" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="P" Binding="{Binding Page}" Width="30" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="READINGS / NOTE" Binding="{Binding Alternatives}" Width="200" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <Grid Grid.Row="2" Visibility="{Binding IsTerms, Converter={StaticResource BoolToVis}}">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Border Style="{StaticResource Card}" Padding="10">
+                        <TextBlock Text="{Binding Terms}" Style="{StaticResource Body}" TextWrapping="Wrap" FontSize="12"/>
+                    </Border>
+                    <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding Clauses}" IsReadOnly="True" Margin="0,8,0,0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="CLAUSE" Binding="{Binding ClauseNo}" Width="56"/>
+                            <DataGridTextColumn Header="TITLE" Binding="{Binding Title}" Width="140"/>
+                            <DataGridTextColumn Header="TEXT (AS READ)" Binding="{Binding TextAr}" Width="*">
+                                <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="FlowDirection" Value="RightToLeft"/></Style></DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="RULES" Binding="{Binding RulesFound}" Width="120"/>
+                            <DataGridTextColumn Header="P" Binding="{Binding Page}" Width="30"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+
+                <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding Rules}" IsReadOnly="False" Visibility="{Binding IsRules, Converter={StaticResource BoolToVis}}">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="ON" Binding="{Binding Enabled}" Width="40"/>
+                        <DataGridTextColumn Header="RULE" Binding="{Binding RuleType}" Width="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="SUMMARY (EDIT)" Binding="{Binding Summary}" Width="*"/>
+                        <DataGridTextColumn Header="PARAMETERS (EDIT)" Binding="{Binding ParamsJson}" Width="220"/>
+                        <DataGridTextColumn Header="CLAUSE" Binding="{Binding ClauseNo}" Width="56" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="ITEMS" Binding="{Binding ItemNos}" Width="90"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <TextBlock Text="The signed PDF is kept as evidence (SHA-256) and every page goes into the search index. Contract rules only ever WARN." Style="{StaticResource Small}" VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{StaticResource BtnGhost}" Content="CANCEL" Command="{Binding CancelCommand}"/>
+                <Button Style="{StaticResource BtnGhost}" Content="SAVE CONTRACT" Command="{Binding SaveCommand}" Margin="8,0,0,0"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="CONFIRM &amp; LEARN" Command="{Binding SaveAndLearnCommand}" Margin="8,0,0,0"
+                        ToolTip="Save, and remember this layout (columns, anchors) for the next contract of the same form"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

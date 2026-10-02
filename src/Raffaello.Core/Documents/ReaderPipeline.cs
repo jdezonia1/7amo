@@ -64,7 +64,7 @@ public sealed class ReaderOptions
     };
     public IVisionReader? Vision { get; init; }
     /// <summary>Metres per piece used when a DN in PCS is matched to a PO line in M.</summary>
-    public double PipeLengthM { get; init; } = 6;
+    public double PipeLengthM { get; init; } = 3;
     public static ReaderOptions Default => new();
     public bool CanUseVision => Vision?.IsAvailable == true;
 }

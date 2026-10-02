@@ -30,7 +30,7 @@ public sealed class CachedOcrEngine : ILayoutOcrEngine
     public Task<string> RecognizeAsync(PageImage image, CancellationToken ct = default) => _inner.RecognizeAsync(image, ct);
 
     private string Key(byte[] bytes, string extra) =>
-        Convert.ToHexString(SHA256.HashData(bytes.Concat(Encoding.UTF8.GetBytes("|" + _inner.Name + "|v3|" + extra)).ToArray()))[..32];
+        Convert.ToHexString(SHA256.HashData(bytes.Concat(Encoding.UTF8.GetBytes("|" + _inner.Name + "|v4|" + extra)).ToArray()))[..32];
 
     public async Task<OcrPage> RecognizeLayoutAsync(PageImage image, OcrHints hints, CancellationToken ct = default)
     {
