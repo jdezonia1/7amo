@@ -68,7 +68,21 @@ public static class RateBenchmark
     {
         if (string.IsNullOrWhiteSpace(c.Category)) return "SUB|" + Fingerprints.Key(c.Description) + "|" + UnitKey(c.Unit);
         var systems = string.Join(",", (c.Systems ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => x.ToUpperInvariant()).OrderBy(x => x, StringComparer.Ordinal));
-        return $"SUB|{c.Category}|{c.FixStage}|{c.ConduitType}|{c.Mount}|{c.HeightBand}|{systems}|{c.SizeKey}|{Sizes(c.Description)}|{UnitKey(c.Unit)}".ToUpperInvariant();
+        return $"SUB|{c.Category}|{c.FixStage}|{c.ConduitType}|{c.Mount}|{c.HeightBand}|{systems}|{c.SizeKey}|{Sizes(c.Description)}|{Words(c.Description)}|{UnitKey(c.Unit)}".ToUpperInvariant();
+    }
+
+    private static readonly HashSet<string> Boiler = new(StringComparer.Ordinal)
+    {
+        "INSTALLATION", "INSTALL", "INSTALLED", "CONNECTION", "CONNECT", "TESTING", "TEST", "COMMISSION", "COMMISSIONING", "HANDOVER", "HAND", "OVER", "LABOR", "LABOUR", "ONLY",
+        "FIXING", "FIX", "PROVIDE", "PROVIDING", "MAKE", "INCLUDING", "REQUIRED", "WORK", "ITEM", "UNIT", "UNITS", "ETC", "BY", "AT", "OR", "FROM", "INTO", "ITS",
+    };
+
+    /// <summary>The words that say what the item is (boilerplate such as "installation, testing and handover ... in accordance with" removed).</summary>
+    public static string Words(string description)
+    {
+        var d = (description ?? "").ToUpperInvariant();
+        foreach (var cut in new[] { "IN ACCORDANCE", "SUBJECT TO", "RATE SHALL", "AS PER " }) { var i = d.IndexOf(cut, StringComparison.Ordinal); if (i > 0) d = d[..i]; }
+        return string.Join(" ", Fingerprints.Tokens(d).Where(t => t.Length > 2 && !Boiler.Contains(t) && !char.IsDigit(t[0])).Distinct().OrderBy(t => t, StringComparer.Ordinal));
     }
 
     /// <summary>Size-like words of a description (20A, 150MM2, 1C, 42WAY ...) - items of one category differ by them.</summary>

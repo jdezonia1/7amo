@@ -145,9 +145,11 @@ public static class AnomalyDetector
                 if (rz < z || a.Qty < med * minRatio || a.Qty - med < minExcess) continue;
                 var cap = caps.GetValueOrDefault(a.Key);
                 var overCap = cap > 0 && a.Qty > cap + LedgerRules.Eps;
+                // within the room's own PROJECT QTY the claim is plausible (other rooms were claimed in parts): information only
+                var sev = overCap ? InsightSeverity.High : cap > 0 ? InsightSeverity.Low : InsightSeverity.Medium;
                 yield return new Anomaly
                 {
-                    Fingerprint = $"OUTLIER|{ClaimDating.Norm(a.Sub)}|{a.Inv}|{a.Key}", Kind = AnomalyKinds.KeyOutlier, Severity = overCap ? InsightSeverity.High : InsightSeverity.Medium,
+                    Fingerprint = $"OUTLIER|{ClaimDating.Norm(a.Sub)}|{a.Inv}|{a.Key}", Kind = AnomalyKinds.KeyOutlier, Severity = sev,
                     Title = $"{a.Room} {a.Stage} {a.Item}: {F(a.Qty)} claimed vs typical {F(med)} for {grp.Key.RoomType}",
                     Explanation = $"{a.Sub} {InvText(a.Inv)} claims {F(a.Qty)} {a.Item} points at {a.Stage} in {a.Room}. Across {sample.Count} claims for {grp.Key.RoomType} rooms the typical " +
                                   $"claim is {F(med)} (robust z {rz:0.0})." + (cap > 0 ? $" PROJECT QTY for the room is {F(cap)}" + (overCap ? " - this one claim is already above it." : ".") : " The room has no PROJECT QTY."),
@@ -241,7 +243,7 @@ public static class AnomalyDetector
                     Fingerprint = $"LENGTH|{ClaimDating.Norm(a.Sub)}|{a.Inv}|{a.Key}", Kind = AnomalyKinds.Length, Severity = sev,
                     Title = $"{a.Room} {a.Item} 15 m claim: {F(r.Plan + r.Extra)} for {F(r.Plan)} plan points ({(double.IsInfinity(r.Ratio) ? "no plan qty" : r.Ratio.ToString("0.0") + "x")})",
                     Explanation = $"{a.Sub} {InvText(a.Inv)} claims {F(r.Extra)} extra {a.Item} points in {a.Room} for routes longer than 15 m - {(double.IsInfinity(r.Ratio) ? "the room has no plan quantity" : $"{r.Ratio:0.0}x the plan quantity")}. " +
-                                  $"Typical for {(a.RoomType.Length > 0 ? a.RoomType : "this room type")}: {med:0.00}x." + (r.Ratio >= high ? $" Above {high:0.0}x means an average route of {15 * r.Ratio:0} m or more per point." : "") +
+                                  $"Typical for {(a.RoomType.Length > 0 ? a.RoomType : "this room type")}: {med:0.00}x." + (double.IsInfinity(r.Ratio) ? " Extra points with no plan quantity in the room cannot be checked against a route." : r.Ratio >= high ? $" {r.Ratio:0.0}x means an average route of about {15 * r.Ratio:0} m per point." : "") +
                                   (round ? " The claimed quantity is a round number." : ""),
                     SuggestedAction = "Ask for the marked route lengths and decide it on the Checks page (15 m LENGTH): revised = max(1, L / 15) per point.",
                     Subcontractor = a.Sub, InvoiceNo = a.Inv, Room = a.Room, Stage = a.Stage, Item = a.Item, Building = a.Building, Score = r.Extra,
