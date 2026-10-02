@@ -97,6 +97,33 @@ public static class ArabicText
         return Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
     }
 
+    /// <summary>
+    /// Length-preserving fold for matching: alef / ya / ta-marbuta / hamza-seat variants mapped one-to-one, Arabic-Indic digits to 0-9,
+    /// Latin upper-cased. Match on the folded text, cut the value from the original with the same indexes.
+    /// </summary>
+    public static string Fold(string? s)
+    {
+        if (string.IsNullOrEmpty(s)) return "";
+        var a = s.ToCharArray();
+        for (var i = 0; i < a.Length; i++)
+        {
+            var c = a[i];
+            a[i] = c switch
+            {
+                'أ' or 'إ' or 'آ' or 'ٱ' => 'ا',
+                'ى' => 'ي',
+                'ة' => 'ه',
+                'ؤ' => 'و',
+                'ئ' => 'ي',
+                'ـ' => ' ',
+                >= '\u0660' and <= '\u0669' => (char)('0' + (c - '\u0660')),
+                >= '\u06F0' and <= '\u06F9' => (char)('0' + (c - '\u06F0')),
+                _ => char.ToUpperInvariant(c),
+            };
+        }
+        return new string(a);
+    }
+
     /// <summary>Number from a cell: Arabic-Indic digits, thousands separators, a stray letter O / l / I read for 0 / 1 inside a number.</summary>
     public static double? ParseNumber(string? s)
     {

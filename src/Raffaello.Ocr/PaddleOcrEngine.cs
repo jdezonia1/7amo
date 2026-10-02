@@ -241,6 +241,9 @@ public sealed class PaddleOcrEngine : ILayoutOcrEngine, IDisposable
         return angles[angles.Count / 2];
     }
 
+    /// <summary>Fill gaps the Arabic model leaves where Latin words / numbers sit inside an Arabic line ("PVC 1st Fix", "4.5").</summary>
+    public bool MixedScriptMerge { get; init; } = true;
+
     private List<OcrWord> Recognize(Mat img, RotatedRect[] boxes, PaddleOcrRecognizer rec)
     {
         var words = new List<OcrWord>(boxes.Length);
@@ -248,10 +251,20 @@ public sealed class PaddleOcrEngine : ILayoutOcrEngine, IDisposable
         var crops = boxes.Select(b => Crop(img, b)).ToArray();
         try
         {
+            // one crop at a time: batching pads crops to the widest one and costs accuracy on long Arabic lines
             var res = rec.Run(crops, 0);
+            var texts = res.Select(r => r.Text).ToArray();
+            var merged = new bool[res.Length];
+            if (MixedScriptMerge && rec == _recAr)
+            {
+                var lines = Enumerable.Range(0, res.Length).Where(i => ArabicText.HasArabic(texts[i]) && crops[i].Width > crops[i].Height * 4).ToList();
+                var filled = FillLatin(lines.Select(i => (crops[i], texts[i])).ToList());
+                for (var k = 0; k < lines.Count; k++)
+                    if (filled[k] != null) { texts[lines[k]] = filled[k]!; merged[lines[k]] = true; }
+            }
             for (var i = 0; i < boxes.Length; i++)
             {
-                var text = res[i].Text.Trim();
+                var text = texts[i].Trim();
                 if (text.Length == 0) continue;
                 var r = boxes[i].BoundingRect();
                 words.Add(new OcrWord
@@ -259,12 +272,136 @@ public sealed class PaddleOcrEngine : ILayoutOcrEngine, IDisposable
                     Text = ArabicText.VisualToLogical(text),
                     Box = new Box(Math.Max(0, r.X), Math.Max(0, r.Y), r.Width, r.Height),
                     Confidence = Score(res[i].Score),
-                    Engine = rec == _recEn ? "paddle-en" : "paddle-ar",
+                    Engine = rec == _recEn ? "paddle-en" : merged[i] ? "paddle-ar+en" : "paddle-ar",
                 });
             }
         }
         finally { foreach (var c in crops) c.Dispose(); }
         return words;
+    }
+
+    /// <summary>Recognises crops in batches of similar width (padding to the widest crop of a batch is what costs time).</summary>
+    private static PaddleOcrRecognizerResult[] RunBatched(PaddleOcrRecognizer rec, IReadOnlyList<Mat> mats, int batch = 16)
+    {
+        var res = new PaddleOcrRecognizerResult[mats.Count];
+        var order = Enumerable.Range(0, mats.Count).OrderBy(i => mats[i].Width / (double)Math.Max(1, mats[i].Height)).ToList();
+        for (var k = 0; k < order.Count; k += batch)
+        {
+            var idx = order.Skip(k).Take(batch).ToList();
+            var r = rec.Run(idx.Select(i => mats[i]).ToArray(), idx.Count);
+            for (var j = 0; j < idx.Count; j++) res[idx[j]] = r[j];
+        }
+        return res;
+    }
+
+    private static bool IsLatinish(char c) => char.IsAsciiLetterOrDigit(c) || c is '.' or ',' or '/' or '-' or '*' or '&' or '%' or '+' or '(' or ')' or '\'' or '×' or '²' or ' ' or '_';
+
+    /// <summary>Word segments of a line crop: runs of ink separated by gaps of at least a sixth of the line height.</summary>
+    internal static List<(int X0, int X1)> Segments(Mat crop)
+    {
+        using var gray = ImagePrep.ToGray(crop);
+        using var bin = new Mat();
+        Cv2.Threshold(gray, bin, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
+        var w = bin.Width; var h = bin.Height;
+        // ignore the top / bottom rows (neighbouring lines touching the crop)
+        var y0 = h / 8; var y1 = h - h / 8;
+        using var band = new Mat(bin, new Rect(0, y0, w, Math.Max(1, y1 - y0)));
+        using var colSum = new Mat();
+        Cv2.Reduce(band, colSum, ReduceDimension.Row, ReduceTypes.Sum, MatType.CV_32S);
+        colSum.GetArray(out int[] ink);
+        var minGap = Math.Max(3, h / 6);
+        var res = new List<(int, int)>();
+        int start = -1, gap = 0;
+        for (var x = 0; x < w; x++)
+        {
+            if (ink[x] > 255) { if (start < 0) start = x; gap = 0; }
+            else if (start >= 0 && ++gap >= minGap) { res.Add((start, x - gap)); start = -1; gap = 0; }
+        }
+        if (start >= 0) res.Add((start, w - 1));
+        return res.Where(r => r.Item2 - r.Item1 >= 3).ToList();
+    }
+
+    /// <summary>
+    /// The Arabic model drops Latin words and numbers inside Arabic lines ("PVC 1st Fix", "4.5"). Every word segment of those lines is read
+    /// by the English model; segments it reads as confident Latin text, and that the Arabic model does not read better as Arabic, are put
+    /// back into the line at their horizontal position (visual order, at the nearest word boundary). Returns null per line when nothing changed.
+    /// </summary>
+    internal List<string?> FillLatin(IReadOnlyList<(Mat Crop, string ArVisual)> lines)
+    {
+        var result = new List<string?>(new string?[lines.Count]);
+        if (lines.Count == 0) return result;
+        EnsureLoaded(needEnglish: true);
+        var segMats = new List<Mat>();
+        var owner = new List<(int Line, int X0, int X1)>();
+        try
+        {
+            for (var li = 0; li < lines.Count; li++)
+            {
+                var crop = lines[li].Crop;
+                foreach (var sg in Segments(crop))
+                {
+                    var x0 = Math.Max(0, sg.X0 - 2); var x1 = Math.Min(crop.Width, sg.X1 + 3);
+                    if (x1 - x0 < 6) continue;
+                    segMats.Add(new Mat(crop, new Rect(x0, 0, x1 - x0, crop.Height)).Clone());
+                    owner.Add((li, sg.X0, sg.X1));
+                }
+            }
+            if (segMats.Count == 0) return result;
+            var en = RunBatched(_recEn!, segMats);
+            var cand = new List<int>();
+            for (var i = 0; i < en.Length; i++)
+            {
+                var t = en[i].Text.Trim();
+                if (t.Length == 0 || !t.All(IsLatinish) || Score(en[i].Score) < 0.85) continue;
+                if (t.Count(char.IsAsciiDigit) == 0 && t.Count(char.IsAsciiLetter) < 2) continue;
+                cand.Add(i);
+            }
+            if (cand.Count == 0) return result;
+            var ar = RunBatched(_recAr!, cand.Select(i => segMats[i]).ToList());
+            var latin = new List<(int Line, double X, int X0, int X1, string Text)>();
+            for (var k = 0; k < cand.Count; k++)
+            {
+                var i = cand[k];
+                // the Arabic model reads Arabic here (a lone waw is often read "9" by the English model)
+                if (ArabicText.ArabicLetters(ar[k].Text) >= 1 && Score(ar[k].Score) >= Score(en[i].Score) - 0.15) continue;
+                if (en[i].Text.Trim().Length == 1 && ArabicText.HasArabic(ar[k].Text)) continue;
+                latin.Add((owner[i].Line, (owner[i].X0 + owner[i].X1) / 2.0, owner[i].X0, owner[i].X1, en[i].Text.Trim()));
+            }
+            foreach (var g in latin.GroupBy(l => l.Line))
+            {
+                var crop = lines[g.Key].Crop;
+                var text = lines[g.Key].ArVisual.Trim();
+                // adjacent Latin segments form one run ("Linear" "lighting" "fixtures")
+                var runs = new List<(double X0, double X1, string Text)>();
+                foreach (var l in g.OrderBy(l => l.X0))
+                {
+                    if (runs.Count > 0 && l.X0 - runs[^1].X1 < crop.Height * 0.9) runs[^1] = (runs[^1].X0, l.X1, runs[^1].Text + " " + l.Text);
+                    else runs.Add((l.X0, l.X1, l.Text));
+                }
+                var plainUpper = text.ToUpperInvariant();
+                var inserts = new List<(int Index, string Text)>();
+                foreach (var r in runs)
+                {
+                    if (plainUpper.Contains(r.Text.ToUpperInvariant())) continue;
+                    // already read by the Arabic model (digits / Latin present at that place)?
+                    var cx = (r.X0 + r.X1) / 2 / crop.Width * text.Length;
+                    var lo = Math.Clamp((int)(r.X0 / crop.Width * text.Length) - 1, 0, text.Length); var hi = Math.Clamp((int)Math.Ceiling(r.X1 / crop.Width * text.Length) + 1, 0, text.Length);
+                    if (text[lo..hi].Count(char.IsAsciiLetterOrDigit) >= r.Text.Count(char.IsAsciiLetterOrDigit) * 0.6) continue;
+                    // nearest word boundary to the run's position
+                    var best = -1; double bd = double.MaxValue;
+                    for (var k = 0; k <= text.Length; k++)
+                        if (k == 0 || k == text.Length || text[k - 1] == ' ' || text[k] == ' ')
+                            if (Math.Abs(k - cx) < bd) { bd = Math.Abs(k - cx); best = k; }
+                    if (best >= 0) inserts.Add((best, r.Text));
+                }
+                if (inserts.Count == 0) continue;
+                var sb = new System.Text.StringBuilder(text);
+                foreach (var (i, t) in inserts.OrderByDescending(x => x.Index)) sb.Insert(i, " " + t + " ");
+                result[g.Key] = System.Text.RegularExpressions.Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
+            }
+            return result;
+        }
+        finally { foreach (var m in segMats) m.Dispose(); }
     }
 
     public void Dispose()

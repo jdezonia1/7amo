@@ -98,8 +98,8 @@ public static class ScheduleExtractor
             var grid = GridOf(page, template);
             if (grid is null) { res.Issues.Add(new(IssueLevel.Warn, "NO_TABLE", $"page {page.Number}: no table found", null, "")); continue; }
             var (roles, headerRows) = RolesFromHeader(grid);
-            if (roles.Count(r => r != null) < 4 && template != null) roles = RolesFromTemplate(grid, template, page);
-            if (roles.Count(r => r != null) < 4) roles = RolesFromContent(grid);
+            if (!Complete(roles) && template != null) roles = RolesFromTemplate(grid, template, page);
+            if (!Complete(roles)) roles = Combine(roles, RolesFromContent(grid));
             if (!roles.Contains(ColumnRoles.Desc) || roles.Count(r => r is ColumnRoles.Qty or ColumnRoles.Rate or ColumnRoles.Total) < 2)
             {
                 res.Issues.Add(new(IssueLevel.Warn, "NO_COLUMNS", $"page {page.Number}: could not tell the table columns apart", null, ""));
@@ -130,7 +130,8 @@ public static class ScheduleExtractor
                     res.StatedTotal = gt; res.StatedTotalPage = page.Number;
                     continue;
                 }
-                if (no is null && !anyNum)
+                var qtyOrRate = ArabicText.ParseNumber(CleanNumber(nums[0])) != null || ArabicText.ParseNumber(CleanNumber(nums[1])) != null;
+                if (no is null && (!anyNum || !qtyOrRate))
                 {
                     if (desc.Length >= 3 && (ArabicText.HasArabic(desc) || desc.Count(char.IsLetter) >= 3)) { section = desc; res.Sections.Add((desc, page.Number)); }
                     continue;
@@ -206,6 +207,22 @@ public static class ScheduleExtractor
             if (roles.Count(x => x != null) >= 3 && roles.Count(x => x != null) > best.Count(x => x != null)) { best = roles; header.Clear(); header.Add(r); }
         }
         return (best, header);
+    }
+
+    private static bool Complete(string?[] roles) =>
+        roles.Contains(ColumnRoles.Desc) && roles.Contains(ColumnRoles.Qty) && roles.Contains(ColumnRoles.Rate) && roles.Contains(ColumnRoles.Total);
+
+    /// <summary>Header roles where the header was readable, content roles for the rest (a merged header cell can hide three columns).</summary>
+    private static string?[] Combine(string?[] header, string?[] content)
+    {
+        var res = (string?[])content.Clone();
+        for (var c = 0; c < header.Length; c++)
+        {
+            if (header[c] is not { } h || h is ColumnRoles.Qty or ColumnRoles.Rate or ColumnRoles.Total) continue;
+            if (res.Contains(h) && res[c] != h) continue;   // content placed it elsewhere with evidence
+            if (res[c] is null) res[c] = h;
+        }
+        return res;
     }
 
     private static bool IsHeaderRow(TableGrid g, int r)
@@ -355,21 +372,31 @@ public static class ScheduleExtractor
             Apply(item.Qty, cands[0], q.v!.Value); Apply(item.Rate, cands[1], r.v!.Value); Apply(item.Total, cands[2], t.v!.Value);
             return;
         }
-        // one number unreadable: derive it from the other two and flag it
+        // one number unreadable: derive it from the other two - only when both were read the same way by two models - and flag it
         var vals = cands.Select(cs => cs.Select(c => ArabicText.ParseNumber(c.Value)).FirstOrDefault(v => v != null)).ToArray();
-        if (vals[0] is double qq && vals[1] is double rr && (vals[2] is null || item.Total.Status == FieldStatus.Missing))
+        bool Agreed(int i) => cands[i].Count >= 2 && cands[i].Select(c => ArabicText.ParseNumber(c.Value)).Where(v => v != null).Distinct().Count() == 1
+                              && cands[i].Count(c => ArabicText.ParseNumber(c.Value) != null) >= 2;
+        string Read(int i) => string.Join(" / ", cands[i].Select(c => c.Value).Distinct());
+        if (Agreed(0) && Agreed(1) && vals[0] is double q4 && vals[1] is double r4)
         {
-            Derive(item.Total, Math.Round(qq * rr, 2), "qty x rate (total cell unreadable)");
+            var read = Read(2);
+            Apply(item.Qty, cands[0], q4); Apply(item.Rate, cands[1], r4);
+            Derive(item.Total, Math.Round(q4 * r4, 2), read.Length == 0 ? "qty x rate (total cell unreadable)" : $"qty x rate - the total cell read '{read}' (stamp / smudge?)");
+            item.Total.Candidates.AddRange(cands[2]);
             return;
         }
-        if (vals[1] is double r2 && vals[2] is double t2 && r2 > 0 && (vals[0] is null || item.Qty.Status == FieldStatus.Missing))
+        if (Agreed(1) && Agreed(2) && vals[1] is double r2 && vals[2] is double t2 && r2 > 0)
         {
-            Derive(item.Qty, Math.Round(t2 / r2, 3), "total / rate (qty cell unreadable)");
+            Apply(item.Rate, cands[1], r2); Apply(item.Total, cands[2], t2);
+            Derive(item.Qty, Math.Round(t2 / r2, 3), $"total / rate - the qty cell read '{Read(0)}'");
+            item.Qty.Candidates.AddRange(cands[0]);
             return;
         }
-        if (vals[0] is double q3 && vals[2] is double t3 && q3 > 0 && (vals[1] is null || item.Rate.Status == FieldStatus.Missing))
+        if (Agreed(0) && Agreed(2) && vals[0] is double q3 && vals[2] is double t3 && q3 > 0)
         {
-            Derive(item.Rate, Math.Round(t3 / q3, 3), "total / qty (rate cell unreadable)");
+            Apply(item.Qty, cands[0], q3); Apply(item.Total, cands[2], t3);
+            Derive(item.Rate, Math.Round(t3 / q3, 3), $"total / qty - the rate cell read '{Read(1)}'");
+            item.Rate.Candidates.AddRange(cands[1]);
             return;
         }
         // readings exist but disagree with the arithmetic: flag all three - never pick silently

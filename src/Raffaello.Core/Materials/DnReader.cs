@@ -77,24 +77,42 @@ public static class DnReader
         h.SourceFile = text.FileName;
         h.ImportedAt = DateTime.Now;
         h.Source = text.Pages.Any(p => p.Source == TextSource.TextLayer) ? TextSource.TextLayer : text.Pages.Any(p => p.Source == TextSource.Ocr) ? TextSource.Ocr : TextSource.None;
-        var lines = text.AllLines.ToList();
+        // OCR of photos: Arabic-Indic digits, "RAF-P,O-E-045" (comma for dot)
+        var lines = text.AllLines.Select(l => Regex.Replace(Documents.ArabicText.NormalizeDigits(l), @"\bP\s?[,.]\s?O\s?[,.]?-", "P.O-")).ToList();
         var all = string.Join("\n", lines);
 
         var dn = DnNoRx.Match(all);
         if (dn.Success) h.DnNo = dn.Groups[1].Value;
+        // photo / scan layout: "Delivery Number / Date 81064344 / 15.08.2026"
+        var dn2 = Regex.Match(all, @"Delivery\s+Number\s*/\s*Date\s*:?\s*(\d{6,10})\s*/?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})?", RegexOptions.IgnoreCase);
+        if (dn2.Success)
+        {
+            h.DnNo = dn2.Groups[1].Value;
+            if (dn2.Groups[2].Success) h.DnDate = TextScan.ParseDate(dn2.Groups[2].Value.Replace('/', '.').Replace('-', '.'));
+        }
         var poLine = lines.FirstOrDefault(l => PoRx.IsMatch(l));
         if (poLine != null)
         {
             var pm = PoRx.Match(poLine);
             h.PoNo = Regex.Replace(pm.Groups[1].Value, @"^P\.?O\.?\s*(?:No\.?|#|:)\s*", "", RegexOptions.IgnoreCase).Trim();
             var dates = TextScan.Dates(poLine).ToList();
-            h.DnDate = dates.Where(d => d.Index < pm.Index).Select(d => (DateTime?)d.Date).FirstOrDefault() ?? dates.Select(d => (DateTime?)d.Date).FirstOrDefault();
+            if (h.DnDate is null) h.DnDate = dates.Where(d => d.Index < pm.Index).Select(d => (DateTime?)d.Date).FirstOrDefault() ?? dates.Select(d => (DateTime?)d.Date).FirstOrDefault();
             var after = dates.Where(d => d.Index > pm.Index).ToList();
             if (after.Count > 0) h.PoDate = after[0].Date;
             var rest = poLine[(pm.Index + pm.Length)..];
             var nums = Regex.Matches(TextScan.DatePattern.Replace(rest, " "), @"(?<![\d.,])\d{6,10}(?![\d.,])").Select(m => m.Value).ToList();
             if (nums.Count > 0) h.OrderNo = nums[0];
             if (nums.Count > 1) h.CustomerNo = nums[^1];
+            if (h.OrderNo.Length == 0)
+            {
+                var ord = Regex.Match(all, @"Order\s+Number\s*/\s*Date\s*:?\s*\n?\s*(\d{6,10})", RegexOptions.IgnoreCase);
+                if (ord.Success) h.OrderNo = ord.Groups[1].Value;
+            }
+            if (h.CustomerNo.Length == 0)
+            {
+                var cus = Regex.Match(all, @"Customer\s+No\.?\s*:?\s*(\d{6,10})", RegexOptions.IgnoreCase);
+                if (cus.Success) h.CustomerNo = cus.Groups[1].Value;
+            }
         }
         h.DnDate ??= lines.SelectMany(TextScan.Dates).Select(d => (DateTime?)d.Date).FirstOrDefault();
         h.TruckNo = TextScan.LabelValue(lines, @"Truck\s+No\.?") ?? "";

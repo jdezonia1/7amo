@@ -47,7 +47,7 @@ public static class TextQuality
     private static readonly Regex DigitLetterConfusion = new(@"(?<![A-Za-z])(?:\d+[Oo]+\d*|[Oo]\d{2,}|\d+[Oo]\b|\d+[lI]\d+)(?![A-Za-z]{2})", RegexOptions.Compiled);
     private static readonly Regex RepeatedIndic = new(@"([٠-٩۰-۹])\1{2,}", RegexOptions.Compiled);
     private static readonly Regex Numberish = new(@"^[\(\[]?[-+]?[\d٠-٩][\d٠-٩.,/:%\-xX×*]*[\)\]]?[.,:;]?$", RegexOptions.Compiled);
-    private static readonly Regex Codeish = new(@"^[A-Za-z0-9][A-Za-z0-9._/\-²³]*[A-Za-z0-9]$", RegexOptions.Compiled);
+    private static readonly Regex Codeish = new(@"^[A-Za-z0-9(][A-Za-z0-9._/\-²³+#&:,()]*[A-Za-z0-9.)]$", RegexOptions.Compiled);
 
     public static TextQualityReport Score(string? text)
     {

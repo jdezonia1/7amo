@@ -52,6 +52,16 @@ public sealed class UnavailableVisionReader : IVisionReader
 public sealed class ReaderOptions
 {
     public IOcrEngine Ocr { get; init; } = NullOcrEngine.Instance;
+    /// <summary>Layout OCR engines (PaddleOCR, Windows OCR) - when set, PDFs go through <see cref="Smart.SmartReader"/>.</summary>
+    public IReadOnlyList<Ocr.ILayoutOcrEngine> LayoutEngines { get; init; } = Array.Empty<Ocr.ILayoutOcrEngine>();
+    /// <summary>PDF page renderer for OCR at 300 dpi.</summary>
+    public Ocr.IPageRasterizer? Rasterizer { get; init; }
+    public IProgress<string>? Progress { get; init; }
+    public bool UsesSmartReader => LayoutEngines.Any(e => e.IsAvailable);
+    public Smart.SmartReaderOptions Smart() => new()
+    {
+        Engines = LayoutEngines, Rasterizer = Rasterizer, Vision = Vision, Progress = Progress,
+    };
     public IVisionReader? Vision { get; init; }
     /// <summary>Metres per piece used when a DN in PCS is matched to a PO line in M.</summary>
     public double PipeLengthM { get; init; } = 6;
@@ -64,9 +74,36 @@ public static class ReaderPipeline
 {
     public static async Task<DocText> ReadPdfAsync(string path, ReaderOptions options, CancellationToken ct = default)
     {
-        var text = PdfTextReader.Read(path);
+        if (options.UsesSmartReader)
+        {
+            var smart = await Smart.SmartReader.ReadAsync(path, options.Smart(), ct).ConfigureAwait(false);
+            return smart.ToDocText();
+        }
+        var text = DropGarbageLayers(PdfTextReader.Read(path));
         await OcrScansAsync(text, options, ct).ConfigureAwait(false);
         return text;
+    }
+
+    /// <summary>
+    /// Pages whose text layer is implausible (scanner OCR that reversed the Arabic, letter O for zero ...) are treated as scans: the text
+    /// is dropped so the parsers never read it and the page is sent to OCR / vision instead.
+    /// </summary>
+    public static DocText DropGarbageLayers(DocText text)
+    {
+        var res = new DocText { FileName = text.FileName };
+        foreach (var p in text.Pages)
+        {
+            if (!p.HasTextLayer) { res.Pages.Add(p); continue; }
+            var q = TextQuality.Score(p.Text);
+            var scanner = p.DominantImage is { Coverage: > 0.6 };
+            if (q.Score >= (scanner ? 0.85 : 0.75) || p.WordCount < 8 && !q.IsGarbage) { p.LayerQuality = q; res.Pages.Add(p); continue; }
+            res.Pages.Add(new DocPage
+            {
+                Number = p.Number, Text = "", Source = TextSource.None, HasTextLayer = false, WordCount = 0, DominantImage = p.DominantImage,
+                WidthPt = p.WidthPt, HeightPt = p.HeightPt, LayerQuality = q, Kind = p.Kind,
+            });
+        }
+        return res;
     }
 
     public static async Task OcrScansAsync(DocText text, ReaderOptions options, CancellationToken ct = default)
