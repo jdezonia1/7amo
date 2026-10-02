@@ -10,7 +10,7 @@
     <conv:NullToVisibilityConverter x:Key="NotNullToCollapsed" Invert="True"/>
     <conv:PercentToWidthConverter x:Key="PctWidth"/>
     <conv:UpperConverter x:Key="Upper"/>
-    <conv:NumberConverter x:Key="Num"/>
+    <conv:NumberConverter x:Key="NumConv"/>
 
     <!-- ============================================================ text styles -->
     <Style x:Key="PageTitle" TargetType="TextBlock">
