@@ -411,7 +411,7 @@ public class AssembliesTests
             Assert.Single(store.ItemSpecs());
             Assert.Equal(ItemTypes.SwitchPoint, ItemSpec.FromJson(store.ItemSpecs()[0].SpecJson)!.ItemType);
         }
-        finally { foreach (var f in new[] { path, path + "-wal", path + "-shm" }) if (File.Exists(f)) File.Delete(f); }
+        finally { TestData.DeleteDb(path); }
     }
 
     // ------------------------------------------------------------------ service, bulk, exports
@@ -507,7 +507,7 @@ public class AssembliesTests
         finally
         {
             if (Directory.Exists(outDir)) Directory.Delete(outDir, true);
-            foreach (var f in new[] { path, path + "-wal", path + "-shm" }) if (File.Exists(f)) File.Delete(f);
+            TestData.DeleteDb(path);
         }
     }
 

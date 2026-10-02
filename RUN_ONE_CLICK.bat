@@ -22,15 +22,22 @@ dotnet restore Raffaello.sln >> "%LOG%" 2>&1 || goto :fail
 echo [2/5] Building (Release)...
 dotnet build Raffaello.sln -c Release --no-restore >> "%LOG%" 2>&1 || goto :fail
 
-echo [3/5] Running tests...
-dotnet test tests\Raffaello.Core.Tests\Raffaello.Core.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
+echo [3/5] Running tests (all projects run; failures are listed at the end)...
+set TESTFAIL=0
+dotnet test tests\Raffaello.Core.Tests\Raffaello.Core.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || set TESTFAIL=1
 REM [phase5] begin: server tests (PostgreSQL integration tests skip themselves when no test database is reachable)
-dotnet test tests\Raffaello.Server.Tests\Raffaello.Server.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
+dotnet test tests\Raffaello.Server.Tests\Raffaello.Server.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || set TESTFAIL=1
 REM [phase5] end
 REM [phase6] Aconex browser tests against the local mock site (use Microsoft Edge; skipped when no browser can start)
-dotnet test tests\Raffaello.Automation.Tests\Raffaello.Automation.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
+dotnet test tests\Raffaello.Automation.Tests\Raffaello.Automation.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || set TESTFAIL=1
 REM smart document reader: offline OCR stack (PaddleOCR + OpenCV + PDFium) on synthetic pages
-dotnet test tests\Raffaello.Ocr.Tests\Raffaello.Ocr.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
+dotnet test tests\Raffaello.Ocr.Tests\Raffaello.Ocr.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || set TESTFAIL=1
+if "%TESTFAIL%"=="1" (
+  echo.
+  echo FAILED TESTS:
+  findstr /C:"[FAIL]" /C:"Failed!" /C:"Passed!" "%LOG%"
+  goto :fail
+)
 
 echo [4/5] Publishing self-contained win-x64 single file to publish\ ...
 dotnet publish src\Raffaello.App\Raffaello.App.csproj -c Release -r win-x64 --self-contained true ^

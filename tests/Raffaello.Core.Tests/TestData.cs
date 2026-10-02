@@ -19,6 +19,24 @@ internal static class TestData
 
     private static long _id;
 
+    /// <summary>
+    /// Deletes a temp SQLite file and its -wal / -shm. Microsoft.Data.Sqlite pools connections, so on Windows the file stays open
+    /// (IOException "being used by another process") until the pool is cleared; cleanup of a temp file never fails a test.
+    /// </summary>
+    public static void DeleteDb(string path)
+    {
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        foreach (var f in new[] { path, path + "-wal", path + "-shm" })
+            for (var attempt = 0; File.Exists(f); attempt++)
+            {
+                try { File.Delete(f); }
+                catch (IOException) when (attempt < 10) { Thread.Sleep(50); }
+                catch (IOException) { break; }
+            }
+    }
+
     public static string TempDir()
     {
         var d = Path.Combine(Path.GetTempPath(), "raffaello-tests", Guid.NewGuid().ToString("N"));
