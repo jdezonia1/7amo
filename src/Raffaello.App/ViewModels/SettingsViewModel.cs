@@ -38,16 +38,19 @@ public sealed partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private bool _useFallbacks = true;
     [ObservableProperty] private string _keyStatus = "";
 
-    partial void OnThemeChanged(string value) { if (IsActive) Ctx.Theme.Apply(value, Accent); }
-    partial void OnAccentChanged(string value) { if (IsActive) Ctx.Theme.Apply(Theme, value); }
+    private bool _loading;
+    partial void OnThemeChanged(string value) { if (IsActive && !_loading) Ctx.Theme.Apply(value, Accent); }
+    partial void OnAccentChanged(string value) { if (IsActive && !_loading) Ctx.Theme.Apply(Theme, value); }
 
     protected override void Refresh()
     {
         var s = Project.Settings;
         UserName = s.EffectiveUserName;
         DataFilePath = s.DataFilePath;
-        _theme = s.Theme; OnPropertyChanged(nameof(Theme));
-        _accent = s.Accent; OnPropertyChanged(nameof(Accent));
+        _loading = true;
+        Theme = s.Theme;
+        Accent = s.Accent;
+        _loading = false;
         SeedDemoData = s.SeedDemoData;
         WirDueDays = s.WirDueDays.ToString(CultureInfo.InvariantCulture);
         SiteTolerance = (s.SiteTolerance * 100).ToString("0", CultureInfo.InvariantCulture);
@@ -78,7 +81,7 @@ public sealed partial class SettingsViewModel : PageViewModel
         s.AnthropicEffort = Effort;
         s.UseServerFallbacks = UseFallbacks;
         s.Save();
-        Project.Db.User = s.EffectiveUserName;
+        Project.CurrentUser = s.EffectiveUserName;
         if (pathChanged)
         {
             await Task.Run(() => Project.Initialize());

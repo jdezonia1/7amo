@@ -48,7 +48,7 @@ public sealed class DataService
         }
         catch (Exception ex)
         {
-            toasts.Show("SAVE FAILED", Db.Describe(ex), ToastKind.Error);
+            toasts.Show("SAVE FAILED", StoreErrors.Describe(ex), ToastKind.Error);
             return false;
         }
     }
@@ -174,8 +174,8 @@ public sealed partial class PresenceService : ObservableObject
             var screen = _selection.Screen;
             var others = await Task.Run(() =>
             {
-                _data.Project.Db.Heartbeat(screen);
-                return _data.Project.Db.OthersOnline(TimeSpan.FromMinutes(3));
+                _data.Project.Heartbeat(screen);
+                return _data.Project.OthersOnline(TimeSpan.FromMinutes(3));
             });
             OthersCount = others.Count;
             OthersOnline = others.Count == 0 ? "Only you" : string.Join(", ", others.Select(o => $"{o.User} ({o.Screen})"));

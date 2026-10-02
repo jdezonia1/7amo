@@ -87,7 +87,13 @@ public sealed partial class FilterState : ObservableObject
         var rooms = _data.Project.Snapshot.Lines.Where(l => spec.Matches(l.Building, l.Level, l.Room, l.System, l.Stage))
             .Select(l => l.Room).Distinct().OrderBy(r => r, StringComparer.OrdinalIgnoreCase);
         Sync(Rooms, new[] { All }.Concat(rooms));
-        if (!Rooms.Contains(Room)) { _room = All; OnPropertyChanged(nameof(Room)); }
+        if (!Rooms.Contains(Room))
+        {
+            var was = _suspend;
+            _suspend = true;
+            Room = All;
+            _suspend = was;
+        }
     }
 
     private static void Sync(ObservableCollection<string> target, IEnumerable<string> items)

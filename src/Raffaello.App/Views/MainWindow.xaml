@@ -5,7 +5,7 @@
         xmlns:vm="clr-namespace:Raffaello.App.ViewModels"
         xmlns:pages="clr-namespace:Raffaello.App.Views.Pages"
         Title="Raffaello" Width="1366" Height="768" MinWidth="1080" MinHeight="620"
-        WindowStartupLocation="CenterScreen" Icon="{StaticResource LogoImage}"
+        WindowStartupLocation="CenterScreen" Icon="pack://application:,,,/Assets/raffaello.ico"
         Background="{DynamicResource BgBrush}" Foreground="{DynamicResource InkBrush}"
         FontFamily="{StaticResource FontSans}" FontSize="14"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">

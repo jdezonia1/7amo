@@ -141,15 +141,7 @@ public sealed partial class ContractsViewModel : PageViewModel
         }
         if (updates.Count == 0) { Ctx.Toasts.Show("NOTHING TO APPLY", "Every line already has a PROJECT QTY."); return; }
         if (!Ctx.Dialogs.Confirm("Apply PROJECT QTY", $"Fill PROJECT QTY on {updates.Count} lines that are empty, pro-rata to QS?")) { await Ctx.Data.ReloadAsync(); return; }
-        await Ctx.Data.WriteAsync(p =>
-        {
-            p.Db.InTransaction(w =>
-            {
-                foreach (var l in updates)
-                    w.Execute("UPDATE QtyLines SET ProjectQty=@Q, UpdatedBy=@By, UpdatedAt=@At, RowVersion=RowVersion+1 WHERE Id=@Id AND RowVersion=@V", new { Q = l.ProjectQty, By = p.Db.User, At = DateTime.Now, l.Id, V = l.RowVersion });
-            }, $"PROJECT QTY filled on {updates.Count} lines from BOQ");
-            p.Reload();
-        }, Ctx.Toasts, $"PROJECT QTY filled on {updates.Count} lines");
+        await Ctx.Data.WriteAsync(p => p.FillProjectQty(updates), Ctx.Toasts, $"PROJECT QTY filled on {updates.Count} lines");
     }
 
     public override IEnumerable<ExportSheet> ExportCurrentView()

@@ -81,7 +81,7 @@ public sealed partial class ImportViewModel : ObservableObject
         if (_result is null || !_result.CanCommit) return;
         IsBusy = true;
         var r = _result;
-        var ok = await _data.WriteAsync(p => { r.Commit(p.Db); p.Reload(); }, _toasts, $"IMPORTED {r.Kind}: {r.ValidRows:N0} rows");
+        var ok = await _data.WriteAsync(p => p.CommitImport(r), _toasts, $"IMPORTED {r.Kind}: {r.ValidRows:N0} rows");
         IsBusy = false;
         if (ok) CloseRequested?.Invoke(true);
     }

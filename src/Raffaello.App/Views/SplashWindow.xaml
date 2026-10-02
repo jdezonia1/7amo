@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="clr-namespace:Raffaello.App.Controls"
         Title="Raffaello" Width="560" Height="330" WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True"
-        Background="Transparent" WindowStartupLocation="CenterScreen" ShowInTaskbar="True" Icon="{StaticResource LogoImage}">
+        Background="Transparent" WindowStartupLocation="CenterScreen" ShowInTaskbar="True" Icon="pack://application:,,,/Assets/raffaello.ico">
     <Border Background="{StaticResource SidebarBrush}" CornerRadius="18" ClipToBounds="True">
         <Grid>
             <Border Height="3" VerticalAlignment="Top" Background="{DynamicResource AccentBrush}" CornerRadius="18,18,0,0"/>

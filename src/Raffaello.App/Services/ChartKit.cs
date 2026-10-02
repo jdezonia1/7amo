@@ -27,7 +27,7 @@ public static class ChartKit
     public static SKColor Graphite => Sk("Graphite");
     public static SKColor Good => Sk("Good");
     public static SKColor Muted => Sk("Muted");
-    public static SKColor Line => Sk("Line");
+    public static SKColor LineColor => Sk("Line");
     public static SKColor Ink => Sk("Ink");
 
     public static SKColor[] Series => new[] { Accent, Yellow, Graphite, Good, Sk("Ink2"), Sk("AccentSoft") };
@@ -56,7 +56,7 @@ public static class ChartKit
         TextSize = 11,
         MinLimit = min,
         MaxLimit = max,
-        SeparatorsPaint = new SolidColorPaint(Line.WithAlpha(110), 1),
+        SeparatorsPaint = new SolidColorPaint(LineColor.WithAlpha(110), 1),
     };
 
     public static Axis YPercent(double max = 1) => YValues(v => v.ToString("P0"), 0, max);

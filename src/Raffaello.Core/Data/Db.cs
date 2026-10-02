@@ -23,7 +23,7 @@ public sealed class ConcurrencyException : Exception
 /// Tiny SQLite store for a shared-drive data file: WAL mode, busy timeout, reflection-mapped tables,
 /// optimistic concurrency on RowVersion and an AuditLog row for every change (same transaction).
 /// </summary>
-public sealed class Db
+public sealed class Db : IProjectStore
 {
     public static readonly Type[] EntityTypes =
     {
@@ -35,6 +35,7 @@ public sealed class Db
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropCache = new();
 
     public string Path { get; }
+    public string Location => Path;
     public string User { get; set; }
     public string Machine { get; set; }
     public int BusyTimeoutMs { get; set; } = 8000;
@@ -113,7 +114,9 @@ public sealed class Db
 
     // ------------------------------------------------------------------ reads
 
-    public List<T> All<T>(string? where = null, object? args = null) where T : new()
+    public List<T> All<T>() where T : new() => All<T>(null, null);
+
+    public List<T> All<T>(string? where, object? args = null) where T : new()
     {
         using var c = Open();
         return Query<T>(c, null, $"SELECT * FROM [{TableOf<T>()}]" + (where is null ? "" : " WHERE " + where), args);
@@ -211,6 +214,13 @@ public sealed class Db
     {
         using var c = Open();
         using var tx = c.BeginTransaction();
+        UpdateCore(c, tx, e, summary, audit: true);
+        tx.Commit();
+        return e;
+    }
+
+    internal void UpdateCore<T>(SqliteConnection c, SqliteTransaction tx, T e, string? summary, bool audit) where T : Entity, new()
+    {
         var before = Query<T>(c, tx, $"SELECT * FROM [{TableOf<T>()}] WHERE Id=@Id", new { e.Id }).FirstOrDefault()
                      ?? throw new InvalidOperationException($"{TableOf<T>()} #{e.Id} no longer exists.");
         if (before.RowVersion != e.RowVersion) throw new ConcurrencyException(TableOf<T>(), e.Id, before.UpdatedBy);
@@ -230,9 +240,8 @@ public sealed class Db
         }
         e.RowVersion = oldVersion + 1;
         var diff = Diff(before, e);
-        Audit(c, tx, TableOf<T>(), e.Id, "UPDATE", summary ?? $"Changed {typeof(T).Name} #{e.Id}: {string.Join(", ", diff.Keys)}", JsonSerializer.Serialize(diff));
-        tx.Commit();
-        return e;
+        if (audit || diff.Count > 0)
+            Audit(c, tx, TableOf<T>(), e.Id, "UPDATE", summary ?? $"Changed {typeof(T).Name} #{e.Id}: {string.Join(", ", diff.Keys)}", JsonSerializer.Serialize(diff));
     }
 
     public void Delete<T>(T e, string? summary = null) where T : Entity
@@ -262,13 +271,16 @@ public sealed class Db
         tx.Commit();
     }
 
-    public sealed class TxWriter
+    public void Batch(Action<IStoreBatch> work, string summary) => InTransaction(w => work(w), summary);
+
+    public sealed class TxWriter : IStoreBatch
     {
         private readonly Db _db; private readonly SqliteConnection _c; private readonly SqliteTransaction _tx;
         internal TxWriter(Db db, SqliteConnection c, SqliteTransaction tx) { _db = db; _c = c; _tx = tx; }
         public T Insert<T>(T e) where T : Entity { _db.InsertCore(_c, _tx, e); return e; }
         public int InsertMany<T>(IEnumerable<T> rows) where T : Entity => _db.InsertManyCore(_c, _tx, rows);
-        public void Execute(string sql, object? args = null) { using var cmd = _c.CreateCommand(); cmd.Transaction = _tx; cmd.CommandText = sql; Bind(cmd, args); cmd.ExecuteNonQuery(); }
+        public void Update<T>(T e) where T : Entity, new() => _db.UpdateCore(_c, _tx, e, null, audit: false);
+        internal void Execute(string sql, object? args = null) { using var cmd = _c.CreateCommand(); cmd.Transaction = _tx; cmd.CommandText = sql; Bind(cmd, args); cmd.ExecuteNonQuery(); }
     }
 
     public void ClearAll()

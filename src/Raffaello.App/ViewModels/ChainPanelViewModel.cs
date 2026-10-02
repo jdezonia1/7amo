@@ -103,7 +103,7 @@ public sealed partial class ChainPanelViewModel : ObservableObject
     private async Task SaveEdits()
     {
         if (Row is null) return;
-        var line = _ctx.Project.Db.Get<QtyLine>(Row.Id);
+        var line = _ctx.Project.GetLine(Row.Id);
         if (line is null) return;
         if (line.RowVersion != Row.Line.RowVersion)
         {

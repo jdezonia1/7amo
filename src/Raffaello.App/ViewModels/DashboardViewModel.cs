@@ -215,7 +215,7 @@ public sealed partial class DashboardViewModel : PageViewModel
         foreach (var q in queue.Take(30)) Queue.Add(q);
         QueueCount = $"{queue.Count} ITEMS";
         Activity.Clear();
-        foreach (var a in p.Db.RecentAudit(25))
+        foreach (var a in p.RecentActivity(25))
             Activity.Add(new(a.At.ToString("dd MMM HH:mm"), a.User, a.Action, a.Summary));
     }
 

@@ -1,0 +1,45 @@
+@echo off
+REM ============================================================
+REM  RAFFAELLO - one click: restore, build, test, publish, launch
+REM  Needs the .NET 8 SDK (https://dotnet.microsoft.com/download/dotnet/8.0)
+REM  Writes everything to build_log.txt (send this file if it fails)
+REM ============================================================
+setlocal
+cd /d "%~dp0"
+set LOG=%~dp0build_log.txt
+echo RAFFAELLO BUILD %DATE% %TIME% > "%LOG%"
+dotnet --info >> "%LOG%" 2>&1
+if errorlevel 1 (
+  echo .NET SDK not found. Install the .NET 8 SDK and run again.
+  echo .NET SDK not found >> "%LOG%"
+  pause
+  exit /b 1
+)
+
+echo [1/5] Restoring packages...
+dotnet restore Raffaello.sln >> "%LOG%" 2>&1 || goto :fail
+
+echo [2/5] Building (Release)...
+dotnet build Raffaello.sln -c Release --no-restore >> "%LOG%" 2>&1 || goto :fail
+
+echo [3/5] Running tests...
+dotnet test tests\Raffaello.Core.Tests\Raffaello.Core.Tests.csproj -c Release --no-build >> "%LOG%" 2>&1 || goto :fail
+
+echo [4/5] Publishing self-contained win-x64 single file to publish\ ...
+dotnet publish src\Raffaello.App\Raffaello.App.csproj -c Release -r win-x64 --self-contained true ^
+  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None ^
+  -o publish >> "%LOG%" 2>&1 || goto :fail
+
+echo [5/5] Launching Raffaello...
+echo BUILD OK >> "%LOG%"
+start "" "%~dp0publish\Raffaello.exe"
+echo Done. Log: %LOG%
+exit /b 0
+
+:fail
+echo.
+echo BUILD FAILED - see build_log.txt (last lines below)
+echo BUILD FAILED >> "%LOG%"
+powershell -NoProfile -Command "Get-Content -Path '%LOG%' -Tail 30"
+pause
+exit /b 1

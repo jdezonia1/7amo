@@ -53,6 +53,23 @@ public class DbTests
     }
 
     [Fact]
+    public void Batch_UpdateWithStaleRowVersion_RollsBackEverything()
+    {
+        IProjectStore store = TestData.NewDb();
+        var a = store.Insert(new QtyLine { Room = "A", QsQty = 1 });
+        var b = store.Insert(new QtyLine { Room = "B", QsQty = 1 });
+        var staleB = store.Get<QtyLine>(b.Id)!;
+        var fresh = store.Get<QtyLine>(b.Id)!;
+        fresh.QsQty = 5;
+        store.Update(fresh);
+        a.QsQty = 9;
+        staleB.QsQty = 7;
+        Assert.Throws<ConcurrencyException>(() => store.Batch(w => { w.Update(a); w.Update(staleB); }, "test"));
+        Assert.Equal(1, store.Get<QtyLine>(a.Id)!.QsQty);   // first update rolled back
+        Assert.Equal(5, store.Get<QtyLine>(b.Id)!.QsQty);
+    }
+
+    [Fact]
     public void Store_UsesWalMode()
     {
         var db = TestData.NewDb();

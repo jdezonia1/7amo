@@ -158,7 +158,7 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
     public async Task ReloadAsync()
     {
         await Ctx.Data.ReloadAsync();
-        Ctx.Toasts.Show("DATA RELOADED", $"{Ctx.Project.Snapshot.Lines.Count:N0} lines from {System.IO.Path.GetFileName(Ctx.Project.Db.Path)}", ToastKind.Good, 3);
+        Ctx.Toasts.Show("DATA RELOADED", $"{Ctx.Project.Snapshot.Lines.Count:N0} lines from {Ctx.Project.DataLocation}", ToastKind.Good, 3);
     }
 
     [RelayCommand]

@@ -109,7 +109,7 @@ public sealed partial class MaterialsViewModel : PageViewModel
             GeometrySize = 30,
         }).ToArray();
         TimelineX = new[] { new Axis { Labeler = v => DateTime.FromOADate(Math.Max(1, v)).ToString("dd MMM"), LabelsPaint = new SolidColorPaint(ChartKit.Muted), TextSize = 11, SeparatorsPaint = null } };
-        TimelineY = new[] { new Axis { Labels = lanes.ToArray(), LabelsPaint = new SolidColorPaint(ChartKit.Muted), TextSize = 11, MinStep = 1, ForceStepToMin = true, MinLimit = -0.6, MaxLimit = lanes.Count - 0.4, SeparatorsPaint = new SolidColorPaint(ChartKit.Line.WithAlpha(90), 1) } };
+        TimelineY = new[] { new Axis { Labels = lanes.ToArray(), LabelsPaint = new SolidColorPaint(ChartKit.Muted), TextSize = 11, MinStep = 1, ForceStepToMin = true, MinLimit = -0.6, MaxLimit = lanes.Count - 0.4, SeparatorsPaint = new SolidColorPaint(ChartKit.LineColor.WithAlpha(90), 1) } };
     }
 
     private void LoadPo()

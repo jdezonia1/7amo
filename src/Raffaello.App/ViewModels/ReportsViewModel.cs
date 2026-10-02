@@ -10,6 +10,7 @@ using Raffaello.Core.Analytics;
 using Raffaello.Core.Chain;
 using Raffaello.Core.Domain;
 using Raffaello.Core.Export;
+using Raffaello.Core.Rules;
 
 namespace Raffaello.App.ViewModels;
 

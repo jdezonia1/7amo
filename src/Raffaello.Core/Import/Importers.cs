@@ -25,9 +25,9 @@ public sealed class ImportPreview
     public int WarningCount => Issues.Count(i => i.Level == IssueLevel.Warning);
     public bool CanCommit => ValidRows > 0;
     public string Summary { get; set; } = "";
-    internal Func<Db, int>? CommitAction { get; set; }
+    internal Func<IProjectStore, int>? CommitAction { get; set; }
 
-    public int Commit(Db db)
+    public int Commit(IProjectStore db)
     {
         if (CommitAction is null) return 0;
         var n = CommitAction(db);
@@ -122,11 +122,10 @@ public sealed class QsExportImporter : IImporter
         p.Summary = $"{agg.Count} room/system/stage lines: {inserts.Count} new, {updates.Count} changed.";
         p.CommitAction = db =>
         {
-            db.InTransaction(w =>
+            db.Batch(w =>
             {
                 w.InsertMany(inserts);
-                foreach (var (line, qs) in updates)
-                    w.Execute("UPDATE QtyLines SET QsQty=@Qs, UpdatedBy=@By, UpdatedAt=@At, RowVersion=RowVersion+1 WHERE Id=@Id", new { Qs = qs, By = db.User, At = DateTime.Now, line.Id });
+                foreach (var (line, qs) in updates) { line.QsQty = qs; w.Update(line); }
             }, $"QSEXPORT import: {inserts.Count} new lines, {updates.Count} QS changes");
             return inserts.Count + updates.Count;
         };
@@ -222,7 +221,7 @@ public sealed class WirImporter : IImporter
         p.Summary = $"{newWirs.Count} new WIRs, {lines.Count} lines.";
         p.CommitAction = db =>
         {
-            db.InTransaction(w =>
+            db.Batch(w =>
             {
                 foreach (var wir in newWirs.Values) w.Insert(wir);
                 foreach (var (no, l) in lines) { l.WirId = newWirs[no].Id; w.Insert(l); }
@@ -276,7 +275,7 @@ public sealed class InvoiceImporter : IImporter
         p.Summary = $"{invoices.Count} statement(s), {lines.Count} lines.";
         p.CommitAction = db =>
         {
-            db.InTransaction(w =>
+            db.Batch(w =>
             {
                 foreach (var inv in invoices.Values) w.Insert(inv);
                 foreach (var (key, l) in lines) { l.InvoiceId = invoices[key].Id; w.Insert(l); }
@@ -329,7 +328,7 @@ public sealed class PoImporter : IImporter
         p.Summary = $"{pos.Count} PO(s), {lines.Count} lines.";
         p.CommitAction = db =>
         {
-            db.InTransaction(w =>
+            db.Batch(w =>
             {
                 foreach (var po in pos.Values) w.Insert(po);
                 foreach (var (no, l) in lines) { l.PoId = pos[no].Id; w.Insert(l); }
@@ -383,7 +382,7 @@ public sealed class DnImporter : IImporter
         p.Summary = $"{dns.Count} DN(s), {lines.Count} lines.";
         p.CommitAction = db =>
         {
-            db.InTransaction(w =>
+            db.Batch(w =>
             {
                 foreach (var dn in dns.Values) w.Insert(dn);
                 foreach (var (no, l) in lines) { l.DnId = dns[no].Id; w.Insert(l); }

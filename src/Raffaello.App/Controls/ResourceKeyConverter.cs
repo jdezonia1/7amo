@@ -12,3 +12,11 @@ public sealed class ResourceKeyConverter : IValueConverter
         value is string key ? Application.Current.TryFindResource(key) : null;
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
 }
+
+/// <summary>Boolean negation for IsEnabled bindings.</summary>
+public sealed class NotConverter : IValueConverter
+{
+    public static readonly NotConverter Instance = new();
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value is not true;
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => value is not true;
+}

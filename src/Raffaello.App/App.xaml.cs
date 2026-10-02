@@ -31,6 +31,20 @@ public partial class App : Application
     {
         base.OnStartup(e);
         DispatcherUnhandledException += OnUnhandled;
+        try
+        {
+            await StartAsync();
+        }
+        catch (Exception ex)
+        {
+            Log(ex);
+            MessageBox.Show($"Raffaello could not start.\n\n{ex.Message}\n\nDetails: {ErrorLogPath}", "Raffaello", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+        }
+    }
+
+    private async Task StartAsync()
+    {
 
         var settings = AppSettings.Load();
         var theme = new ThemeService();

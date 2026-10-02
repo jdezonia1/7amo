@@ -69,13 +69,13 @@ public sealed partial class WelcomeViewModel : PageViewModel
         SinceWhen = $"SINCE YOU WERE LAST HERE  |  {since:dd MMM HH:mm}".ToUpperInvariant();
         var overNow = p.Chain.Where(r => r.Verdict == Verdict.Over).Select(r => r.Id).ToHashSet();
         var newOver = p.Settings.LastOverLineIds.Count == 0 ? overNow.Count(id => p.ChainById[id].Line.UpdatedAt > since) : overNow.Count(id => !p.Settings.LastOverLineIds.Contains(id));
-        var audit = p.Db.RecentAudit(500, since);
+        var audit = p.RecentActivity(500, since);
         Since.Clear();
         Since.Add(new("NEW WIRS", s.Wirs.Count(w => w.Kind == "WIR" && w.SubmittedAt > since.Date), "Wir", "OPEN"));
         Since.Add(new("NEW DNS", s.DeliveryNotes.Count(d => d.DnDate > since.Date), "Materials", "OK"));
         Since.Add(new("INVOICES RECEIVED", s.Invoices.Count(i => i.InvDate > since.Date), "Statements", "DUE"));
         Since.Add(new("NEW OVER LINES", newOver, "Quantities", "OVER"));
-        Since.Add(new("CHANGES BY OTHERS", audit.Count(a => !string.Equals(a.User, p.Db.User, StringComparison.OrdinalIgnoreCase)), "Dashboard", "CHECK"));
+        Since.Add(new("CHANGES BY OTHERS", audit.Count(a => !string.Equals(a.User, p.CurrentUser, StringComparison.OrdinalIgnoreCase)), "Dashboard", "CHECK"));
 
         TopQueue.Clear();
         foreach (var q in p.Queue.Take(5)) TopQueue.Add(q);
@@ -92,10 +92,10 @@ public sealed partial class WelcomeViewModel : PageViewModel
         foreach (var f in p.Settings.RecentFiles.Take(4))
             Recent.Add(new("FILE", Path.GetFileName(f), "", Path.GetDirectoryName(f) ?? ""));
 
-        DataPath = p.Db.Path;
+        DataPath = p.DataLocation;
         try
         {
-            var fi = new FileInfo(p.Db.Path);
+            var fi = new FileInfo(p.DataLocation);
             DataSize = fi.Exists ? $"{fi.Length / 1024.0 / 1024.0:N1} MB  |  WAL mode" : "not created yet";
             DataModified = fi.Exists ? $"last write {fi.LastWriteTime:dd MMM HH:mm}" : "";
         }

@@ -69,10 +69,10 @@ public sealed class DemoSeeder
 
     // ------------------------------------------------------------------ main
 
-    public void Seed(Db db)
+    public void Seed(IProjectStore db)
     {
         var plan = BuildPlan();
-        db.InTransaction(w =>
+        db.Batch(w =>
         {
             foreach (var s in plan.Subs) w.Insert(s);
             foreach (var c in plan.Contracts) w.Insert(c);
@@ -298,7 +298,7 @@ public sealed class DemoSeeder
 
     // ------------------------------------------------------------------ WIRs
 
-    private void SeedWirs(Db.TxWriter w, Plan p)
+    private void SeedWirs(IStoreBatch w, Plan p)
     {
         var groups = p.Lines.GroupBy(l => (l.Sub, l.Line.Building, l.Line.Level, l.Line.System, l.Line.Stage)).ToList();
         var doneGroups = groups.Where(g => g.Sum(l => l.DoneTarget) > 0).ToList();
@@ -411,7 +411,7 @@ public sealed class DemoSeeder
 
     // ------------------------------------------------------------------ statements
 
-    private void SeedInvoices(Db.TxWriter w, Plan p)
+    private void SeedInvoices(IStoreBatch w, Plan p)
     {
         var monthEnd = new DateTime(_today.Year, _today.Month, 1).AddDays(-1);
         var schedule = new List<(string sub, string no, DateTime date, string status)>
@@ -480,7 +480,7 @@ public sealed class DemoSeeder
 
     // ------------------------------------------------------------------ materials
 
-    private void SeedMaterials(Db.TxWriter w, Plan p)
+    private void SeedMaterials(IStoreBatch w, Plan p)
     {
         // device POs sized from the final-fix points so DELIVERED sits on the chain lines
         double FinalQs(string sys) => p.Lines.Where(l => l.Line.Stage == Stages.Final && l.Line.System == sys).Sum(l => l.Line.QsQty);
@@ -586,7 +586,7 @@ public sealed class DemoSeeder
 
     // ------------------------------------------------------------------ aconex
 
-    private void SeedAconex(Db.TxWriter w, Plan p)
+    private void SeedAconex(IStoreBatch w, Plan p)
     {
         foreach (var wir in p.Wirs)
         {
