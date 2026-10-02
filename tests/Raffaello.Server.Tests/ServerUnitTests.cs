@@ -70,6 +70,8 @@ public sealed class ServerUnitTests
         Assert.DoesNotContain("/", DocumentStore.SafeName("../../evil.pdf"));
         Assert.EndsWith("evil.pdf", traversal);
         Assert.Equal("file.bin", DocumentStore.SafeName("  "));
+        Assert.Equal("file.bin", DocumentStore.SafeName(".."));
+        Assert.Equal("evil.pdf", DocumentStore.SafeName("C:\\temp\\evil.pdf"));
         Assert.True(DocumentStore.SafeName(new string('x', 300) + ".pdf").Length <= 120);
     }
 

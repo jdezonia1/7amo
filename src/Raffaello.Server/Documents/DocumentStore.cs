@@ -116,10 +116,12 @@ public sealed class DocumentStore
 
     public static string SafeName(string? name)
     {
-        var n = Path.GetFileName(string.IsNullOrWhiteSpace(name) ? "file.bin" : name.Trim());
+        // last segment after '/' or '\' on every OS (Path.GetFileName on Windows also treats "a:" as a drive and drops it)
+        var raw = string.IsNullOrWhiteSpace(name) ? "file.bin" : name.Trim();
+        var n = raw[(raw.LastIndexOfAny(new[] { '/', '\\' }) + 1)..];
         foreach (var ch in Path.GetInvalidFileNameChars().Concat(new[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' })) n = n.Replace(ch, '_');
         if (n.Length > 120) n = n[..80] + "~" + n[^39..];
-        return n.Length == 0 ? "file.bin" : n;
+        return n.Trim('.', ' ').Length == 0 ? "file.bin" : n;
     }
 
     private sealed class DocRow
