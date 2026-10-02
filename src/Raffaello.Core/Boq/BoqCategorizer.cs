@@ -58,7 +58,7 @@ public static class BoqCategorizer
     private static readonly Rule[] CategoryRules =
     {
         R(@"\b(provisional|pc\s+sum|prime\s+cost|allowance)\b", "PROVISIONAL / PC SUM"),
-        R(@"\b(test(ing)?|commission|inspection)\b|اختبار", "TESTING & COMMISSIONING"),
+        R(@"^\W*(test(ing)?|commission(ing)?|inspection)\b|^\W*اختبار", "TESTING & COMMISSIONING"),
         R(@"\b(shop\s+drawing|as\s+built|o\s*&\s*m(\s+manual)?|operation\s+(and|&)\s+maintenance|documentation)\b", "DOCUMENTATION"),
         R(@"\b(cable\s+tray|ladder|trunking|basket)\b|حامل\s+كابلات", "CONTAINMENT"),
         R(@"\b(conduit|pvc\s+pipe|emt|flexible\s+conduit|gi\s+conduit)\b|مواسير|ماسورة", "CONDUIT"),

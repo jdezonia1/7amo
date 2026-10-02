@@ -88,3 +88,15 @@ public static class ReaderPipeline
     public static (byte[] Bytes, string MediaType) PageContent(string pdfPath, DocPage page) =>
         page.DominantImage is { Coverage: > 0.6 } im ? (im.Bytes, im.MediaType) : (PdfTextReader.ExtractPage(pdfPath, page.Number), "application/pdf");
 }
+
+/// <summary>Renders a PDF page to PNG for the review screen (Windows.Data.Pdf in the app; null where unavailable).</summary>
+public interface IPageRenderer
+{
+    Task<byte[]?> RenderPngAsync(string pdfPath, int pageNumber, CancellationToken ct = default);
+}
+
+public sealed class NullPageRenderer : IPageRenderer
+{
+    public static readonly NullPageRenderer Instance = new();
+    public Task<byte[]?> RenderPngAsync(string pdfPath, int pageNumber, CancellationToken ct = default) => Task.FromResult<byte[]?>(null);
+}

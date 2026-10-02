@@ -41,8 +41,16 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
             new NavGroup("TRACK", new[] { Item("Dashboard", "DASHBOARD", "IconDashboard", "Ctrl+1"), Item("Ledger", "ROOMS & LEDGER", "IconLedger", "Ctrl+2"), Item("Quantities", "QUANTITIES", "IconQuantities", "Ctrl+4"),
                 Item("Checks", "CHECKS", "IconChecks", "Ctrl+3"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+5"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+6") }),
             new NavGroup("DOCUMENTS", new[] { Item("Aconex", "ACONEX", "IconAconex", ""), Item("Wir", "WIR / MIR", "IconWir", ""), Item("Contracts", "CONTRACTS & BOQ", "IconContracts", "Ctrl+7"),
-                Item("SiteStatements", "SITE STATEMENTS", "IconSend", "Ctrl+9") }),
-            new NavGroup("OUTPUT", new[] { Item("Invoices", "INVOICES", "IconInvoices", "Ctrl+8"), Item("Reports", "REPORTS", "IconReports", "Ctrl+0") }),
+                Item("SiteStatements", "SITE STATEMENTS", "IconSend", "Ctrl+9"),
+                // [phase3] begin
+                Item("Boq", "BOQ", "IconDatabase", ""),
+                // [phase3] end
+            }),
+            new NavGroup("OUTPUT", new[] { Item("Invoices", "INVOICES", "IconInvoices", "Ctrl+8"), Item("Reports", "REPORTS", "IconReports", "Ctrl+0"),
+                // [phase3] begin
+                Item("OwnerMos", "OWNER MOS", "IconExport", ""),
+                // [phase3] end
+            }),
         };
         SettingsItem = Item("Settings", "SETTINGS", "IconSettings", "");
         palette.SetNavigator(this);

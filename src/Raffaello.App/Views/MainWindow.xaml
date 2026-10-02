@@ -25,6 +25,11 @@
         <DataTemplate DataType="{x:Type vm:LedgerViewModel}"><pages:LedgerView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ChecksViewModel}"><pages:ChecksView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SiteStatementsViewModel}"><pages:SiteStatementsView/></DataTemplate>
+        <!-- [phase3] -->
+        <DataTemplate DataType="{x:Type vm:MaterialsHubViewModel}"><pages:MaterialsHubView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:OwnerMosViewModel}"><pages:OwnerMosView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BoqViewModel}"><pages:BoqView/></DataTemplate>
+        <!-- [phase3] end -->
 
         <Style x:Key="FilterCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
             <Setter Property="MinWidth" Value="104"/>

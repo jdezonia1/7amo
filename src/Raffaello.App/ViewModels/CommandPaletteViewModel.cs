@@ -42,6 +42,11 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
             new("GO TO", "Site statements", "Issue / import site statements", "Ctrl+9", () => nav.Go("SiteStatements")),
             new("GO TO", "Reports", "Weekly report, print", "Ctrl+0", () => nav.Go("Reports")),
             new("GO TO", "Settings", "Theme, data file, API key", "", () => nav.Go("Settings")),
+            // [phase3] begin
+            new("GO TO", "Owner MOS", "Materials on site valuation for the owner", "", () => nav.Go("OwnerMos")),
+            new("GO TO", "BOQ", "Owner BOQ by system and category", "", () => nav.Go("Boq")),
+            new("GO TO", "DN lookup", "Supplier + DN / PO / batch -> PO, invoice, MIR", "", () => nav.Go("Materials")),
+            // [phase3] end
             new("FILTER", "Clear filters", "Show all buildings and stages", "", () => _filter.Clear()),
             new("FILTER", "Hotel only", "", "", () => _filter.Set(building: "HOTEL")),
             new("FILTER", "Branded only", "", "", () => _filter.Set(building: "BRANDED")),

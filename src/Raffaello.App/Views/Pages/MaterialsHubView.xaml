@@ -1,0 +1,496 @@
+<UserControl x:Class="Raffaello.App.Views.Pages.MaterialsHubView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,0,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,10">
+            <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding Tab, Mode=TwoWay}" HorizontalAlignment="Left"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <TextBlock Text="{Binding Busy}" Style="{StaticResource Label}" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <Button Style="{StaticResource BtnYellow}" Content="IMPORT PO" Command="{Binding ImportPoCommand}"/>
+                <Button Style="{StaticResource BtnYellow}" Content="IMPORT DN" Command="{Binding ImportDnCommand}" Margin="6,0,0,0"/>
+                <Button Style="{StaticResource BtnYellow}" Content="IMPORT MIR" Command="{Binding ImportMirCommand}" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- ============================================================ PURCHASE ORDERS -->
+        <Grid Grid.Row="1" Visibility="{Binding IsPoTab, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="260"/><ColumnDefinition Width="12"/><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="320"/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="PURCHASE ORDERS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Pos}" SelectedItem="{Binding SelectedPo, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <Grid>
+                                        <TextBlock Text="{Binding Po.PoNo}" Style="{StaticResource BodyStrong}" FontSize="12"/>
+                                        <ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <TextBlock Text="{Binding Caption}" Style="{StaticResource Small}" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                    <ProgressBar Style="{StaticResource SlimProgress}" Value="{Binding DeliveredPct, Mode=OneWay}" Margin="0,4,0,0" ToolTip="delivered value"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Border Style="{StaticResource Card}" Padding="12,8" Margin="0,0,0,8">
+                    <StackPanel>
+                        <TextBlock Text="{Binding PoTerms}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
+                        <Grid Margin="0,4,0,0">
+                            <TextBlock Text="{Binding PoCoding}" Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="RE-RUN AUTO-CODE" Command="{Binding RecodeCommand}" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding PoLines}" SelectedItem="{Binding SelectedPoLine, Mode=TwoWay}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="NO" Binding="{Binding L.LineNo}" Width="40" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding L.Description}" Width="*" MinWidth="180" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="UNIT" Binding="{Binding L.Unit}" Width="44" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="QTY" Binding="{Binding L.Qty, StringFormat=N0}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="RATE" Binding="{Binding L.Rate, StringFormat=N3}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="AMOUNT" Binding="{Binding L.Amount, StringFormat=N2}" Width="96" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="DELIVERED" Binding="{Binding Delivered, StringFormat=N0}" Width="74" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTextColumn Header="BOQ CODE" Binding="{Binding L.BoqCode}" Width="150" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTemplateColumn Header="CODE" Width="84" SortMemberPath="L.CodeStatus">
+                            <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding CodeTag}" ToolTip="{Binding L.CodeSource}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="STATUS" Binding="{Binding CodeStatusText}" Width="78" ElementStyle="{StaticResource CellText}"/>
+                    </DataGrid.Columns>
+                    <DataGrid.RowDetailsTemplate>
+                        <DataTemplate><TextBlock Text="{Binding L.CodeSource}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="44,2,8,6"/></DataTemplate>
+                    </DataGrid.RowDetailsTemplate>
+                </DataGrid>
+            </Grid>
+            <Border Grid.Column="4" Style="{StaticResource Card}" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="CODING" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="{Binding SelectedPoLine.L.Description}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap" Margin="0,4,0,8"/>
+                    <TextBlock Text="SUGGESTIONS (TOP 3)" Style="{StaticResource Label}"/>
+                    <ListBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion, Mode=TwoWay}" Style="{StaticResource CardList}" MaxHeight="260">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Label}" Style="{StaticResource BodyStrong}" FontSize="12"/>
+                                    <TextBlock Text="{Binding Why}" Style="{StaticResource Small}" FontSize="10" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Button Style="{StaticResource BtnPrimary}" Content="CONFIRM SUGGESTION" Command="{Binding ConfirmSuggestionCommand}" Margin="0,8,0,14"/>
+                    <TextBlock Text="OR TYPE THE CODES" Style="{StaticResource Label}"/>
+                    <TextBlock Text="BOQ NO." Style="{StaticResource Small}"/>
+                    <TextBox Style="{StaticResource Input}" Text="{Binding ManualBoq, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="COST CODE" Style="{StaticResource Small}" Margin="0,4,0,0"/>
+                    <TextBox Style="{StaticResource Input}" Text="{Binding ManualCost, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="BUDGET RESOURCE CODE" Style="{StaticResource Small}" Margin="0,4,0,0"/>
+                    <TextBox Style="{StaticResource Input}" Text="{Binding ManualResource, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="SAVE TYPED CODES" Command="{Binding ConfirmTypedCommand}" Margin="0,8,0,0"/>
+                    <TextBlock Text="Every confirmation is learned: the same supplier code, description or cable attributes are coded automatically next time." Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,10,0,0" FontSize="10"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================ DELIVERY NOTES -->
+        <Grid Grid.Row="1" Visibility="{Binding IsDnTab, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="260"/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="DELIVERY NOTES" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Dns}" SelectedItem="{Binding SelectedDn, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <Grid>
+                                        <TextBlock Text="{Binding Dn.DnNo}" Style="{StaticResource BodyStrong}" FontSize="12"/>
+                                        <ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}" HorizontalAlignment="Right" ToolTip="{Binding Status}"/>
+                                    </Grid>
+                                    <TextBlock Text="{Binding Caption}" Style="{StaticResource Small}" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding DnLines}" SelectedItem="{Binding SelectedDnLine, Mode=TwoWay}">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="MATCH" Width="70" SortMemberPath="Status">
+                            <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}" ToolTip="{Binding Status}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="ITEM" Binding="{Binding Line.ItemNo}" Width="64" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Line.Description}" Width="*" MinWidth="200" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="BATCH" Binding="{Binding Line.Batch}" Width="96" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="DN QTY" Binding="{Binding Line.RawQty}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="UNIT" Binding="{Binding Line.RawUnit}" Width="44" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="PO QTY UNIT" Binding="{Binding Qty, StringFormat=N2}" Width="80" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="44" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="PO LINE" Binding="{Binding PoLineText}" Width="200" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="110" ElementStyle="{StaticResource CellText}"/>
+                    </DataGrid.Columns>
+                    <DataGrid.RowDetailsTemplate>
+                        <DataTemplate><TextBlock Text="{Binding NoteText}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="70,2,8,6"/></DataTemplate>
+                    </DataGrid.RowDetailsTemplate>
+                </DataGrid>
+                <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="PIN THE SELECTED DN LINE TO A PO LINE (kept on every later match; empty = remove the pin)" Style="{StaticResource Label}"/>
+                            <ComboBox ItemsSource="{Binding PinChoices}" SelectedItem="{Binding PinTarget, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate><DataTemplate><TextBlock><Run Text="{Binding LineNo, Mode=OneWay}" FontWeight="Bold"/><Run Text="  "/><Run Text="{Binding Description, Mode=OneWay}"/><Run Text="  "/><Run Text="{Binding Unit, Mode=OneWay}"/></TextBlock></DataTemplate></ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                        <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="PIN" Command="{Binding PinLineCommand}" VerticalAlignment="Bottom" Margin="10,0,0,0"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ============================================================ MIR -->
+        <Grid Grid.Row="1" Visibility="{Binding IsMirTab, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Border Style="{StaticResource Card}" Padding="12">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="MIRs" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                        <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Mirs}" SelectedItem="{Binding SelectedMir, Mode=TwoWay}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding MirNo}" Style="{StaticResource BodyStrong}" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Style="{StaticResource Small}" FontSize="10"><Run Text="{Binding MirDate, StringFormat=dd-MMM-yy, Mode=OneWay}"/><Run Text="  |  "/><Run Text="{Binding Status, Mode=OneWay}"/></TextBlock>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+                <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0">
+                    <StackPanel>
+                        <TextBlock Text="CLOUD READING OF PHOTO / SCAN PAGES" Style="{StaticResource Label}"/>
+                        <TextBlock Text="{Binding VisionStatus}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
+                        <CheckBox Content="DN photos" IsChecked="{Binding MirReadDnPhotos}" Margin="0,4,0,0"/>
+                        <CheckBox Content="Test certificates (drum no + length)" IsChecked="{Binding MirReadCerts}"/>
+                        <CheckBox Content="Drum labels (batch)" IsChecked="{Binding MirReadLabels}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Border Style="{StaticResource Card}" Padding="12,8">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource BodyStrong}" FontSize="12"><Run Text="{Binding SelectedMir.MirNo, Mode=OneWay}"/><Run Text="  Rev "/><Run Text="{Binding SelectedMir.Revision, Mode=OneWay}"/><Run Text="  |  MAR "/><Run Text="{Binding SelectedMir.MarRef, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Text="{Binding SelectedMir.Description}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding SelectedMir.PageKinds}" Style="{StaticResource Small}" FontSize="10" TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <ComboBox ItemsSource="{Binding MirStatuses}" SelectedItem="{Binding MirStatus, Mode=TwoWay}" Width="220"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="SET STATUS" Command="{Binding SetMirStatusCommand}" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12,8" Margin="0,8,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Label}"><Run Text="DNs IN THIS MIR: "/><Run Text="{Binding MirDns.Count, Mode=OneWay}"/></TextBlock>
+                            <ItemsControl ItemsSource="{Binding MirDns}">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate><DataTemplate><Border Style="{StaticResource Well}" Margin="0,0,6,4"><TextBlock Style="{StaticResource Small}"><Run Text="{Binding DnNo, Mode=OneWay}" FontWeight="Bold"/><Run Text="  "/><Run Text="{Binding PoNo, Mode=OneWay}"/></TextBlock></Border></DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="ADD DN" Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                                <TextBox Style="{StaticResource Input}" Text="{Binding NewMirDn, UpdateSourceTrigger=PropertyChanged}" Width="120" Margin="6,0,0,0"/>
+                                <TextBlock Text="PO" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <TextBox Style="{StaticResource Input}" Text="{Binding NewMirPo, UpdateSourceTrigger=PropertyChanged}" Width="180" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="ADD DN TO MIR" Command="{Binding AddMirDnCommand}" VerticalAlignment="Bottom"/>
+                    </Grid>
+                </Border>
+                <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding MirEvidence}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="KIND" Binding="{Binding Kind}" Width="80" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="PAGE" Binding="{Binding Page}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="DN" Binding="{Binding DnNo}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="DRUM" Binding="{Binding DrumNo}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="BATCH" Binding="{Binding Batch}" Width="100" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="QTY" Binding="{Binding Qty, StringFormat=N2}" Width="80" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="44" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="PO REF" Binding="{Binding PoRef}" Width="140" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="64" ElementStyle="{StaticResource CellText}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Grid>
+
+        <!-- ============================================================ 3-WAY MATCH -->
+        <Grid Grid.Row="1" Visibility="{Binding IsMatchTab, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="170"/><ColumnDefinition Width="12"/><ColumnDefinition Width="170"/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel><TextBlock Text="MATCHED LINES" Style="{StaticResource Label}"/><TextBlock Text="{Binding MatchedCount}" Style="{StaticResource KpiValue}"/></StackPanel>
+                </Border>
+                <ContentControl Grid.Column="2" Style="{StaticResource HeroCard}">
+                    <StackPanel><TextBlock Text="NEED A LOOK" Style="{StaticResource Label}" Foreground="{DynamicResource YellowBrush}"/><TextBlock Text="{Binding ProblemCount}" Style="{StaticResource KpiValue}" Foreground="{DynamicResource HeroInkBrush}"/></StackPanel>
+                </ContentControl>
+                <Border Grid.Column="4" Style="{StaticResource Card}">
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="{Binding MatchSummary}" Style="{StaticResource BodyStrong}" FontSize="12" TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <TextBlock Text="SHOW" Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                                <ComboBox ItemsSource="{Binding MatchFilters}" SelectedItem="{Binding MatchFilter, Mode=TwoWay}" Width="160" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                            <Button Style="{StaticResource BtnPrimary}" Content="RUN MATCH" Command="{Binding RunMatchCommand}"/>
+                            <Button Style="{StaticResource BtnYellow}" Content="MIR TRACKER (EXCEL)" Command="{Binding ExportTrackerCommand}" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+            <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding MatchRows}">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="" Width="60" SortMemberPath="Status">
+                        <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="110" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="DN" Binding="{Binding Dn.DnNo}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="DATE" Binding="{Binding Dn.DnDate, StringFormat=dd-MMM-yy}" Width="74" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Line.Description}" Width="*" MinWidth="180" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="BATCH" Binding="{Binding Line.Batch}" Width="96" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="QTY" Binding="{Binding Qty, StringFormat=N2}" Width="74" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="40" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="PO LINE" Binding="{Binding PoLineText}" Width="180" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="CUM" Binding="{Binding CumQty, StringFormat=N0}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="PO QTY" Binding="{Binding PoQty, StringFormat=N0}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="MIR" Binding="{Binding MirNos}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="BATCH CHECK" Binding="{Binding BatchCheck}" Width="84" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate><TextBlock Text="{Binding NoteText}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="60,2,8,6"/></DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+            </DataGrid>
+        </Grid>
+
+        <!-- ============================================================ SUPPLIER INVOICES -->
+        <Grid Grid.Row="1" Visibility="{Binding IsInvTab, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition Width="12"/><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="SUPPLIER INVOICES" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding StoredInvoices}" SelectedItem="{Binding SelectedStoredInvoice, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" Style="{StaticResource BodyStrong}" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Caption}" Style="{StaticResource Small}" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <ContentControl Grid.Column="1" Style="{StaticResource Tag}" Content="{Binding Status}" VerticalAlignment="Top"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="200"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="PO" Style="{StaticResource Label}"/>
+                        <ComboBox ItemsSource="{Binding InvoicePos}" SelectedItem="{Binding InvoicePo, Mode=TwoWay}" Width="300">
+                            <ComboBox.ItemTemplate><DataTemplate><TextBlock><Run Text="{Binding PoNo, Mode=OneWay}" FontWeight="Bold"/><Run Text="  "/><Run Text="{Binding Supplier, Mode=OneWay}"/></TextBlock></DataTemplate></ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Text="INVOICE NO" Style="{StaticResource Label}"/>
+                        <TextBox Text="{Binding InvoiceNo, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                        <Button Style="{StaticResource BtnPrimary}" Content="BUILD FROM DN LINES" Command="{Binding BuildInvoiceCommand}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="SAVE DRAFT" Command="{Binding SaveInvoiceCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="EXPORT PACKAGE" Command="{Binding ExportInvoiceCommand}" Margin="6,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+                <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" IsReadOnly="False" ItemsSource="{Binding Invoiceable}">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="INVOICE" Binding="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" Width="64"/>
+                        <DataGridTemplateColumn Header="MATCH" Width="60" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}" ToolTip="{Binding L.MatchNote}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="DN" Binding="{Binding Dn.DnNo}" Width="80" IsReadOnly="True" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="DATE" Binding="{Binding Dn.DnDate, StringFormat=dd-MMM-yy}" Width="70" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding L.Description}" Width="*" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="BATCH" Binding="{Binding L.Batch}" Width="96" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="QTY" Binding="{Binding L.Qty, StringFormat=N2}" Width="70" IsReadOnly="True" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTextColumn Header="PO LINE" Binding="{Binding PoLine}" Width="180" IsReadOnly="True" ElementStyle="{StaticResource CellText}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock Grid.Row="2" Text="{Binding InvoiceHeading}" Style="{StaticResource PanelTitle}" Margin="0,10,0,6" TextTrimming="CharacterEllipsis"/>
+                <DataGrid Grid.Row="3" Style="{StaticResource CardGrid}" ItemsSource="{Binding InvoiceLines}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ITEM" Binding="{Binding ItemNo}" Width="44" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="BOQ CODE" Binding="{Binding BoqCode}" Width="150" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="40" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="RATE" Binding="{Binding Rate, StringFormat=N3}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="PREV" Binding="{Binding PrevQty, StringFormat=N2}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="CURR" Binding="{Binding CurrQty, StringFormat=N2}" Width="70" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTextColumn Header="CUM" Binding="{Binding CumQty, StringFormat=N2}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="CURR SAR" Binding="{Binding CurrAmount, StringFormat=N2}" Width="90" ElementStyle="{StaticResource CellNumStrong}"/>
+                    </DataGrid.Columns>
+                    <DataGrid.RowDetailsTemplate>
+                        <DataTemplate><TextBlock Text="{Binding Explanation}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="44,2,8,6"/></DataTemplate>
+                    </DataGrid.RowDetailsTemplate>
+                </DataGrid>
+            </Grid>
+            <Grid Grid.Column="4">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Border Style="{StaticResource Card}" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="TOTALS" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Style="{StaticResource Small}"><Run Text="Gross this period  SAR "/><Run Text="{Binding InvoiceTotals.CurrGross, StringFormat=N2, Mode=OneWay}" FontWeight="Bold"/></TextBlock>
+                        <TextBlock Style="{StaticResource Small}"><Run Text="Retention  SAR "/><Run Text="{Binding InvoiceTotals.CurrRetention, StringFormat=N2, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Style="{StaticResource Small}"><Run Text="VAT 15%  SAR "/><Run Text="{Binding InvoiceTotals.VatCurr, StringFormat=N2, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Style="{StaticResource BodyStrong}"><Run Text="Incl. VAT  SAR "/><Run Text="{Binding InvoiceTotals.NetInclVatCurr, StringFormat=N2, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Text="ACONEX WORKFLOW NO" Style="{StaticResource Label}" Margin="0,12,0,0"/>
+                        <TextBox Style="{StaticResource Input}" Text="{Binding AconexNo, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="SUBMIT" Command="{Binding SubmitInvoiceCommand}" Margin="0,6,0,0"/>
+                        <TextBlock Text="REJECTION REASON" Style="{StaticResource Label}" Margin="0,10,0,0"/>
+                        <TextBox Style="{StaticResource Input}" Text="{Binding RejectReason, UpdateSourceTrigger=PropertyChanged}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Style="{StaticResource BtnGhost}" Content="REJECT" Command="{Binding RejectInvoiceCommand}"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="NEW REVISION" Command="{Binding NewRevisionCommand}" Margin="6,0,0,0"/>
+                        </StackPanel>
+                        <Button Style="{StaticResource BtnPrimary}" Content="APPROVE AND LOCK" Command="{Binding ApproveInvoiceCommand}" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="WARNINGS" Style="{StaticResource PanelTitle}"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding InvoiceWarnings}">
+                                <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,4"/></DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ============================================================ DN LOOKUP -->
+        <Grid Grid.Row="1" Visibility="{Binding IsLookupTab, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel>
+                        <TextBlock Text="SUPPLIER" Style="{StaticResource Label}"/>
+                        <ComboBox ItemsSource="{Binding Suppliers}" Text="{Binding LookupSupplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Width="260"/>
+                    </StackPanel>
+                    <StackPanel Margin="12,0,0,0">
+                        <TextBlock Text="DN NO / PO NO / BATCH / ORDER NO" Style="{StaticResource Label}"/>
+                        <TextBox Style="{StaticResource Input}" Text="{Binding LookupQuery, UpdateSourceTrigger=PropertyChanged}" Width="320"/>
+                    </StackPanel>
+                    <TextBlock Text="Type part of a number - punctuation does not matter (RAF-P.O-E-045 = RAFPOE045)." Style="{StaticResource Small}" VerticalAlignment="Bottom" Margin="12,0,0,6"/>
+                </StackPanel>
+            </Border>
+            <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding LookupRows}">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="" Width="56" SortMemberPath="Match">
+                        <DataGridTemplateColumn.CellTemplate><DataTemplate><ContentControl Style="{StaticResource Tag}" Content="{Binding Tag}" ToolTip="{Binding Match}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="SUPPLIER" Binding="{Binding Supplier}" Width="150" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="DN" Binding="{Binding DnNo}" Width="90" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="DN DATE" Binding="{Binding DnDate, StringFormat=dd-MMM-yy}" Width="76" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="PO" Binding="{Binding PoNo}" Width="160" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="LINES" Binding="{Binding Lines}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="QTY" Binding="{Binding Qty, StringFormat=N0}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="INVOICE" Binding="{Binding Invoice}" Width="150" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="INV STATUS" Binding="{Binding InvoiceStatus}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="ACONEX" Binding="{Binding AconexNo}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="MIR" Binding="{Binding MirNo}" Width="*" MinWidth="140" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="MIR STATUS" Binding="{Binding MirStatus}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="FOUND BY" Binding="{Binding MatchedOn}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate><TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="56,2,8,6"><Run Text="{Binding Match, Mode=OneWay}"/><Run Text="  |  batches "/><Run Text="{Binding Batches, Mode=OneWay}"/></TextBlock></DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+            </DataGrid>
+        </Grid>
+
+        <!-- ============================================================ OVERVIEW (earlier PO vs DN screen) -->
+        <ContentControl Grid.Row="1" Content="{Binding Overview}" Visibility="{Binding IsOverviewTab, Converter={StaticResource BoolToVis}}" Margin="-24,0,-24,-20"/>
+
+        <!-- ============================================================ SETTINGS -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding IsSettingsTab, Converter={StaticResource BoolToVis}}">
+            <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+                <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="DOCUMENT READING" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="{Binding ReaderStatus}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,4,0,8"/>
+                        <CheckBox Content="Cloud reading: send scan / photo pages to Claude when the text layer and local OCR are not enough (uses the API key and model from Settings)" IsChecked="{Binding CloudReading}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Text="EFFORT" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <ComboBox ItemsSource="{Binding Efforts}" SelectedItem="{Binding VisionEffort, Mode=TwoWay}" Width="120"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="MATCH AND UNITS" Style="{StaticResource PanelTitle}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Text="OVER PO TOLERANCE" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <ComboBox ItemsSource="{Binding ToleranceModes}" SelectedItem="{Binding ToleranceMode, Mode=TwoWay}" Width="120"/>
+                            <TextBlock Text="CUSTOM %" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,6,0"/>
+                            <TextBox Style="{StaticResource Input}" Text="{Binding CustomTolerance, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                        </StackPanel>
+                        <TextBlock Text="CLAUSE = the PO conditions (e.g. ±5 % per item) win over the header block; HEADER = the header tolerance only." Style="{StaticResource Small}" Margin="160,2,0,0" TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Text="PIPE LENGTH (M / PCS)" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <TextBox Style="{StaticResource Input}" Text="{Binding PipeLength, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="AUTO-CODING AND OWNER MOS" Style="{StaticResource PanelTitle}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Text="AUTO-FILL AT SCORE %" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <TextBox Style="{StaticResource Input}" Text="{Binding AutoHigh, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                            <TextBlock Text="FLAG FOR REVIEW AT %" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,6,0"/>
+                            <TextBox Style="{StaticResource Input}" Text="{Binding AutoMedium, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Text="MOS %" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <TextBox Style="{StaticResource Input}" Text="{Binding MosPct, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                            <CheckBox Content="Only DNs with a MIR count as materials on site" IsChecked="{Binding MosRequiresMir}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Text="MOS TEMPLATE (OPTIONAL)" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <TextBox Style="{StaticResource Input}" Text="{Binding MosTemplate, UpdateSourceTrigger=PropertyChanged}" Width="420"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="BROWSE" Command="{Binding BrowseTemplateCommand}" Margin="6,0,0,0"/>
+                        </StackPanel>
+                        <CheckBox Content="BOQ screen: ask Claude for rows no keyword rule covers" IsChecked="{Binding BoqAi}" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Button Style="{StaticResource BtnPrimary}" Content="SAVE MATERIALS SETTINGS" Command="{Binding SaveSettingsCommand}" HorizontalAlignment="Left"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
