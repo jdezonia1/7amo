@@ -96,14 +96,14 @@ public static class ContractRuleBuilder
     {
         var rules = new List<ContractRule>();
         ContractClause? ClauseWith(string rx) => clauses.FirstOrDefault(c => Regex.IsMatch(ArabicText.Fold(c.Title + " " + c.TextAr), rx));
-        ContractRule R(string type, object p, string summary, ContractClause? c, string items = "") => new()
+        ContractRule R(string type, object p, string summary, ContractClause? c, string items = "", string? text = null) => new()
         {
             ContractNo = t.ContractNo, RuleType = type, ParamsJson = ContractRule.ToJson(p), Summary = summary, ClauseNo = c?.ClauseNo ?? "", SourcePage = c?.Page ?? 0,
-            SourceText = Excerpt(c?.TextAr ?? ""), SourceDocId = t.SourceDocId, ItemNos = items,
+            SourceText = Excerpt(text ?? c?.TextAr ?? ""), SourceDocId = t.SourceDocId, ItemNos = items,
         };
         var pay = ClauseWith(@"شروط\s*الدفع|PAYMENT");
         foreach (var p in payments ?? Array.Empty<(string, string, double, string)>())
-            rules.Add(R(RuleTypes.PaymentStage, new { group = p.Group, stage = p.Stage, pct = p.Pct }, $"{(p.Group == "TRAY" ? "Cable tray / pulling / panels" : "Outlets")}: {p.Stage} {p.Pct:P0}", pay) with { });
+            rules.Add(R(RuleTypes.PaymentStage, new { group = p.Group, stage = p.Stage, pct = p.Pct }, $"{(p.Group == "TRAY" ? "Cable tray / pulling / panels" : "Outlets")}: {p.Stage} {p.Pct:P0}", pay));
         if (t.RetentionPct is double ret) rules.Add(R(RuleTypes.Retention, new { pct = ret }, $"Retention {ret:P0}", ClauseWith(@"محتجزات|ضمان\s*حسن|RETENTION")));
         if (t.AdvancePct is double adv) rules.Add(R(RuleTypes.AdvanceRecovery, new { pct = adv }, $"Advance {adv:P0}, recovered pro-rata", ClauseWith(@"دفعه\s*مقدمه|ADVANCE")));
         var delay = ClauseWith(@"غرام|التاخير|PENALT");
@@ -115,9 +115,9 @@ public static class ContractRuleBuilder
 
         // schedule-driven rules: 15 m / 30 m route rules and 4.5 m height bands, with the items they cover
         var len = items.Where(i => Regex.IsMatch(ArabicText.Fold(i.Description), @"15\s*متر|15\s*M\b")).Select(i => i.ItemNo).ToList();
-        if (len.Count > 0) rules.Add(R(RuleTypes.LengthRule, new { meters = 15.0, minPerPoint = 1.0 }, $"Point longer than 15 m: one extra point per extra 15 m (qty per point = max(1, L / 15)) - items {Compact(len)}", null, string.Join(",", len)) with { SourceText = Excerpt(items.First(i => i.ItemNo == len[0]).Description) });
+        if (len.Count > 0) rules.Add(R(RuleTypes.LengthRule, new { meters = 15.0, minPerPoint = 1.0 }, $"Point longer than 15 m: one extra point per extra 15 m (qty per point = max(1, L / 15)) - items {Compact(len)}", null, string.Join(",", len), items.First(i => i.ItemNo == len[0]).Description));
         var home = items.Where(i => Regex.IsMatch(ArabicText.Fold(i.Description), @"30\s*متر|HOMERUN")).Select(i => i.ItemNo).ToList();
-        if (home.Count > 0) rules.Add(R(RuleTypes.HomerunRule, new { meters = 30.0 }, $"Home-run longer than 30 m (horizontal): a new point - items {Compact(home)}", null, string.Join(",", home)) with { SourceText = Excerpt(items.First(i => i.ItemNo == home[0]).Description) });
+        if (home.Count > 0) rules.Add(R(RuleTypes.HomerunRule, new { meters = 30.0 }, $"Home-run longer than 30 m (horizontal): a new point - items {Compact(home)}", null, string.Join(",", home), items.First(i => i.ItemNo == home[0]).Description));
         var high = items.Where(i => i.HeightBand == HeightBands.High).Select(i => i.ItemNo).ToList();
         var low = items.Where(i => i.HeightBand == HeightBands.Low).Select(i => i.ItemNo).ToList();
         if (high.Count > 0) rules.Add(R(RuleTypes.HeightBand, new { meters = 4.5, high = high, low = low }, $"Rates split at 4.5 m: {low.Count} items below, {high.Count} above (above-4.5 m qty must be checked on site)", null, string.Join(",", high)));

@@ -23,7 +23,10 @@ public static class ModuleEntities
 
     public static readonly Type[] Variations = { typeof(Variation), typeof(VariationLine), typeof(VariationDoc), typeof(VariationStatusChange) };
 
-    public static IReadOnlyList<Type> All => MaterialsStoreBase.EntityTypes.Concat(Aconex).Concat(Variations).ToList();
+    /// <summary>Read documents (evidence index, page text, fields, templates) and contract intelligence (terms, clauses, rules, bypasses).</summary>
+    public static readonly Type[] Documents = Raffaello.Core.Documents.DocumentEntities.All;
+
+    public static IReadOnlyList<Type> All => MaterialsStoreBase.EntityTypes.Concat(Aconex).Concat(Variations).Concat(Documents).ToList();
 
     private static bool _registered;
     public static void RegisterAll()
@@ -323,4 +326,68 @@ public sealed class RemoteVariationStore : IVariationStore
             b.Delete(v);
         }, $"Variation {v.Number} deleted");
     }
+}
+
+/// <summary>Document / contract-intelligence store on the Raffaello server; search runs on the server (PostgreSQL full text).</summary>
+public sealed class RemoteDocumentStore : Raffaello.Core.Documents.IDocumentStore
+{
+    private readonly RemoteProjectStore _r;
+    static RemoteDocumentStore() => ModuleEntities.RegisterAll();
+    public RemoteDocumentStore(RemoteProjectStore r) => _r = r;
+
+    public string User => _r.User;
+    public void EnsureSchema() { }
+    public List<T> All<T>() where T : Entity, new() => _r.All<T>();
+    public T Insert<T>(T entity, string? summary = null) where T : Entity => _r.Insert(entity, summary);
+    public T Update<T>(T entity, string? summary = null) where T : Entity, new() => _r.Update(entity, summary);
+    public void Delete<T>(T entity, string? summary = null) where T : Entity => _r.Delete(entity, summary);
+    public void Batch(Action<IStoreBatch> work, string summary) => _r.Batch(work, summary);
+
+    public List<Raffaello.Core.Documents.DocSearchHit> Search(string query, int take = 50)
+    {
+        try { return _r.Api.SearchDocuments(query, take); }
+        catch (ServerUnavailableException)
+        {
+            // offline: search the cached page texts
+            return Raffaello.Core.Documents.DocumentStoreExtensions.SearchInMemory(_r.All<Raffaello.Core.Documents.DocPageText>(), _r.All<Raffaello.Core.Documents.DocRecord>(), query, take);
+        }
+    }
+}
+
+/// <summary>Picks the document store for the current data source on every call (SQLite data file or server).</summary>
+public sealed class DocumentStoreSelector : Raffaello.Core.Documents.IDocumentStore
+{
+    private readonly Func<IProjectStore> _store;
+    private IProjectStore? _for;
+    private Raffaello.Core.Documents.IDocumentStore? _impl;
+
+    public DocumentStoreSelector(Func<IProjectStore> store) => _store = store;
+
+    private Raffaello.Core.Documents.IDocumentStore Impl
+    {
+        get
+        {
+            var s = _store();
+            if (!ReferenceEquals(s, _for) || _impl is null)
+            {
+                _impl = s switch
+                {
+                    RemoteProjectStore r => new RemoteDocumentStore(r),
+                    Db db => new Raffaello.Core.Documents.SqliteDocumentStore(() => db),
+                    _ => throw new InvalidOperationException($"Documents are not available for the data source {s.GetType().Name}."),
+                };
+                _for = s;
+            }
+            return _impl;
+        }
+    }
+
+    public string User => Impl.User;
+    public void EnsureSchema() => Impl.EnsureSchema();
+    public List<T> All<T>() where T : Entity, new() => Impl.All<T>();
+    public T Insert<T>(T entity, string? summary = null) where T : Entity => Impl.Insert(entity, summary);
+    public T Update<T>(T entity, string? summary = null) where T : Entity, new() => Impl.Update(entity, summary);
+    public void Delete<T>(T entity, string? summary = null) where T : Entity => Impl.Delete(entity, summary);
+    public void Batch(Action<IStoreBatch> work, string summary) => Impl.Batch(work, summary);
+    public List<Raffaello.Core.Documents.DocSearchHit> Search(string query, int take = 50) => Impl.Search(query, take);
 }

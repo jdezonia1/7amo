@@ -200,5 +200,8 @@ public sealed class RemoteApi : IDisposable
         return info;
     }
 
+    public List<Documents.DocSearchHit> SearchDocuments(string query, int take = 50) =>
+        Get<List<Documents.DocSearchHit>>($"{ApiRoutes.DocSearch}?q={Uri.EscapeDataString(query)}&take={take}");
+
     public void Dispose() => _http.Dispose();
 }

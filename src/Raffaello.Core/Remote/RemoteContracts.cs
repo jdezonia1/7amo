@@ -28,6 +28,8 @@ public static class ApiRoutes
     public const string MigrateImport = "/api/v1/migrate/import";
     public const string MigrateAudit = "/api/v1/migrate/audit";
     public const string ChangesHub = "/hubs/changes";
+    /// <summary>Full-text search over read document pages (PostgreSQL full text + substring).</summary>
+    public const string DocSearch = "/api/v1/docs/search";
 
     /// <summary>Header carrying the client PC name (audit "Machine").</summary>
     public const string MachineHeader = "X-Raffaello-Machine";

@@ -85,6 +85,17 @@ public sealed class Db : IProjectStore
         tx.Commit();
     }
 
+    /// <summary>Creates / extends the tables of module entity types kept in the same file (additive, like <see cref="EnsureSchema"/>).</summary>
+    public void EnsureTables(IEnumerable<Type> types)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        Exec(c, tx, @"CREATE TABLE IF NOT EXISTS AuditLog (Id INTEGER PRIMARY KEY AUTOINCREMENT, At TEXT NOT NULL, User TEXT, Machine TEXT,
+            TableName TEXT, RowId INTEGER, Action TEXT, Summary TEXT, Changes TEXT);");
+        foreach (var t in types) EnsureTable(c, tx, t);
+        tx.Commit();
+    }
+
     private static void EnsureTable(SqliteConnection c, SqliteTransaction tx, Type t)
     {
         var table = TableOf(t);
