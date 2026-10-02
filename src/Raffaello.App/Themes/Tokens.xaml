@@ -1,0 +1,48 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Families (bundled under Assets/Fonts, with system fallbacks) -->
+    <FontFamily x:Key="FontDisplay">pack://application:,,,/Assets/Fonts/#Barlow Condensed, Arial Narrow, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontDisplaySemi">pack://application:,,,/Assets/Fonts/#Barlow Condensed SemiBold, pack://application:,,,/Assets/Fonts/#Barlow Condensed, Arial Narrow, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontSans">pack://application:,,,/Assets/Fonts/#IBM Plex Sans, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontSansSemi">pack://application:,,,/Assets/Fonts/#IBM Plex Sans SemiBold, pack://application:,,,/Assets/Fonts/#IBM Plex Sans, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontMono">pack://application:,,,/Assets/Fonts/#IBM Plex Mono Medium, pack://application:,,,/Assets/Fonts/#IBM Plex Mono, Consolas</FontFamily>
+    <FontFamily x:Key="FontMonoBold">pack://application:,,,/Assets/Fonts/#IBM Plex Mono, Consolas</FontFamily>
+    <FontFamily x:Key="FontBrand">pack://application:,,,/Assets/Fonts/#Cinzel ExtraBold, Times New Roman</FontFamily>
+
+    <!-- Radii -->
+    <CornerRadius x:Key="RadiusTag">6</CornerRadius>
+    <CornerRadius x:Key="RadiusRow">10</CornerRadius>
+    <CornerRadius x:Key="RadiusBtn">12</CornerRadius>
+    <CornerRadius x:Key="RadiusCard">16</CornerRadius>
+
+    <!-- Spacing -->
+    <Thickness x:Key="Space1">4</Thickness>
+    <Thickness x:Key="Space2">8</Thickness>
+    <Thickness x:Key="Space3">12</Thickness>
+    <Thickness x:Key="Space4">16</Thickness>
+    <Thickness x:Key="Space6">24</Thickness>
+    <Thickness x:Key="PagePadding">24,16,24,24</Thickness>
+    <Thickness x:Key="CardPadding">16</Thickness>
+
+    <!-- Type scale -->
+    <sys:Double x:Key="SizePageTitle">28</sys:Double>
+    <sys:Double x:Key="SizeKpi">32</sys:Double>
+    <sys:Double x:Key="SizePanelTitle">18</sys:Double>
+    <sys:Double x:Key="SizeTab">14</sys:Double>
+    <sys:Double x:Key="SizeBody">14</sys:Double>
+    <sys:Double x:Key="SizeLabel">11</sys:Double>
+    <sys:Double x:Key="SizeTag">10</sys:Double>
+    <sys:Double x:Key="SizeNum">13</sys:Double>
+
+    <!-- Fixed brand colours (same in both themes) -->
+    <Color x:Key="SidebarColor">#151213</Color>
+    <SolidColorBrush x:Key="SidebarBrush" Color="#151213"/>
+    <SolidColorBrush x:Key="SidebarInkBrush" Color="#F3EFEE"/>
+    <SolidColorBrush x:Key="SidebarMutedBrush" Color="#8F8686"/>
+    <SolidColorBrush x:Key="SidebarHoverBrush" Color="#2A2424"/>
+    <SolidColorBrush x:Key="BrandGoldBrush" Color="#E3AE12"/>
+    <SolidColorBrush x:Key="BrandRedBrush" Color="#8E1B22"/>
+    <SolidColorBrush x:Key="BrandYellowBrush" Color="#FFFF00"/>
+</ResourceDictionary>

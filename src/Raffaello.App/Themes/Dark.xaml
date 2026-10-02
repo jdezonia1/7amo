@@ -1,0 +1,52 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- DARK theme: generated from design-system/project/tokens.json -->
+    <Color x:Key="BgColor">#000000</Color>
+    <SolidColorBrush x:Key="BgBrush" Color="#000000"/>
+    <Color x:Key="SurfaceColor">#0E0C0C</Color>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#0E0C0C"/>
+    <Color x:Key="Surface2Color">#171414</Color>
+    <SolidColorBrush x:Key="Surface2Brush" Color="#171414"/>
+    <Color x:Key="InkColor">#F3EFEE</Color>
+    <SolidColorBrush x:Key="InkBrush" Color="#F3EFEE"/>
+    <Color x:Key="Ink2Color">#C9C1C0</Color>
+    <SolidColorBrush x:Key="Ink2Brush" Color="#C9C1C0"/>
+    <Color x:Key="MutedColor">#8F8686</Color>
+    <SolidColorBrush x:Key="MutedBrush" Color="#8F8686"/>
+    <Color x:Key="LineColor">#2A2424</Color>
+    <SolidColorBrush x:Key="LineBrush" Color="#2A2424"/>
+    <Color x:Key="AccentColor">#8E1B22</Color>
+    <SolidColorBrush x:Key="AccentBrush" Color="#8E1B22"/>
+    <Color x:Key="AccentSoftColor">#3A1B1D</Color>
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#3A1B1D"/>
+    <Color x:Key="OnAccentColor">#FFFFFF</Color>
+    <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFF"/>
+    <Color x:Key="YellowColor">#F2C53D</Color>
+    <SolidColorBrush x:Key="YellowBrush" Color="#F2C53D"/>
+    <Color x:Key="YellowSoftColor">#3A3013</Color>
+    <SolidColorBrush x:Key="YellowSoftBrush" Color="#3A3013"/>
+    <Color x:Key="YellowInkColor">#F7DA85</Color>
+    <SolidColorBrush x:Key="YellowInkBrush" Color="#F7DA85"/>
+    <Color x:Key="OnYellowColor">#231A00</Color>
+    <SolidColorBrush x:Key="OnYellowBrush" Color="#231A00"/>
+    <Color x:Key="GoodColor">#2E9A5E</Color>
+    <SolidColorBrush x:Key="GoodBrush" Color="#2E9A5E"/>
+    <Color x:Key="GoodSoftColor">#15291E</Color>
+    <SolidColorBrush x:Key="GoodSoftBrush" Color="#15291E"/>
+    <Color x:Key="HeroColor">#171414</Color>
+    <SolidColorBrush x:Key="HeroBrush" Color="#171414"/>
+    <Color x:Key="HeroInkColor">#F3EFEE</Color>
+    <SolidColorBrush x:Key="HeroInkBrush" Color="#F3EFEE"/>
+    <Color x:Key="GraphiteColor">#6B6464</Color>
+    <SolidColorBrush x:Key="GraphiteBrush" Color="#6B6464"/>
+    <Color x:Key="RowHoverColor">#221D1D</Color>
+    <SolidColorBrush x:Key="RowHoverBrush" Color="#221D1D"/>
+    <Color x:Key="OverlayColor">#99000000</Color>
+    <SolidColorBrush x:Key="OverlayBrush" Color="#99000000"/>
+    <Color x:Key="ShadowColor">#40000000</Color>
+    <SolidColorBrush x:Key="ShadowBrush" Color="#40000000"/>
+    <Color x:Key="InputBgColor">#171414</Color>
+    <SolidColorBrush x:Key="InputBgBrush" Color="#171414"/>
+    <Color x:Key="SelectionColor">#3A1B1D</Color>
+    <SolidColorBrush x:Key="SelectionBrush" Color="#3A1B1D"/>
+</ResourceDictionary>
