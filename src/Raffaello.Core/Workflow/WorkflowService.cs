@@ -127,7 +127,45 @@ public sealed class WorkflowService
         return $"{added} rooms added, {updated} updated, {qty} PROJECT QTY";
     }
 
-    public ContractImportResult PreviewContract(string path, string contractNo, string sub, string? building) => ContractLinkImporter.Read(path, contractNo, sub, building);
+    public ContractImportResult PreviewContract(string path, string contractNo, string sub, string? building)
+    {
+        var r = ContractLinkImporter.Read(path, contractNo, sub, building);
+        // gas meters are done by the electrical subcontractor: metering items go to the gas-meter codes, not the BMS lump sum
+        foreach (var f in Raffaello.Core.Contracts.LinkTableCheck.FixGasMeterLinks(r.Items, r.Links)) r.Issues.Add(new(0, Import.IssueLevel.Warning, "GAS METER FIX: " + f));
+        foreach (var w in Raffaello.Core.Contracts.LinkTableCheck.Check(r.Items, r.Links, ProjectCodeDescription)) r.Issues.Add(new(0, Import.IssueLevel.Warning, "LINK CHECK: " + w.Message));
+        return r;
+    }
+
+    /// <summary>Description of a project code from the project code list ("" when unknown).</summary>
+    public string ProjectCodeDescription(string code) =>
+        _p.Snapshot.BoqItems.FirstOrDefault(b => b.ItemCode.Equals(code, StringComparison.OrdinalIgnoreCase))?.Description ?? "";
+
+    /// <summary>Link-table check of a stored contract (items linked to a code of another system).</summary>
+    public List<Raffaello.Core.Contracts.LinkWarning> CheckLinks(string contractNo)
+    {
+        var s = _p.Snapshot;
+        var desc = s.BoqItems.GroupBy(b => b.ItemCode, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().Description, StringComparer.OrdinalIgnoreCase);
+        return Raffaello.Core.Contracts.LinkTableCheck.Check(s.ContractItems.Where(i => i.ContractNo == contractNo), s.ItemBoqs.Where(l => l.ContractNo == contractNo), c => desc.GetValueOrDefault(c, ""));
+    }
+
+    /// <summary>Applies the gas-meter fix to a contract already imported (audited). Returns the changes.</summary>
+    public List<string> FixGasMeterLinks(string contractNo)
+    {
+        var s = _p.Snapshot;
+        var links = s.ItemBoqs.Where(l => l.ContractNo == contractNo).ToList();
+        var before = links.ToDictionary(l => l.Id, l => l.BoqCode);
+        var working = links.ToList();
+        var log = Raffaello.Core.Contracts.LinkTableCheck.FixGasMeterLinks(s.ContractItems.Where(i => i.ContractNo == contractNo), working);
+        if (log.Count == 0) return log;
+        var removed = links.Where(l => !working.Contains(l)).ToList();
+        _p.Store.Batch(w =>
+        {
+            foreach (var l in working.Where(l => before[l.Id] != l.BoqCode)) w.Update(l);
+            foreach (var l in removed) w.Delete(l);
+        }, $"{contractNo}: {log.Count} gas-meter link(s) moved from the BMS lump sum to the gas-meter codes");
+        _p.Reload();
+        return log;
+    }
     public void CommitContract(ContractImportResult r) { ContractLinkImporter.Commit(r, _p.Store); _p.Reload(); }
 
     public EPromiseImportResult PreviewEPromise(string path) => EPromiseImporter.Read(path);

@@ -82,6 +82,9 @@ public sealed partial class ContractsViewModel : PageViewModel
     [ObservableProperty] private string _selectedContractNo = "";
     [ObservableProperty] private ContractItemRow? _selectedItem;
     [ObservableProperty] private string _itemsText = "";
+    /// <summary>Link-table check messages for the selected item (code of another system).</summary>
+    [ObservableProperty] private string _itemLinkCheck = "";
+    private List<Raffaello.Core.Contracts.LinkWarning> _linkWarnings = new();
     [ObservableProperty] private Attachment? _selectedDoc;
 
     // import fields
@@ -104,6 +107,7 @@ public sealed partial class ContractsViewModel : PageViewModel
     partial void OnSelectedItemChanged(ContractItemRow? value)
     {
         ItemLinks.Clear();
+        ItemLinkCheck = value is null ? "" : string.Join(Environment.NewLine, _linkWarnings.Where(w => w.ItemNo == value.Item.ItemNo).Select(w => "LINK CHECK: " + w.Message));
         if (value is null) return;
         foreach (var l in Project.Snapshot.ItemBoqs.Where(l => l.ContractNo == value.Item.ContractNo && l.ItemNo == value.Item.ItemNo).OrderBy(l => l.Order)) ItemLinks.Add(l);
     }
@@ -164,7 +168,9 @@ public sealed partial class ContractsViewModel : PageViewModel
         foreach (var i in all.Where(i => string.IsNullOrWhiteSpace(ItemSearch) || i.ItemNo.Equals(ItemSearch.Trim(), StringComparison.OrdinalIgnoreCase)
                                           || i.Description.Contains(ItemSearch, StringComparison.OrdinalIgnoreCase) || i.Systems.Contains(ItemSearch, StringComparison.OrdinalIgnoreCase)))
             Items.Add(new ContractItemRow { Item = i, Links = links.GetValueOrDefault(i.ItemNo) });
+        _linkWarnings = all.Count == 0 ? new() : Project.Workflow.CheckLinks(SelectedContractNo);
         ItemsText = all.Count == 0 ? "No contract items - import the contract link workbook." :
+            (_linkWarnings.Count > 0 ? $"{_linkWarnings.Count} LINK WARNINGS ON {_linkWarnings.Select(w => w.ItemNo).Distinct().Count()} ITEMS  |  " : "") +
             $"{all.Count} ITEMS  |  {all.Count(i => i.AttributesConfirmed)} CONFIRMED  |  {all.Count(i => !links.ContainsKey(i.ItemNo))} WITHOUT BOQ CODE  |  VALUE SAR {all.Sum(i => i.Qty * i.Rate):N0}";
         SelectedItem = Items.FirstOrDefault(r => r.Item.ItemNo == keep) ?? Items.FirstOrDefault();
     }
@@ -216,6 +222,19 @@ public sealed partial class ContractsViewModel : PageViewModel
             if (await Ctx.Data.WriteAsync(p => p.Workflow.CommitContract(r), Ctx.Toasts, "CONTRACT IMPORTED")) SelectedContractNo = no;
         }
         catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ WORKBOOK", ex.Message, ToastKind.Error); }
+    }
+
+    /// <summary>Contracts imported before the gas-meter fix: move metering items from the BMS lump sum to the gas-meter codes.</summary>
+    [RelayCommand]
+    private async Task FixGasMeterLinks()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedContractNo)) { Ctx.Toasts.Show("PICK A CONTRACT", kind: ToastKind.Warn); return; }
+        var no = SelectedContractNo;
+        List<string> log = new();
+        if (!await Ctx.Data.WriteAsync(p => log = p.Workflow.FixGasMeterLinks(no), Ctx.Toasts)) return;
+        if (log.Count == 0) Ctx.Toasts.Show("GAS-METER LINKS OK", $"{no}: no metering item is linked to the BMS lump sum.", ToastKind.Good);
+        else Ctx.Toasts.Show($"{log.Count} GAS-METER LINK(S) FIXED", string.Join(Environment.NewLine, log.Take(4)) + (log.Count > 4 ? Environment.NewLine + $"(+{log.Count - 4} more, see the audit log)" : ""), ToastKind.Good, 12);
+        FillItems();
     }
 
     [RelayCommand]

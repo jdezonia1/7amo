@@ -64,3 +64,12 @@ Files live in `Desktop\RAFFLES MASTER FOLDER` (not in the repo). Trackers are no
   section Q: B6-01-01-00-6-22-R-18 "gas meter" (90 nr x 6,005.47), B5 Q p10 P "Gas Meter Assembly allowance",
   B3 Q p43 E "Gas Meter Assembly 32mm". So the right owner code for the metering items is 6-22-R-18, not the link
   table's 6-22-X-18 ("BMS system"). The paused gas / link-table check (HANDOFF 2b) should use these codes.
+
+## Gas-meter links + link-table check (built 03-Oct)
+- Link import (and CONTRACTS & BOQ > FIX GAS-METER LINKS for contracts already imported): Metering System items linked to
+  the BMS lump sum go to the gas-meter code of the bill - B3-01-01-00-3-22-L-12 -> B3-01-01-00-3-22-E-12, B6-01-01-00-6-22-X-18
+  -> B6-01-01-00-6-22-R-18 (B5 gas meter code B5-01-01-00-5-22-P-10). Hotel link table: items 267-279, 13 links fixed.
+  The Residence link table (Contract_For_Residence_Subcontractors_...) is not on the work PC - not yet run on real data.
+- Link check: warns when an item's system family (power & lighting / low current / fire & evacuation / BMS / metering)
+  differs from the linked code's, or the code is mechanical (CSI 21/22/23) and not a gas meter. Hotel link table:
+  26 warnings on 8 items (e.g. item 105 "fire" linked to AV / CCTV / access codes, item 321 power -> fire alarm panels).
