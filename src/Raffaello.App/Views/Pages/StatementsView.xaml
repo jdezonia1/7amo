@@ -112,7 +112,7 @@
                     <DataGridTextColumn Header="PERIOD" Binding="{Binding ThisPeriod, StringFormat=N0}" Width="56" ElementStyle="{StaticResource CellNum}"/>
                     <DataGridTextColumn Header="CLAIM %" Binding="{Binding ClaimedPct, StringFormat=P0}" Width="62" ElementStyle="{StaticResource CellNum}"/>
                     <DataGridTextColumn Header="WIR %" Binding="{Binding Row.WirPct, StringFormat=P0}" Width="56" ElementStyle="{StaticResource CellNum}"/>
-                    <DataGridTextColumn Header="RATE" Binding="{Binding Rate, StringFormat=N2}" Width="60" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="RATE" Binding="{Binding Rate, StringFormat=N2}" Width="72" ElementStyle="{StaticResource CellNum}"/>
                     <DataGridTextColumn Header="VALUE SAR" Binding="{Binding Value, StringFormat=N0}" Width="*" MinWidth="80" ElementStyle="{StaticResource CellNumStrong}"/>
                 </DataGrid.Columns>
             </DataGrid>

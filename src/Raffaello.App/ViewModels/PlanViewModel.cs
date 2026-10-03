@@ -102,10 +102,13 @@ public sealed partial class PlanViewModel : PageViewModel
         var keep = Level?.Plan.Plan;
         Levels.Clear();
         foreach (var p in _plans) Levels.Add(new PlanLevelTab { Plan = p });
+        // Refilling an options list makes its ComboBox write null back; keep the user's filters.
+        var (stage, item, sub, invoice) = (Stage, Item, Sub, Invoice);
         Sync(StageOptions, new[] { All }.Concat(s.RoomQtys.Select(q => q.Stage).Concat(s.Claims.Select(c => c.Stage)).Distinct().OrderBy(x => x)));
         Sync(ItemOptions, new[] { All }.Concat(s.RoomQtys.Select(q => q.Item).Concat(s.Claims.Select(c => c.Item)).Where(x => x.Length > 0).Distinct().OrderBy(x => x)));
         Sync(SubOptions, new[] { All }.Concat(s.Claims.Select(c => c.Subcontractor).Distinct().OrderBy(x => x)));
         Sync(InvoiceOptions, new[] { All }.Concat(s.Claims.Select(c => c.InvoiceNo).Where(n => n > 0).Distinct().OrderBy(n => n).Select(n => n.ToString(CultureInfo.InvariantCulture))));
+        Stage = Keep(StageOptions, stage); Item = Keep(ItemOptions, item); Sub = Keep(SubOptions, sub); Invoice = Keep(InvoiceOptions, invoice);
         RoomsWithoutShape.Clear();
         var shaped = s.RoomShapes.Select(r => r.Room).ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var r in s.Rooms.Where(r => InBuilding(r.Building) && !shaped.Contains(r.Code)).OrderBy(r => r.Code)) RoomsWithoutShape.Add(r.Code);
@@ -232,6 +235,8 @@ public sealed partial class PlanViewModel : PageViewModel
         if (shape != null) Level = Levels.FirstOrDefault(l => l.Plan.Plan == shape.Plan) ?? Level;
         SelectedRoom = room;
     }
+
+    private static string Keep(ObservableCollection<string> options, string? value) => value is not null && options.Contains(value) ? value : All;
 
     private static void Sync(ObservableCollection<string> target, IEnumerable<string> items)
     {

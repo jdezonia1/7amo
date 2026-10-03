@@ -118,7 +118,7 @@
                             <Grid Grid.Row="1" Margin="0,2,0,8">
                                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="34"/></Grid.ColumnDefinitions>
                                 <TextBox Text="{Binding Sub, UpdateSourceTrigger=PropertyChanged}"/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding Subcontractors}" SelectedItem="{Binding Sub, Mode=TwoWay}" ToolTip="Pick an existing subcontractor" Margin="4,0,0,0"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding Subcontractors}" SelectedItem="{Binding Sub, Mode=TwoWay}" ToolTip="Pick an existing subcontractor" Margin="4,0,0,0" MinWidth="0" Height="Auto"/>
                             </Grid>
                             <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding InvoiceNo, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
                             <TextBlock Grid.Row="2" Text="STAGE" Style="{StaticResource Label}"/>

@@ -183,8 +183,10 @@ public sealed partial class SiteStatementsViewModel : PageViewModel
     {
         var s = Project.Snapshot;
         var subs = s.Claims.Select(c => c.Subcontractor).Concat(s.Contracts.Select(c => c.Subcontractor)).Where(x => x.Length > 0).Distinct().OrderBy(x => x).ToList();
+        // Clearing the list makes the bound ComboBox write Sub = null; keep the user's pick across the refill.
+        var keepSub = Sub;
         if (!Subcontractors.SequenceEqual(subs)) { Subcontractors.Clear(); foreach (var x in subs) Subcontractors.Add(x); }
-        if (Sub.Length == 0) Sub = Subcontractors.FirstOrDefault() ?? "";
+        Sub = !string.IsNullOrEmpty(keepSub) && Subcontractors.Contains(keepSub) ? keepSub : Subcontractors.FirstOrDefault() ?? "";
         if (Stages.Count == 0)
         {
             var known = s.RoomQtys.Select(q => q.Stage).Distinct().ToList();

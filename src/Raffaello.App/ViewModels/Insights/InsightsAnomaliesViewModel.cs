@@ -78,8 +78,13 @@ public sealed partial class InsightsAnomaliesViewModel : PageViewModel
             if (run != _run) return;
             _all = list;
             LoadThresholds(data);
+            // Refilling a list clears it, and the bound ComboBox then writes SelectedItem = null back into
+            // Kind / Sub - which filtered every row out (HIGH 1 but an empty list). Keep the user's choice.
+            var (kind, sub) = (Kind, Sub);
             Fill(Kinds, _all.Select(a => a.Kind));
             Fill(Subcontractors, _all.SelectMany(a => a.Subcontractor.Split(" / ")).Where(x => x.Trim().Length > 0).Select(x => x.Trim()));
+            Kind = kind is not null && Kinds.Contains(kind) ? kind : "ALL";
+            Sub = sub is not null && Subcontractors.Contains(sub) ? sub : "ALL";
             var live = _all.Where(a => !a.IsDismissed).ToList();
             HighCount = live.Count(a => a.Severity == InsightSeverity.High);
             MediumCount = live.Count(a => a.Severity == InsightSeverity.Medium);
@@ -117,9 +122,9 @@ public sealed partial class InsightsAnomaliesViewModel : PageViewModel
     {
         var q = _all.AsEnumerable();
         if (!ShowDismissed) q = q.Where(a => !a.IsDismissed);
-        if (Severity != "ALL") q = q.Where(a => a.Tag == Severity);
-        if (Kind != "ALL") q = q.Where(a => a.Kind == Kind);
-        if (Sub != "ALL") q = q.Where(a => a.Subcontractor.Split(" / ").Any(x => x.Trim().Equals(Sub, StringComparison.OrdinalIgnoreCase)));
+        if (Severity is not null && Severity != "ALL") q = q.Where(a => a.Tag == Severity);
+        if (Kind is not null && Kind != "ALL") q = q.Where(a => a.Kind == Kind);
+        if (Sub is not null && Sub != "ALL") q = q.Where(a => a.Subcontractor.Split(" / ").Any(x => x.Trim().Equals(Sub, StringComparison.OrdinalIgnoreCase)));
         if (!string.IsNullOrWhiteSpace(Search))
         {
             var s = Search.Trim();

@@ -152,7 +152,7 @@
                         <Button Style="{StaticResource BtnGhost}" Content="TICK ALL" Command="{Binding TickAllCommand}" Margin="0,0,6,6"/>
                         <Button Style="{StaticResource BtnPrimary}" Content="APPLY TICKED" Command="{Binding ApplyQtyCommand}" Margin="0,0,6,6"/>
                     </WrapPanel>
-                    <DataGrid Grid.Row="3" ItemsSource="{Binding Proposals}" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column">
+                    <DataGrid Grid.Row="3" Style="{StaticResource CardGrid}" IsReadOnly="False" ItemsSource="{Binding Proposals}">
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="OK" Binding="{Binding Accept, UpdateSourceTrigger=PropertyChanged}" Width="34"/>
                             <DataGridTextColumn Header="ROOM" Binding="{Binding Room}" Width="*" IsReadOnly="True"/>
