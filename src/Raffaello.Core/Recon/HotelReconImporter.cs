@@ -18,12 +18,14 @@ public sealed class HotelReconResult
 
     public double TotalQty => Quantities.Sum(q => q.Qty);
     public double ClaimedQty => Claims.Where(c => !c.Rework).Sum(c => c.Qty);
+    /// <summary>2nd-fix extra points kept for the 15 m route-length check (not against the project quantity).</summary>
+    public double LengthExtraQty => Claims.Where(c => c.LengthApplies).Sum(c => c.LengthClaimedQty - c.Qty);
     public double ReworkQty => Claims.Where(c => c.Rework).Sum(c => c.Qty);
 
     public string Summary =>
         $"{Rooms.Count} locations, {Quantities.Count} PROJECT QTY cells ({Quantities.Select(q => q.Stage + "|" + q.Item).Distinct().Count()} stage|item keys), " +
         $"total {TotalQty:N0}; {Claims.Count} claim lines ({Claims.Select(c => c.Subcontractor).Distinct().Count()} subcontractors), " +
-        $"claimed {ClaimedQty:N2}, rework {ReworkQty:N2}";
+        $"claimed {ClaimedQty:N2}, rework {ReworkQty:N2}, 15 m rule extras {LengthExtraQty:N2} (length check pending)";
 }
 
 /// <summary>
@@ -195,8 +197,16 @@ public static class HotelReconImporter
             var srcRow = H(r, h, "SOURCE ROW");
             if (srcRow.Length > 0) notes.Add("src row " + srcRow);
 
+            // 15 m rule (contract): 2nd-fix quantity claimed above the total is kept as length extras -> the app's LENGTH check
+            // (QTY = plan points against the room total; LengthClaimedQty = plan + extras; PENDING until route lengths are checked)
+            var lenExtra = Num(H(r, h, "LENGTH EXTRA (15 m rule)", "LENGTH EXTRA")) ?? 0;
+            if (lenExtra > 0) notes.Add($"15 m rule: +{lenExtra:0.##} extra points above the project quantity - check route lengths");
+
             res.Claims.Add(new ClaimLine
             {
+                LengthApplies = lenExtra > 0, LengthClaimedQty = lenExtra > 0 ? qty.Value + lenExtra : 0,
+                LengthStatus = lenExtra > 0 ? CheckStatus.Pending : CheckStatus.None,
+                LengthNote = lenExtra > 0 ? "Imported (hotel recon): 2nd-fix claim above the project quantity - treated as 15 m rule extras. Check route lengths." : "",
                 Building = Buildings.Hotel, Subcontractor = sub.Trim().ToUpperInvariant(), InvoiceNo = Int(H(r, h, "INV", "INVOICE")),
                 Stage = stage, Floor = H(r, h, "FLOOR"), Room = loc, Item = item, Unit = "no", Qty = qty.Value,
                 SitePct = Num(H(r, h, "DRAWING %", "SITE %")) ?? 1, WirPct = Num(H(r, h, "WIR %")) ?? 1,

@@ -21,6 +21,9 @@ public sealed class ReconCheckResult
     /// <summary>Sum of the non-rework claim lines that count (cumulative supersession applied), computed independently of the balances.</summary>
     public double ClaimedTotal { get; init; }
     public double ReworkTotal { get; init; }
+    /// <summary>2nd-fix extra points kept for the 15 m route-length check (LengthClaimedQty - Qty); not against the room totals.</summary>
+    public double LengthExtraTotal { get; init; }
+    public int LengthPendingLines { get; init; }
     public double RemainingTotal { get; init; }
     /// <summary>sum(project) - sum(non-rework claims) - sum(remaining); 0 when the ledger closes.</summary>
     public double ClosingDifference => ProjectTotal - ClaimedTotal - RemainingTotal;
@@ -31,6 +34,7 @@ public sealed class ReconCheckResult
 
     public string Summary =>
         $"total {ProjectTotal:N2}, claimed {ClaimedTotal:N2} (rework {ReworkTotal:N2} not counted), remaining {RemainingTotal:N2}; " +
+        $"15 m rule extras {LengthExtraTotal:N2} on {LengthPendingLines} lines (length check pending, not against the totals); " +
         $"closing difference {ClosingDifference:N6} ({(Closes ? "OK" : "DOES NOT CLOSE")}); {OverKeys} keys over-claimed by {OverQty:N2}, " +
         $"{ClaimKeysWithoutTotal} claimed keys with no total";
 }
@@ -59,6 +63,8 @@ public static class ReconCheck
             ProjectTotal = p.Sum(q => q.Qty),
             ClaimedTotal = effective.Where(c => !c.Rework).Sum(c => c.Qty),
             ReworkTotal = effective.Where(c => c.Rework).Sum(c => c.Qty),
+            LengthExtraTotal = effective.Where(c => !c.Rework && c.LengthApplies).Sum(c => c.LengthClaimedQty - c.Qty),
+            LengthPendingLines = effective.Count(c => !c.Rework && c.LengthApplies && c.LengthStatus == CheckStatus.Pending),
             RemainingTotal = rows.Sum(r => r.Remaining),
         };
     }

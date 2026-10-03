@@ -113,6 +113,39 @@ public class HotelReconTests
     }
 
     [Fact]
+    public void Length_extra_goes_to_the_15m_check_not_to_the_room_total()
+    {
+        var path = Path.Combine(TestData.TempDir(), "HOTEL_REMAINING_LEN.xlsx");
+        using (var wb = new XLWorkbook())
+        {
+            var ws = wb.Worksheets.Add("CLEAN CLAIMS");
+            var hdr = new[] { "SUBCONTRACTOR", "INV", "STAGE", "FLOOR", "LOCATION", "ITEM", "QTY", "DRAWING %", "WIR %", "REWORK", "FLAGS", "SOURCE ROW", "LENGTH EXTRA (15 m rule)" };
+            for (var i = 0; i < hdr.Length; i++) ws.Cell(3, 1 + i).Value = hdr[i];
+            object?[][] rows =
+            {
+                new object?[] { "SKY", 1, "2ND FIX", "Level 01", "H3-L1-101", "DALI", 19, 1, 1, null, "15M RULE EXTRA - CHECK ROUTE LENGTH", 4, 26 },
+                new object?[] { "SKY", 1, "1ST FIX", "Level 01", "H3-L1-101", "LIGHT", 5, 1, 1, null, null, 5, null },
+            };
+            for (var r = 0; r < rows.Length; r++)
+                for (var c = 0; c < rows[r].Length; c++)
+                    if (rows[r][c] is { } v) ws.Cell(4 + r, 1 + c).Value = XLCellValue.FromObject(v);
+            wb.SaveAs(path);
+        }
+        var res = HotelReconImporter.Read(ProjectQty(), path);
+        var dali = res.Claims.Single(c => c.Item == "DALI");
+        Assert.Equal(19, dali.Qty, 9);                       // plan points count against the room total
+        Assert.True(dali.LengthApplies);
+        Assert.Equal(45, dali.LengthClaimedQty, 9);          // plan + 15 m extras
+        Assert.Equal(CheckStatus.Pending, dali.LengthStatus);
+        Assert.Contains("15 m rule", dali.Notes);
+        var light = res.Claims.Single(c => c.Item == "LIGHT");
+        Assert.False(light.LengthApplies);
+        Assert.Equal(0, light.LengthClaimedQty, 9);
+        Assert.Equal(26, res.LengthExtraQty, 9);
+        Assert.Equal(24, res.ClaimedQty, 9);                 // extras are not in the claimed quantity
+    }
+
+    [Fact]
     public void Check_closes_ignores_rework_and_shows_overclaim_negative()
     {
         var c = ReconCheck.Run(HotelReconImporter.Read(ProjectQty(), CleanClaims()));
