@@ -62,5 +62,5 @@ signed PO PDF; pipe conversion untested on a real DN.
   (0 problems) and the Core tests. Never force-push (the patch updater needs the history).
 - Updates reach Mohamed as PATCHES (tools/update.ps1, SETTINGS > UPDATES > UPDATE NOW), never as a zip to download.
   Line 1 of every commit message is what he sees in the update list - write it in plain words.
-- His single folder on the work PC: C:\Users\DELL\RAFFAELLO (app installed by the updater in code\, chat in CHAT\,
+- His single folder on the work PC: C:\Users\DELL\Desktop\RAFFLES MASTER FOLDER\RAFFAELLO (app installed by the updater in code\, chat in CHAT\,
   README.txt). Real data findings and his decisions: docs/DATA_FINDINGS.md.
