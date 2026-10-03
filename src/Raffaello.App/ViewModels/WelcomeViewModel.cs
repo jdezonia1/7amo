@@ -105,7 +105,7 @@ public sealed partial class WelcomeViewModel : PageViewModel
         var curve = ProjectAnalytics.SCurve(s, p.Chain, p.ProjectStart, p.PlannedFinish, Today);
         var nowPt = curve.LastOrDefault(c => c.Actual.HasValue);
         ProgressLine = nowPt is null ? "No progress yet" : $"ACTUAL {nowPt.Actual:P0}  vs  PLANNED {nowPt.Planned:P0}";
-        CertifiedLine = $"SAR {p.Chain.Sum(r => r.CertifiedValue):N0} CERTIFIED TO DATE";
+        CertifiedLine = $"SAR {p.Chain.Sum(r => r.CertifiedValue):N0}";   // the card label already says CERTIFIED TO DATE
     }
 
     [RelayCommand]

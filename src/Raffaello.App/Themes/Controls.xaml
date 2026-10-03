@@ -564,6 +564,7 @@
         <Setter Property="ColumnHeaderStyle" Value="{StaticResource CardGridHeader}"/>
         <Setter Property="CellStyle" Value="{StaticResource CardGridCell}"/>
         <Setter Property="RowStyle" Value="{StaticResource CardGridRow}"/>
+        <Setter Property="c:GridColumnGuard.Enabled" Value="True"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
     </Style>
 
