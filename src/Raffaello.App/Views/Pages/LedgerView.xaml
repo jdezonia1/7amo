@@ -50,6 +50,8 @@
                             ToolTip="Read the tracker workbook (ROOMS, PROJECT QTY, LEDGER, PLANS) into the building chosen at the top. Shows a preview first."/>
                     <Button Style="{StaticResource BtnGhost}" Content="IMPORT ROOM LIST" Command="{Binding ImportRoomListCommand}" Margin="6,0,0,0"
                             ToolTip="Any room list (e.g. the HOTEL keys): columns found by header text, optional STAGE|ITEM PROJECT QTY columns"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="IMPORT HOTEL RECON" Command="{Binding ImportHotelReconCommand}" Margin="6,0,0,0"
+                            ToolTip="HOTEL only: the new 100% total (HOTEL_PROJECT_QTY.xlsx) and the cleaned past claims (HOTEL_REMAINING.xlsx, CLEAN CLAIMS). Shows counts and the closing check first."/>
                 </StackPanel>
             </Grid>
             <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12">

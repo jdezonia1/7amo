@@ -24,6 +24,7 @@ namespace Raffaello.Cli;
 ///   raffaello-cli export         --contract NO --sub NAME --invoice N --out DIR
 ///   raffaello-cli statement      --sub NAME --no S-001 --out FILE
 ///   raffaello-cli report
+///   raffaello-cli recon-hotel    --project XLSX --claims XLSX [--db PATH] [--dry-run] [--replace-hotel-ledger]  (ReconCommands.cs)
 /// Mapping: --data-mount WALL|CEILING, --grms-mount WALL|CEILING (DATA / GRMS 1ST FIX outlet item; default WALL).
 /// Common: --db PATH (default ./raffaello-cli.db). Outputs contain project data: keep them out of the repository.
 /// </summary>
@@ -46,6 +47,7 @@ public static class Program
         if (CableCommands.Handles(args[0])) return CableCommands.Run(args);
         // [cables] end
         if (TrustCommands.Handles(args[0])) return TrustCommands.Run(args);   // [trust]
+        if (ReconCommands.Handles(args[0])) return ReconCommands.Run(args);   // [recon] hotel recon import
         // [assemblies] begin
         if (AssembliesCommands.Handles(args[0])) return AssembliesCommands.Run(args);
         // [assemblies] end

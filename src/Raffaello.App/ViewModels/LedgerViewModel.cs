@@ -336,6 +336,29 @@ public sealed partial class LedgerViewModel : PageViewModel
         Ctx.Toasts.Show("TRACKER IMPORTED", msg, ToastKind.Good, 8);
     }
 
+    /// <summary>[recon] HOTEL RECON: the new hotel 100% total (HOTEL_PROJECT_QTY.xlsx) + the cleaned past claims (HOTEL_REMAINING.xlsx, CLEAN CLAIMS).</summary>
+    [RelayCommand]
+    private async Task ImportHotelRecon()
+    {
+        var projectFile = Ctx.Dialogs.OpenFile("HOTEL RECON 1/2 - hotel 100% total (sheet PROJECT QTY)");
+        if (projectFile is null) return;
+        var claimsFile = Ctx.Dialogs.OpenFile("HOTEL RECON 2/2 - cleaned past claims (sheet CLEAN CLAIMS)");
+        if (claimsFile is null) return;
+        Raffaello.Core.Recon.HotelReconResult? r;
+        Raffaello.Core.Recon.ReconCheckResult? check;
+        try
+        {
+            r = await Task.Run(() => Project.Workflow.PreviewHotelRecon(projectFile, claimsFile));
+            check = Raffaello.Core.Recon.ReconCheck.Run(r);
+        }
+        catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ HOTEL RECON", ex.Message, ToastKind.Error); return; }
+        var issues = string.Join("\n", r.Issues.GroupBy(i => System.Text.RegularExpressions.Regex.Replace(i.Message, @"(row \d+|location ).*$", "*")).Take(6).Select(g => $"- {g.First().Message} (x{g.Count()})"));
+        if (!Ctx.Dialogs.Confirm("Import HOTEL RECON", $"{r.Summary}\n\nCheck: {check.Summary}\n\n{issues}\n\nImport? HOTEL PROJECT QTY is replaced and earlier RECON claim lines are replaced. Other HOTEL ledger lines (tracker, manual) are kept and still count.")) return;
+        string msg = "";
+        await Ctx.Data.WriteAsync(p => msg = p.Workflow.CommitHotelRecon(r), Ctx.Toasts);
+        Ctx.Toasts.Show("HOTEL RECON IMPORTED", msg, ToastKind.Good, 8);
+    }
+
     /// <summary>[phase6] Room list of the building chosen in the switcher (HOTEL ...), columns found by header text.</summary>
     [RelayCommand]
     private async Task ImportRoomList()

@@ -118,6 +118,15 @@ public sealed class WorkflowService
                + (r.CableSummary.Length > 0 ? "; cables: " + r.CableSummary : "");   // [cables]
     }
 
+    /// <summary>[recon] HOTEL RECON: new hotel 100% total (PROJECT QTY) + cleaned past claims (CLEAN CLAIMS).</summary>
+    public Recon.HotelReconResult PreviewHotelRecon(string projectQtyPath, string cleanClaimsPath) => Recon.HotelReconImporter.Read(projectQtyPath, cleanClaimsPath);
+    public string CommitHotelRecon(Recon.HotelReconResult r)
+    {
+        var (rooms, qty, claims, removed) = Recon.HotelReconImporter.Commit(r, _p.Store);
+        _p.Reload();
+        return $"{rooms} locations, {qty} PROJECT QTY, {claims} RECON claim lines ({removed} earlier RECON lines replaced)";
+    }
+
     /// <summary>[phase6] Room list of a building (e.g. HOTEL) by header text.</summary>
     public RoomListImportResult PreviewRoomList(string path, string building) => RoomListImporter.Read(path, building);
     public string CommitRoomList(RoomListImportResult r)
