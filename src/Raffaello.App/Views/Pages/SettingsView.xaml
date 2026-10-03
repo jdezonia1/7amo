@@ -35,6 +35,26 @@
                         <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent, Mode=TwoWay}" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
+                <Border Style="{StaticResource Card}" Margin="0,16,0,0" DataContext="{Binding Updates}">
+                    <StackPanel>
+                        <TextBlock Text="UPDATES" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                   Text="Updates are patches: only the files that changed are downloaded, then a quick build and restart. Your data is not touched."/>
+                        <TextBlock Style="{StaticResource Label}" FontSize="10"><Run Text="INSTALLED  "/><Run Text="{Binding Installed, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Text="{Binding Folder}" Style="{StaticResource Small}" FontFamily="{StaticResource FontMono}" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,8"/>
+                        <TextBlock Text="{Binding Status}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <ItemsControl ItemsSource="{Binding Changes}" Margin="0,0,0,8" MaxHeight="180">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding StringFormat='- {0}'}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,1"/></DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource BtnGhost}" Content="CHECK NOW" Command="{Binding CheckCommand}" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="UPDATE NOW" Command="{Binding UpdateNowCommand}"
+                                    Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVis}}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
                 <Border Style="{StaticResource Card}" Margin="0,16,0,0">
                     <StackPanel>
                         <TextBlock Text="INVOICE HEADER" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>

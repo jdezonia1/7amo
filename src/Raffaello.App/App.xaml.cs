@@ -320,6 +320,15 @@ public partial class App : Application
         new Services.Phase5.RemoteSyncService(sp.GetRequiredService<DataService>(), sp.GetRequiredService<ToastService>()).Start(project.Store as Raffaello.Core.Remote.RemoteProjectStore);
         // [phase5] end
         Step("started");
+        // patch updates: tell the user when GitHub has changes this install does not have (offline = silent)
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(TimeSpan.FromSeconds(8));
+            var r = await Services.UpdateService.Instance.CheckAsync();
+            if (r.Ok && r.Behind > 0)
+                sp.GetRequiredService<ToastService>().Show($"UPDATE AVAILABLE - {r.Behind} change(s)",
+                    string.Join(Environment.NewLine, r.Changes.Take(3)) + Environment.NewLine + "SETTINGS > UPDATES > UPDATE NOW (only the changed files are downloaded).", ToastKind.Info, 20);
+        });
     }
 
     /// <summary>Obligations (handover, warranty end, retention release, penalty start / cap) due within 30 days.</summary>

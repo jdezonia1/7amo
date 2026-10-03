@@ -19,6 +19,12 @@
   tab, PrintWindow captures the window, logs checked after each page. The computer-use screenshot tool returned a blank
   screen on this PC, so UIA + PrintWindow was used instead. Repo cloned under the Claude scratch folder needs
   `git config core.longpaths true`.
+- UPDATES ARE PATCHES (new): tools/update.ps1 compares code\.raffaello_commit with the branch head on GitHub and downloads
+  only the changed files (full zip only the first time / after a history rewrite), then incremental build + start.
+  Entry points: UPDATE_AND_RUN.bat (one-line launcher, fetches update.ps1 if missing), SETTINGS > UPDATES > UPDATE NOW,
+  and a startup toast "UPDATE AVAILABLE - n change(s)" (Services/UpdateService, ViewModels/UpdatesViewModel).
+  Tested end to end on the DELL PC: 9 changed files, patch + build + restart in about 12 s. Never force-push this branch
+  (a rewritten history makes the next update a full download). Every commit message line 1 is what Mohamed sees.
 - Still paused (do not start without Mohamed): B5/B6 bill rule + gas-meter vs BMS link-table check (section 2b).
 
 # STATUS 02-Oct-2026 night (previous) (branch claude/dazzling-turing-20kq62) - READ THIS FIRST

@@ -13,6 +13,10 @@ public sealed partial class SettingsViewModel : PageViewModel
 {
     public SettingsViewModel(PageContext ctx) : base(ctx) { }
 
+    private UpdatesViewModel? _updates;
+    /// <summary>UPDATES card: patch updates from GitHub (only changed files are downloaded).</summary>
+    public UpdatesViewModel Updates => _updates ??= new UpdatesViewModel();
+
     // [phase5] begin
     private Phase5.ServerSettingsViewModel? _server;
     /// <summary>Data source card: Local file or Raffaello server (URL, sign-in, migration, sync conflicts, approvals).</summary>
