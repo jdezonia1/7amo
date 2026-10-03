@@ -279,7 +279,7 @@ public sealed class AuditAnchorStore
     public int KeepPerLocation { get; set; } = 60;
 
     public AuditAnchorStore(string? path = null) =>
-        Path = path ?? System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Raffaello", "audit-anchors.json");
+        Path = path ?? System.IO.Path.Combine(Raffaello.Core.Settings.AppSettings.SettingsFolder, "audit-anchors.json");
 
     private Dictionary<string, List<AuditAnchor>> Load()
     {

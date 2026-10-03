@@ -259,9 +259,9 @@ public sealed partial class AssistantSettingsViewModel : ObservableObject
         try
         {
             System.Windows.Clipboard.SetText(DesktopSnippet);
-            _toasts.Show("CLAUDE DESKTOP", "Snippet copied. Paste it into claude_desktop_config.json (see the steps below it).", ToastKind.Good, 6);
+            _toasts.Show("Claude Desktop", "Snippet copied. Paste it into claude_desktop_config.json (see the steps below it).", ToastKind.Good, 6);
         }
-        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or System.Runtime.InteropServices.ExternalException) { _toasts.Show("CLAUDE DESKTOP", ex.Message, ToastKind.Warn); }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or System.Runtime.InteropServices.ExternalException) { _toasts.Show("Claude Desktop", ex.Message, ToastKind.Warn); }
     }
 
     [RelayCommand] private void AddRule() => Rules.Add(new NotifyRuleRow { EventKind = NotifyEvents.Brief, Channel = NotifyChannels.Email, MinSeverity = "OK" });

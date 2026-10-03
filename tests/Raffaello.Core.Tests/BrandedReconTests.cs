@@ -15,7 +15,7 @@ public class BrandedReconTests
                 if (rows[r][c] is { } v) ws.Cell(firstRow + r, firstCol + c).Value = XLCellValue.FromObject(v);
     }
 
-    private static string Workbook(bool fractional = false)
+    private static string Workbook(bool fractional = false, string noCapQtyHeader = "QTY (m)", bool ledgerLayout = false)
     {
         var path = Path.Combine(TestData.TempDir(), "BRANDED_REMAINING.xlsx");
         using var wb = new XLWorkbook();
@@ -36,14 +36,29 @@ public class BrandedReconTests
 
         var nc = wb.Worksheets.Add("NO CAP (CABLES)");
         nc.Cell(1, 1).Value = "NOT COMPARED: CABLE PULLING (site statement) and CABLE TRAY (waiting for the final Revit model)";
-        var nh = new[] { "SUBCONTRACTOR", "INV", "FLOOR", "LOCATION", "CABLE", "QTY (m)" };
-        for (var i = 0; i < nh.Length; i++) nc.Cell(3, 1 + i).Value = nh[i];
-        Put(nc, 4, 1, new[]
+        if (ledgerLayout)
         {
-            new object?[] { "ROOTS", 3, "BASEMENT 1", "EMCC-BR-Z2-LB1-FANS", "4X16", 162.4 },
-            new object?[] { "CONCRETE PLUS", 9, "Ground Floor", "P2-GF", "100 MM", 47.64 },
-            new object?[] { "CONCRETE PLUS", 9, "Ground Floor", "P2-GF", "450mm", 10 },
-        });
+            // layout of the data side's NO CAP (CABLES) sheet from 03-Oct-2026: STAGE + ITEM columns, "QTY (m)", LEDGER ROW
+            var nh = new[] { "SUBCONTRACTOR", "INV", "STAGE", "FLOOR", "LOCATION", "ITEM", noCapQtyHeader, "LEDGER ROW" };
+            for (var i = 0; i < nh.Length; i++) nc.Cell(3, 1 + i).Value = nh[i];
+            Put(nc, 4, 1, new[]
+            {
+                new object?[] { "ROOTS", 3, "CABLE PULLING", "BASEMENT 1", "EMCC-BR-Z2-LB1-FANS", "4X16", 162.4, 471 },
+                new object?[] { "CONCRETE PLUS", 9, "CABLE TRAY", "Ground Floor", "P2-GF", "100 MM", 47.64, 900 },
+                new object?[] { "CONCRETE PLUS", 9, "CABLE TRAY", "Ground Floor", "P2-GF", "450mm", 10, 901 },
+            });
+        }
+        else
+        {
+            var nh = new[] { "SUBCONTRACTOR", "INV", "FLOOR", "LOCATION", "CABLE", noCapQtyHeader };
+            for (var i = 0; i < nh.Length; i++) nc.Cell(3, 1 + i).Value = nh[i];
+            Put(nc, 4, 1, new[]
+            {
+                new object?[] { "ROOTS", 3, "BASEMENT 1", "EMCC-BR-Z2-LB1-FANS", "4X16", 162.4 },
+                new object?[] { "CONCRETE PLUS", 9, "Ground Floor", "P2-GF", "100 MM", 47.64 },
+                new object?[] { "CONCRETE PLUS", 9, "Ground Floor", "P2-GF", "450mm", 10 },
+            });
+        }
 
         var pq = wb.Worksheets.Add("PROJECT QTY");
         pq.Cell(1, 2).Value = "PROJECT QUANTITY - BRANDED";
@@ -103,6 +118,27 @@ public class BrandedReconTests
         // a panel location in NO CAP is not reported as a missing room
         Assert.DoesNotContain(r.Issues, i => i.Message.Contains("EMCC"));
         Assert.Equal(51, r.ClaimedQty, 9);   // 30 + 2 + 15 + 4; metres not added to points
+    }
+
+    [Theory]
+    [InlineData("QTY (m)", true)]          // current NO CAP (CABLES) sheet (03-Oct-2026 audit: all cable lines were skipped)
+    [InlineData("QTY (m)", false)]
+    [InlineData("QTY (m / no)", true)]     // older variants keep working
+    [InlineData("QTY (m / no)", false)]
+    [InlineData("QTY (M)", false)]
+    [InlineData("QTY", false)]
+    [InlineData("QTY M", false)]
+    public void Cable_lines_import_with_every_qty_header_variant(string qtyHeader, bool ledgerLayout)
+    {
+        var f = Workbook(noCapQtyHeader: qtyHeader, ledgerLayout: ledgerLayout);
+        var r = ReconImporter.Read(Buildings.Branded, f, f);
+        var noCap = r.Claims.Where(c => c.SourceKey.Contains("|NOCAP|")).ToList();
+        Assert.Equal(3, noCap.Count);
+        Assert.Equal(162.4 + 47.64 + 10, noCap.Sum(c => c.Qty), 6);
+        Assert.DoesNotContain(r.Issues, i => i.Message.Contains("no QTY") || i.Message.Contains("not found"));
+        Assert.Equal(ReconImporter.CablePulling, noCap.Single(c => c.Item == "4X16").Stage);
+        Assert.Equal(ReconImporter.CableTray, noCap.Single(c => c.Item == "100 MM").Stage);
+        Assert.All(noCap, c => Assert.Equal(LedgerRules.NotComparedWorkType, c.WorkType));
     }
 
     [Fact]

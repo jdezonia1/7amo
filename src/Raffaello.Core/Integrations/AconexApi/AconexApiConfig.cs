@@ -47,7 +47,7 @@ public sealed class AconexApiConfig
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
     };
 
-    public static string DefaultPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Raffaello", "aconex-api.json");
+    public static string DefaultPath => Path.Combine(Raffaello.Core.Settings.AppSettings.SettingsFolder, "aconex-api.json");
 
     public static AconexApiConfig Load(string? path = null, bool writeIfMissing = true)
     {

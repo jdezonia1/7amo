@@ -108,6 +108,22 @@ public static class ReconImporter
         return "";
     }
 
+    /// <summary>
+    /// The quantity column of a claims / cables header row: "QTY" first, then the unit-tagged variants the data side has used
+    /// ("QTY (m)" on NO CAP (CABLES) since 03-Oct-2026, older "QTY (m / no)", "QTY M", "QUANTITY"), then any header starting with "QTY (".
+    /// Returns null when there is none.
+    /// </summary>
+    internal static int? QtyColumn(Dictionary<string, int> h)
+    {
+        foreach (var n in new[] { "QTY", "QTY (M)", "QTY (M / NO)", "QTY (M/NO)", "QTY (NO / M)", "QTY (NO)", "QTY M", "QTY (METRES)", "QUANTITY" })
+            if (h.TryGetValue(TableReader.NormalizeHeader(n), out var c)) return c;
+        foreach (var kv in h)
+            if (kv.Key.StartsWith("QTY (", StringComparison.OrdinalIgnoreCase) || kv.Key.StartsWith("QTY(", StringComparison.OrdinalIgnoreCase)) return kv.Value;
+        return null;
+    }
+
+    private static string QtyText(XlsxRow r, Dictionary<string, int> h) => QtyColumn(h) is int c ? r.Get(c).Trim() : "";
+
     private static double? Num(string s) =>
         double.TryParse(s.Replace(",", "").Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d : null;
 
@@ -246,12 +262,12 @@ public static class ReconImporter
             if (h is null)
             {
                 var hh = Headers(r);
-                if (new[] { "SUBCONTRACTOR", "STAGE", "LOCATION", "ITEM", "QTY" }.All(hh.ContainsKey)) h = hh;
+                if (new[] { "SUBCONTRACTOR", "STAGE", "LOCATION", "ITEM" }.All(hh.ContainsKey) && QtyColumn(hh) is not null) h = hh;
                 continue;
             }
             var sub = H(r, h, "SUBCONTRACTOR");
             if (sub.Length == 0) continue;
-            var qty = Num(H(r, h, "QTY"));
+            var qty = Num(QtyText(r, h));
             if (qty is null) { res.Issues.Add(new(r.Number, IssueLevel.Warning, $"CLEAN CLAIMS row {r.Number}: no QTY - skipped.")); continue; }
             var stage = H(r, h, "STAGE").ToUpperInvariant();
             var loc = H(r, h, "LOCATION");
@@ -318,12 +334,12 @@ public static class ReconImporter
             if (h is null)
             {
                 var hh = Headers(r);
-                if (hh.ContainsKey("SUBCONTRACTOR") && hh.ContainsKey("LOCATION") && (hh.ContainsKey("CABLE") || hh.ContainsKey("ITEM"))) h = hh;
+                if (hh.ContainsKey("SUBCONTRACTOR") && hh.ContainsKey("LOCATION") && (hh.ContainsKey("CABLE") || hh.ContainsKey("ITEM")) && QtyColumn(hh) is not null) h = hh;
                 continue;
             }
             var sub = H(r, h, "SUBCONTRACTOR");
             if (sub.Length == 0) continue;
-            var qty = Num(H(r, h, "QTY (m)", "QTY (M)", "QTY M", "QTY"));
+            var qty = Num(QtyText(r, h));
             if (qty is null) { res.Issues.Add(new(r.Number, IssueLevel.Warning, $"{sheet} row {r.Number}: no QTY - skipped.")); continue; }
             var cable = H(r, h, "CABLE", "ITEM").ToUpperInvariant();
             var stage = H(r, h, "STAGE").ToUpperInvariant() is { Length: > 0 } st ? st : CableStage(cable);
@@ -339,7 +355,7 @@ public static class ReconImporter
             });
             lines++;
         }
-        if (h is null) res.Issues.Add(new(3, IssueLevel.Warning, $"{sheet}: header row (SUBCONTRACTOR, LOCATION, CABLE, QTY) not found - cable lines not read."));
+        if (h is null) res.Issues.Add(new(3, IssueLevel.Warning, $"{sheet}: header row (SUBCONTRACTOR, LOCATION, CABLE or ITEM, QTY / QTY (m)) not found - cable lines not read."));
         else if (lines > 0) res.Issues.Add(new(0, IssueLevel.Warning, $"{sheet}: {lines} cable lines read as NOT COMPARED (cable pulling / cable tray) - kept in the ledger, not counted against any total."));
     }
 

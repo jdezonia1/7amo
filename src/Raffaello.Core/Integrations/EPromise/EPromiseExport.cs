@@ -113,7 +113,7 @@ public sealed class EPromiseExportConfig
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
     };
 
-    public static string DefaultPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Raffaello", "epromise-export.json");
+    public static string DefaultPath => Path.Combine(Raffaello.Core.Settings.AppSettings.SettingsFolder, "epromise-export.json");
 
     public static EPromiseExportConfig Load(string? path = null, bool writeIfMissing = true)
     {

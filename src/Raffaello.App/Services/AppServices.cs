@@ -74,7 +74,8 @@ public sealed class ToastService
     {
         void Add()
         {
-            var t = new Toast { Title = title.ToUpperInvariant(), Message = message, Kind = kind };
+            // sentence case like the rest of the UI ("BOQ SAVED" -> "BOQ saved"); trade acronyms (WIR, MIR, BOQ, ACONEX ...) stay as they are
+            var t = new Toast { Title = Raffaello.App.Converters.CaseText.Sentence(title), Message = message, Kind = kind };
             Items.Add(t);
             while (Items.Count > 4) Items.RemoveAt(0);
             var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(seconds) };

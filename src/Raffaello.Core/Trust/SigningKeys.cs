@@ -121,7 +121,7 @@ public sealed class SigningKeyStore
 
     public SigningKeyStore(string folder, IKeyProtector protector) { Folder = folder; _protector = protector; }
 
-    public static string DefaultFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Raffaello", "keys");
+    public static string DefaultFolder => Path.Combine(Raffaello.Core.Settings.AppSettings.SettingsFolder, "keys");
 
     /// <summary>The Windows default (DPAPI). On other systems a passphrase protector must be given explicitly.</summary>
     public static SigningKeyStore Default(string? passphrase = null)

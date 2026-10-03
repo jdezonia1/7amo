@@ -58,7 +58,7 @@ public sealed class AconexConfig
     };
 
     public static string DefaultPath =>
-        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Raffaello", "aconex.config.json");
+        System.IO.Path.Combine(Raffaello.Core.Settings.AppSettings.SettingsFolder, "aconex.config.json");
 
     /// <summary>Loads the config; writes the defaults the first time so the user has a file to edit.</summary>
     public static AconexConfig Load(string? path = null, bool writeIfMissing = true)
