@@ -31,6 +31,11 @@ public partial class App : Application
 
     public App()
     {
+        // [claude-login] "Raffaello.exe --mcp [--db FILE]": the read-only MCP server for Claude Code / Claude Desktop (stdin / stdout).
+        // Runs before any window, log or setting is touched and exits when the client closes the pipe.
+        var cmd = Environment.GetCommandLineArgs().Skip(1).ToArray();
+        if (cmd.Any(a => string.Equals(a, "--mcp", StringComparison.OrdinalIgnoreCase)))
+            Environment.Exit(Raffaello.Core.Assistant.Mcp.McpHost.RunStdio(cmd));
         // runs before InitializeComponent (App.xaml theme dictionaries), so a XAML / native failure there is logged and shown, not silent
         try { Directory.CreateDirectory(AppSettings.SettingsFolder); File.WriteAllText(StartupLogPath, ""); } catch { }
         Step($"start {typeof(App).Assembly.GetName().Version} on {Environment.OSVersion}, exe {Environment.ProcessPath}");

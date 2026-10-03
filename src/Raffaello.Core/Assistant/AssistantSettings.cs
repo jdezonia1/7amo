@@ -25,6 +25,16 @@ public sealed class AssistantSettings
     /// <summary>Characters of one tool result sent to the model (longer results are cut with a note).</summary>
     public int MaxToolResultChars { get; set; } = 24000;
 
+    // [claude-login] engine choice: AUTO / API KEY / CLAUDE LOGIN / OFFLINE (see AssistantProviders)
+    public string Provider { get; set; } = AssistantProviders.Auto;
+    /// <summary>claude.exe to use (empty = found automatically: PATH, %USERPROFILE%\.local\bin, npm).</summary>
+    public string ClaudeCodePath { get; set; } = "";
+    /// <summary>Model for the Claude login (e.g. sonnet, opus; empty = Claude Code's default for the plan).</summary>
+    public string ClaudeCodeModel { get; set; } = "";
+    public int ClaudeCodeTimeoutSeconds { get; set; } = 240;
+    /// <summary>Turns (tool rounds + answer) one question may use through Claude Code.</summary>
+    public int ClaudeCodeMaxTurns { get; set; } = 12;
+
     // brief
     public bool ShowBriefFirst { get; set; } = true;
     public string BriefTime { get; set; } = "07:30";

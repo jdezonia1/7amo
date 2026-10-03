@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json.Nodes;
 using Raffaello.Core.Ai;
+using Raffaello.Core.Assistant.ClaudeCode;
 
 namespace Raffaello.Core.Assistant;
 
@@ -56,6 +57,19 @@ public sealed class AssistantSession
     public string Model { get; set; } = AnthropicClient.DefaultModel;
     public string Effort { get; set; } = "medium";
     public bool UseServerFallbacks { get; set; } = true;
+
+    /// <summary>[claude-login] Picks the engine for each question. Null = the API key when one is set, else offline.</summary>
+    public Func<RouteDecision>? Router { get; set; }
+    /// <summary>[claude-login] Runs Claude Code with the user's Claude login (null = not available).</summary>
+    public Func<IClaudeCodeRunner?>? ClaudeCode { get; set; }
+
+    public RouteDecision CurrentRoute()
+    {
+        if (Router != null)
+            try { return Router(); }
+            catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException) { return new RouteDecision(AssistantRoute.Offline, ex.Message, true); }
+        return string.IsNullOrWhiteSpace(ApiKey()) ? new RouteDecision(AssistantRoute.Offline, "no API key") : new RouteDecision(AssistantRoute.Api, "API key");
+    }
 
     public const string SystemPrompt = """
         You are Raffaello, the assistant built into MOBCO's desktop app for the electrical / ELV quantity surveying of the Raffles Hotel and Branded Residences project in Riyadh. You help the QS engineer and the site team with subcontractor claims, the room ledger, invoices and their Aconex approval, materials (PO, delivery notes, MIR), variations and contracts.
@@ -211,19 +225,24 @@ public sealed class AssistantSession
         var display = question.Length > 0 ? question : "(attached " + string.Join(", ", attachments.Select(a => a.FileName)) + ")";
         if (attachments.Count > 0 && question.Length > 0) display += "\n[" + string.Join(", ", attachments.Select(a => a.FileName)) + "]";
         EnsureConversation(display);
+        var earlier = Bubbles();
 
         // outcomes of cards decided since the last answer travel with this question (append-only)
         var decided = _d.Store.Actions(Conversation!.Id).Where(a => a.Status != AssistantActionStatus.Proposed && !a.Reported).ToList();
-        var content = new JsonArray { new JsonObject { ["type"] = "text", ["text"] = ContextBlock(screen, decided) } };
+        var context = ContextBlock(screen, decided);
+        var content = new JsonArray { new JsonObject { ["type"] = "text", ["text"] = context } };
         foreach (var a in attachments) foreach (var b in a.Blocks) content.Add(b.DeepClone());
         content.Add(new JsonObject { ["type"] = "text", ["text"] = question.Length > 0 ? question : "Read the attached file(s) and tell me what they contain and what needs my attention." });
         Save("user", content, display);
         foreach (var a in decided) { a.Reported = true; _d.Store.Update(a, null); }
 
         var reply = new AssistantReply();
-        var key = ApiKey();
+        var route = CurrentRoute();
+        if (route.Route == AssistantRoute.ClaudeCode)
+            return await AskClaudeCodeAsync(question, context, attachments, earlier, reply, onEvent, ct).ConfigureAwait(false);
+        var key = route.Route == AssistantRoute.Api ? ApiKey() : null;
         if (string.IsNullOrWhiteSpace(key))
-            return OfflineReply(question, reply, "", onEvent);
+            return OfflineReply(question, reply, route.Warn ? route.Reason : "", onEvent);
 
         try
         {
@@ -241,15 +260,146 @@ public sealed class AssistantSession
         }
         finally
         {
-            if (Conversation != null)
-            {
-                Conversation.LastAt = _d.Clock();
-                Conversation.Model = Model;
-                try { Conversation = _d.Store.Update(Conversation, null); }
-                catch (Exception) { Conversation = _d.Store.All<AssistantConversation>().FirstOrDefault(c => c.Id == Conversation.Id) ?? Conversation; }
-            }
+            Touch(Model);
         }
         return reply;
+    }
+
+    private void Touch(string model)
+    {
+        if (Conversation is null) return;
+        Conversation.LastAt = _d.Clock();
+        Conversation.Model = model;
+        try { Conversation = _d.Store.Update(Conversation, null); }
+        catch (Exception) { Conversation = _d.Store.All<AssistantConversation>().FirstOrDefault(c => c.Id == Conversation.Id) ?? Conversation; }
+    }
+
+    // ------------------------------------------------------------------ [claude-login] Claude Code with the user's Claude login
+
+    public const string ClaudeCodeAddendum = """
+
+        This chat runs through Claude Code with the user's own Claude login. Your only tools are the READ-ONLY Raffaello tools (their names start with mcp__raffaello__): use them for every figure. The writing tools named above (draft_ledger_claim, draft_invoice_revision, draft_rejection_reply_email, draft_variation, create_reminder) are NOT available here: when the user asks to post, save, create, remind or send something, say exactly what to enter and where in the app, or suggest switching Settings > Assistant > PROVIDER to API KEY for CONFIRM cards. Never say that anything was saved or sent.
+        rooms_remaining answers "how many rooms still have X remaining" (filters: building, stage, item, room type, area type such as GUESTROOM); list_rooms shows the room and area types that exist.
+        Earlier messages of this conversation, if any, are in <conversation_so_far>. Answer the QUESTION at the end.
+        """;
+
+    /// <summary>The system prompt of the Claude Code route (same house rules, plus what differs there).</summary>
+    public static string ClaudeCodeSystemPrompt => SystemPrompt + "\n" + ClaudeCodeAddendum;
+
+    /// <summary>The prompt sent on stdin: earlier turns (short), the app context, attached text, the question.</summary>
+    public static string ClaudeCodePrompt(string question, string context, IReadOnlyList<ChatAttachment> attachments, IReadOnlyList<ChatBubble> earlier, int maxEarlier = 8, int maxChars = 2000)
+    {
+        var sb = new StringBuilder();
+        var past = earlier.Where(b => b.Text.Trim().Length > 0).TakeLast(maxEarlier).ToList();
+        if (past.Count > 0)
+        {
+            sb.Append("<conversation_so_far>\n");
+            foreach (var b in past)
+            {
+                var t = b.Text.Trim();
+                if (t.Length > maxChars) t = t[..maxChars] + " [...]";
+                sb.Append(b.Role == "user" ? "USER: " : "RAFFAELLO: ").Append(t).Append("\n\n");
+            }
+            sb.Append("</conversation_so_far>\n\n");
+        }
+        sb.Append(context).Append("\n\n");
+        foreach (var a in attachments)
+        {
+            var texts = a.Blocks.Where(b => (string?)b["type"] == "text").Select(b => (string?)b["text"] ?? "").Where(t => t.Length > 0).ToList();
+            foreach (var t in texts) sb.Append(t).Append("\n\n");
+            if (a.Blocks.Any(b => (string?)b["type"] != "text"))
+                sb.Append($"[The file {a.FileName} is a scan / image: it was not sent through Claude Code. Only its text above (if any) is available.]\n\n");
+        }
+        sb.Append("QUESTION:\n").Append(question.Length > 0 ? question : "Read the attached file(s) and tell me what they contain and what needs my attention.");
+        return sb.ToString();
+    }
+
+    private async Task<AssistantReply> AskClaudeCodeAsync(string question, string context, IReadOnlyList<ChatAttachment> attachments, IReadOnlyList<ChatBubble> earlier,
+        AssistantReply reply, Action<AssistantEvent>? onEvent, CancellationToken ct)
+    {
+        var runner = ClaudeCode?.Invoke();
+        if (runner is null) { Touch("claude-code"); return OfflineReply(question, reply, "Claude Code is not available on this PC.", onEvent); }
+        var s = _d.Settings;
+        var request = new ClaudeCodeRequest(ClaudeCodePrompt(question, context, attachments, earlier), ClaudeCodeSystemPrompt,
+            string.IsNullOrWhiteSpace(s.ClaudeCodeModel) ? null : s.ClaudeCodeModel.Trim(),
+            Math.Clamp(s.ClaudeCodeMaxTurns, 2, 40), TimeSpan.FromSeconds(Math.Clamp(s.ClaudeCodeTimeoutSeconds, 30, 1800)));
+        var streamed = new StringBuilder();
+        ClaudeCodeResult res;
+        try
+        {
+            res = await runner.RunAsync(request, e =>
+            {
+                switch (e.Kind)
+                {
+                    case ClaudeCodeEventKind.TextDelta:
+                        streamed.Append(e.Text);
+                        onEvent?.Invoke(new AssistantEvent(AssistantEventKind.TextDelta, e.Text));
+                        break;
+                    case ClaudeCodeEventKind.ToolUse:
+                        onEvent?.Invoke(new AssistantEvent(AssistantEventKind.ToolStarted, e.ToolName));
+                        break;
+                    case ClaudeCodeEventKind.ToolResult:
+                        onEvent?.Invoke(new AssistantEvent(AssistantEventKind.ToolFinished, e.ToolName));
+                        break;
+                }
+            }, ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            reply.Notice = "stopped";
+            if (streamed.Length > 0)
+                Save("assistant", new JsonArray(new JsonObject { ["type"] = "text", ["text"] = streamed.ToString() + " [stopped]" }), CitationText.Strip(streamed.ToString()).Trim() + " [stopped]");
+            Touch("claude-code");
+            throw;
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception or UnauthorizedAccessException)
+        {
+            Touch("claude-code");
+            return OfflineReply(question, reply, "Claude Code: " + ex.Message, onEvent);
+        }
+        Touch("claude-code" + (res.Model.Length > 0 ? ":" + res.Model : ""));
+        if (res.Failed) return OfflineReply(question, reply, res.Error, onEvent);
+
+        var full = res.Text.Length > 0 ? res.Text : streamed.ToString();
+        var notice = res.HitTurnLimit
+            ? (_d.Settings.IsArabic ? "[توقفت الإجابة عند حد جولات الأدوات. اسأل سؤالاً أضيق.]" : "[Stopped at the tool-round limit (Settings > Assistant). Ask a narrower question.]")
+            : "";
+        var available = res.Citations.Count > 0 ? res.Citations : CitationsFromTokens(full);
+        reply.Citations.AddRange(CitationText.Resolve(full, available));
+        reply.Text = CitationText.Strip(full).Trim() + (notice.Length > 0 ? "\n\n" + notice : "");
+        reply.Notice = notice;
+        reply.ToolsUsed.AddRange(res.ToolsUsed);
+        reply.InputTokens = res.InputTokens;
+        reply.OutputTokens = res.OutputTokens;
+        if (notice.Length > 0) onEvent?.Invoke(new AssistantEvent(AssistantEventKind.Notice, notice));
+        var turn = new ClaudeTurn { Model = "claude-code" + (res.Model.Length > 0 ? ":" + res.Model : ""), StopReason = res.HitTurnLimit ? "max_turns" : "end_turn", InputTokens = res.InputTokens, OutputTokens = res.OutputTokens };
+        Save("assistant", new JsonArray(new JsonObject { ["type"] = "text", ["text"] = full + (notice.Length > 0 ? "\n\n" + notice : "") }), reply.Text, turn: turn, cites: reply.Citations);
+        return reply;
+    }
+
+    /// <summary>Navigable citations rebuilt from the tokens of an answer (when the MCP side channel gave none).</summary>
+    public static List<Citation> CitationsFromTokens(string answer)
+    {
+        var res = new List<Citation>();
+        foreach (var (kind, key) in CitationText.Tokens(answer))
+        {
+            Citation c = kind switch
+            {
+                "room" => Citation.Room(key),
+                "invoice" when key.Split('|') is { Length: 3 } p && int.TryParse(p[2], out var no) => Citation.Invoice(p[0], p[1], no),
+                "dn" => Citation.Dn("", key),
+                "po" => Citation.Po(key),
+                "variation" => Citation.Variation(key),
+                "aconex" => Citation.Workflow(key),
+                "wir" => Citation.Wir(key),
+                "contract" => Citation.Contract(key),
+                "report" => Citation.Report(key, key),
+                "rule" => Citation.Rule(key, key),
+                _ => new Citation(kind, key, $"{kind.ToUpperInvariant()} {key}"),
+            };
+            res.Add(c);
+        }
+        return res;
     }
 
     private AssistantReply OfflineReply(string question, AssistantReply reply, string why, Action<AssistantEvent>? onEvent)
@@ -380,11 +530,15 @@ public sealed class AssistantSession
     public string PrivacySummary(IReadOnlyList<ChatAttachment>? attachments = null)
     {
         var ar = _d.Settings.IsArabic;
-        if (string.IsNullOrWhiteSpace(ApiKey()))
+        var route = CurrentRoute().Route;
+        if (route == AssistantRoute.Offline)
             return ar ? "بدون اتصال: لا يُرسل شيء خارج الجهاز." : "OFFLINE: nothing leaves this PC.";
         var parts = new List<string>
         {
-            ar ? "يُرسل إلى Anthropic: سؤالك وسياق الشاشة" : "Sent to Anthropic: your question and the screen context",
+            route == AssistantRoute.ClaudeCode
+                ? (ar ? "يُرسل إلى Anthropic عبر Claude Code (حساب Claude الخاص بك، يُحتسب من استخدام اشتراكك): سؤالك وسياق الشاشة وآخر رسائل المحادثة"
+                      : "Sent to Anthropic through Claude Code (your Claude login, counts against your plan's usage): your question, the screen context and the last messages of this chat")
+                : (ar ? "يُرسل إلى Anthropic: سؤالك وسياق الشاشة" : "Sent to Anthropic: your question and the screen context"),
         };
         parts.Add(_d.Settings.AllowReadProjectData
             ? (ar ? "نتائج أدوات القراءة (غرف، سجل، فواتير، إشعارات تسليم...)" : "results of the read tools (rooms, ledger, invoices, DNs ...)")
