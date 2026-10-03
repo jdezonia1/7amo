@@ -59,4 +59,8 @@ Files live in `Desktop\RAFFLES MASTER FOLDER` (not in the repo). Trackers are no
   Built: proposal header fields + markups, PROPOSAL sheet (OMITTED / ADDITIONAL by bill + section, variance, markups, VAT).
 - CONCRETE PLUS: only the existing invoices (1, 2, 5 had no electrical).
 - Still open: GRMS W-7 vs AB-7; INV8 official figure (PC-007 approved vs progress file); over-cap CONCRETE PLUS claims;
-  -400,000 / -650,000 manual adjustments in IPC 4. Summary; gas meters electrical or mechanical subcontractor.
+  -400,000 / -650,000 manual adjustments in IPC 4. Summary.
+- Gas meters (03-Oct): done by the ELECTRICAL subcontractor, although the contract BOQ prices them in mechanical
+  section Q: B6-01-01-00-6-22-R-18 "gas meter" (90 nr x 6,005.47), B5 Q p10 P "Gas Meter Assembly allowance",
+  B3 Q p43 E "Gas Meter Assembly 32mm". So the right owner code for the metering items is 6-22-R-18, not the link
+  table's 6-22-X-18 ("BMS system"). The paused gas / link-table check (HANDOFF 2b) should use these codes.
