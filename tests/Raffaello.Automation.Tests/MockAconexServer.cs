@@ -17,7 +17,13 @@ public sealed class MockAconexServer : IDisposable
 {
     public const string UserName = "demo.user";
     public const string Password = "demo-pass";
+    /// <summary>Second fake account (WORKFLOWS / INVOICE UPLOAD profile tests).</summary>
+    public const string WorkflowsUser = "demo.workflows";
+    public const string WorkflowsPassword = "demo-pass-wf-7781";
+    /// <summary>Fake one-time code accepted by the MFA page.</summary>
+    public const string MfaCode = "123456";
     private const string Cookie = "MOCKSESSION";
+    private const string PendingCookie = "MOCKPENDING";
 
     private readonly HttpListener _listener = new();
     private readonly CancellationTokenSource _cts = new();
@@ -26,6 +32,15 @@ public sealed class MockAconexServer : IDisposable
 
     public string BaseUrl { get; }
     public int LoginCount { get; private set; }
+    /// <summary>Password posts that were refused (a real site would lock the account after a few).</summary>
+    public int FailedLoginCount { get; private set; }
+    public List<string> LoggedInUsers { get; } = new();
+    /// <summary>After a correct password, ask for a one-time code (MFA) before the session starts.</summary>
+    public bool RequireMfa { get; set; }
+    /// <summary>Static pages served at /Fixture/{name} without a login (login-state detection tests).</summary>
+    public Dictionary<string, string> Fixtures { get; } = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string> _pending = new();
+    private readonly Dictionary<string, string> _users = new() { [UserName] = Password, [WorkflowsUser] = WorkflowsPassword };
     public int DownloadCount { get; private set; }
     public int PageSize { get; set; } = 4;
     public List<MockWorkflow> Workflows { get; } = new();
@@ -141,21 +156,55 @@ public sealed class MockAconexServer : IDisposable
             {
                 using var r = new StreamReader(req.InputStream, Encoding.UTF8);
                 var form = ParseQuery(r.ReadToEnd());
-                if (form.GetValueOrDefault("userName") == UserName && form.GetValueOrDefault("password") == Password)
+                var user = form.GetValueOrDefault("userName") ?? "";
+                if (_users.TryGetValue(user, out var pw) && form.GetValueOrDefault("password") == pw)
                 {
-                    var sid = Guid.NewGuid().ToString("N");
-                    _sessions.Add(sid);
-                    LoginCount++;
-                    // persistent cookie: the browser profile keeps it between runs, like the real SSO session
-                    ctx.Response.AppendHeader("Set-Cookie", $"{Cookie}={sid}; Path=/; Expires={DateTime.UtcNow.AddDays(30):R}; HttpOnly");
-                    Redirect(ctx, form.GetValueOrDefault("returnUrl") is { Length: > 0 } ru ? ru : "/home");
+                    var ret = form.GetValueOrDefault("returnUrl") is { Length: > 0 } ru ? ru : "/home";
+                    if (RequireMfa)
+                    {
+                        var pid = Guid.NewGuid().ToString("N");
+                        _pending[pid] = user;
+                        ctx.Response.AppendHeader("Set-Cookie", $"{PendingCookie}={pid}; Path=/; HttpOnly");
+                        Redirect(ctx, "/Mfa?returnUrl=" + Uri.EscapeDataString(ret));
+                        return;
+                    }
+                    StartSession(ctx, user);
+                    Redirect(ctx, ret);
                     return;
                 }
+                FailedLoginCount++;
                 Html(ctx, LoginPage("Invalid user name or password."));
                 return;
             }
             if (LoggedIn(req)) { Redirect(ctx, "/home"); return; }
             Html(ctx, LoginPage(""));
+            return;
+        }
+        if (path.StartsWith("/Fixture/", StringComparison.OrdinalIgnoreCase))
+        {
+            if (Fixtures.TryGetValue(path["/Fixture/".Length..], out var fx)) Html(ctx, fx);
+            else Send(ctx, 404, "text/plain", Encoding.UTF8.GetBytes("no fixture"));
+            return;
+        }
+        if (path.Equals("/Mfa", StringComparison.OrdinalIgnoreCase))
+        {
+            var pending = req.Cookies[PendingCookie]?.Value;
+            if (pending is null || !_pending.TryGetValue(pending, out var who)) { Redirect(ctx, "/Logon"); return; }
+            if (req.HttpMethod == "POST")
+            {
+                using var r = new StreamReader(req.InputStream, Encoding.UTF8);
+                var form = ParseQuery(r.ReadToEnd());
+                if (form.GetValueOrDefault("otp") == MfaCode)
+                {
+                    _pending.Remove(pending);
+                    StartSession(ctx, who);
+                    Redirect(ctx, form.GetValueOrDefault("returnUrl") is { Length: > 0 } ru ? ru : "/home");
+                    return;
+                }
+                Html(ctx, MfaPage("That code is not right."));
+                return;
+            }
+            Html(ctx, MfaPage(""));
             return;
         }
         if (!LoggedIn(req))
@@ -175,9 +224,27 @@ public sealed class MockAconexServer : IDisposable
         }
     }
 
+    private void StartSession(HttpListenerContext ctx, string user)
+    {
+        var sid = Guid.NewGuid().ToString("N");
+        _sessions.Add(sid);
+        LoginCount++;
+        LoggedInUsers.Add(user);
+        // persistent cookie: the browser profile keeps it between runs, like the real SSO session
+        ctx.Response.AppendHeader("Set-Cookie", $"{Cookie}={sid}; Path=/; Expires={DateTime.UtcNow.AddDays(30):R}; HttpOnly");
+    }
+
+    public static string MfaPage(string error) => Page("Verify", $@"
+<div class='content'><h2>Two-step verification (mock)</h2><p>Enter the verification code from your authenticator app.</p><p style='color:#c00'>{WebUtility.HtmlEncode(error)}</p>
+<form id='mfaForm' method='post' action='/Mfa'>
+<div>Code <input name='otp' id='otp' autocomplete='one-time-code'></div>
+<input type='hidden' name='returnUrl' id='returnUrl'>
+<button type='submit' id='verify'>Verify</button></form>
+<script>const p = new URLSearchParams(location.search); document.getElementById('returnUrl').value = p.get('returnUrl') || '';</script></div>");
+
     // ------------------------------------------------------------------ pages
 
-    private static string Page(string title, string body) => $@"<!doctype html><html><head><meta charset='utf-8'><title>{title}</title>
+    public static string Page(string title, string body) => $@"<!doctype html><html><head><meta charset='utf-8'><title>{title}</title>
 <style>
 body {{ font-family: Arial, sans-serif; margin:0; font-size:12px; color:#222; }}
 .top {{ background:#1f2a44; color:#fff; padding:8px 14px; display:flex; gap:18px; align-items:center; }}
@@ -187,11 +254,11 @@ td {{ padding:4px; border-bottom:1px solid #eee; vertical-align:top; }} tr.group
 .overdue {{ color:#c00; }} .criteria label {{ display:inline-block; width:110px; color:#555; }} .criteria div {{ margin:3px 0; }}
 </style></head><body>{body}</body></html>";
 
-    private static string Shell(string title, string content) => Page(title, $@"
+    public static string Shell(string title, string content) => Page(title, $@"
 <div class='top' id='nav-bar'><b>ORACLE ACONEX (MOCK)</b><span>Home</span><span>Documents</span><span>Workflows</span><span class='user' id='user-menu'>{UserName}</span></div>
 <div class='content'><h2>{title}</h2>{content}</div>");
 
-    private static string LoginPage(string error) => Page("Log on", $@"
+    public static string LoginPage(string error) => Page("Log on", $@"
 <div class='content'><h2>Log on to Aconex (mock)</h2><p style='color:#c00'>{WebUtility.HtmlEncode(error)}</p>
 <form id='logonForm' method='post' action='/Logon'>
 <div>User name <input name='userName' id='userName'></div>

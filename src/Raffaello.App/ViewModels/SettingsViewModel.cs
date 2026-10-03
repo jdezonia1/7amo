@@ -23,6 +23,13 @@ public sealed partial class SettingsViewModel : PageViewModel
     public Phase5.ServerSettingsViewModel Server => _server ??= new Phase5.ServerSettingsViewModel(Ctx);
     // [phase5] end
 
+    // [aconex-logins] begin
+    private AconexAccountsViewModel? _aconexAccounts;
+    /// <summary>ACONEX ACCOUNTS card: the two saved Aconex logins (DPAPI vault), test / forget, manual-login fallback.</summary>
+    public AconexAccountsViewModel? AconexAccounts => _aconexAccounts ??=
+        App.Container?.GetService(typeof(AconexAutomationService)) is AconexAutomationService svc ? new AconexAccountsViewModel(svc, Ctx.Toasts) : null;
+    // [aconex-logins] end
+
     // [assistant] begin
     private AssistantSettingsViewModel? _assistant;
     /// <summary>Language, assistant (API key in DPAPI), morning brief and notifications card.</summary>

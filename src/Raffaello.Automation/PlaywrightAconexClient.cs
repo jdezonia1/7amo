@@ -6,9 +6,11 @@ using Raffaello.Core.AconexWeb;
 namespace Raffaello.Automation;
 
 /// <summary>
-/// Drives Aconex in a real browser (Playwright, Chromium / Edge) with a persistent profile, so the user logs in once
-/// (SSO / 2FA by hand in the visible window) and later runs reuse the session. Every URL, selector and column header
-/// comes from <see cref="AconexConfig"/> (aconex.config.json).
+/// Drives Aconex in a real browser (Playwright, Chromium / Edge) with a persistent profile, so the session is kept
+/// between runs. With a saved login (one per Aconex account, DPAPI vault) the login form is filled automatically -
+/// at most once per refused attempt, never in a loop. MFA / SSO / CAPTCHA / expired password are always handed to
+/// the user in the visible window ("finish the login, then press CONTINUE"). Every URL, selector and column header
+/// comes from <see cref="AconexConfig"/> (aconex.config.json). Login values are never logged or screenshotted.
 /// </summary>
 public sealed class PlaywrightAconexClient : IAconexClient
 {
@@ -19,17 +21,35 @@ public sealed class PlaywrightAconexClient : IAconexClient
     private IBrowserContext? _ctx;
     private IPage? _page;
     private bool _loggedIn;
+    private readonly string? _profileDir;
+    private readonly string _account;
+    private volatile bool _continueRequested;
 
-    public PlaywrightAconexClient(AconexConfig cfg, ICredentialVault? vault = null, Func<DateTime>? today = null)
+    /// <param name="profileDir">Browser profile folder (one per Aconex account); null = the configured ProfileDir.</param>
+    /// <param name="accountName">Account shown in messages ("MIR / WIR"); never the user name.</param>
+    public PlaywrightAconexClient(AconexConfig cfg, ICredentialVault? vault = null, Func<DateTime>? today = null, string? profileDir = null, string accountName = "")
     {
         _cfg = cfg;
         _vault = vault ?? new NoCredentialVault();
         _today = today ?? (() => DateTime.Today);
+        _profileDir = string.IsNullOrWhiteSpace(profileDir) ? null : profileDir;
+        _account = accountName ?? "";
     }
 
     public event Action<string>? Log;
+    /// <summary>Instruction for the user when the login must be finished in the browser; "" when that is over.</summary>
+    public event Action<string>? LoginAttention;
     public IPage? Page => _page;
-    public string ProfileDir => _cfg.ResolvedProfileDir;
+    public string ProfileDir => _profileDir ?? _cfg.ResolvedProfileDir;
+    public string AccountName => _account.Length > 0 ? _account : "Aconex";
+    /// <summary>Set after Aconex refused the saved login: no further automatic attempt (avoids locking the account).</summary>
+    public bool AutoLoginBlocked { get; set; }
+    /// <summary>How many times the saved login was typed by this client.</summary>
+    public int AutoLoginAttempts { get; private set; }
+    public AconexLoginState LastLoginState { get; private set; }
+
+    /// <summary>The user pressed CONTINUE after finishing the login in the browser.</summary>
+    public void ContinueLogin() => _continueRequested = true;
 
     private void Say(string s) => Log?.Invoke(s);
 
@@ -44,6 +64,7 @@ public sealed class PlaywrightAconexClient : IAconexClient
             Environment.SetEnvironmentVariable("PLAYWRIGHT_DRIVER_SEARCH_PATH", AppContext.BaseDirectory);
         _pw ??= await Playwright.CreateAsync().ConfigureAwait(false);
         Directory.CreateDirectory(ProfileDir);
+        DisableBrowserPasswordSaving(ProfileDir);
         var opt = new BrowserTypeLaunchPersistentContextOptions
         {
             Headless = _cfg.Headless,
@@ -51,6 +72,7 @@ public sealed class PlaywrightAconexClient : IAconexClient
             ViewportSize = new ViewportSize { Width = 1600, Height = 1000 },
             Locale = "en-GB",
         };
+        if (_cfg.BrowserArgs.Count > 0) opt.Args = _cfg.BrowserArgs.Where(a => !string.IsNullOrWhiteSpace(a)).ToList();
         var exe = AconexConfig.Expand(_cfg.BrowserExecutablePath);
         if (!string.IsNullOrWhiteSpace(exe)) opt.ExecutablePath = exe;
         else if (!string.IsNullOrWhiteSpace(_cfg.BrowserChannel)) opt.Channel = _cfg.BrowserChannel;
@@ -60,6 +82,41 @@ public sealed class PlaywrightAconexClient : IAconexClient
         _ctx.SetDefaultNavigationTimeout(_cfg.NavigationTimeoutSec * 1000);
         _page = _ctx.Pages.FirstOrDefault() ?? await _ctx.NewPageAsync().ConfigureAwait(false);
         return _page;
+    }
+
+    /// <summary>
+    /// The browser must not keep its own copy of the Aconex login: switch off its password manager and form autofill
+    /// in the profile (Chromium / Edge "Default\Preferences") before it starts.
+    /// </summary>
+    public static void DisableBrowserPasswordSaving(string profileDir)
+    {
+        var path = Path.Combine(profileDir, "Default", "Preferences");
+        System.Text.Json.Nodes.JsonObject root;
+        try
+        {
+            root = File.Exists(path) && System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(path)) is System.Text.Json.Nodes.JsonObject o ? o : new();
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException) { root = new(); }
+        System.Text.Json.Nodes.JsonObject Obj(string name)
+        {
+            if (root[name] is System.Text.Json.Nodes.JsonObject x) return x;
+            var n = new System.Text.Json.Nodes.JsonObject();
+            root[name] = n;
+            return n;
+        }
+        root["credentials_enable_service"] = false;
+        root["credentials_enable_autosignin"] = false;
+        Obj("profile")["password_manager_enabled"] = false;
+        var autofill = Obj("autofill");
+        autofill["enabled"] = false;
+        autofill["profile_enabled"] = false;
+        autofill["credit_card_enabled"] = false;
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, root.ToJsonString());
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* browser still runs; it just may offer to save */ }
     }
 
     /// <summary>Locator in the page or inside the configured frame.</summary>
@@ -83,52 +140,122 @@ public sealed class PlaywrightAconexClient : IAconexClient
         await LoginIfNeededAsync(ct).ConfigureAwait(false);
     }
 
+    /// <summary>Opens <paramref name="url"/> (if given) and reports what the page shows. Used by Test login and the tests.</summary>
+    public async Task<AconexLoginState> DetectLoginStateAsync(string? url = null, CancellationToken ct = default)
+    {
+        var page = await StartAsync().ConfigureAwait(false);
+        if (!string.IsNullOrWhiteSpace(url)) await page.GotoAsync(url).ConfigureAwait(false);
+        return await WaitForStateAsync(TimeSpan.FromSeconds(Math.Min(10, _cfg.NavigationTimeoutSec)), s => s != AconexLoginState.Unknown, ct).ConfigureAwait(false);
+    }
+
     private async Task LoginIfNeededAsync(CancellationToken ct)
     {
         var page = _page!;
-        var state = await WaitLoginStateAsync(TimeSpan.FromSeconds(Math.Min(15, _cfg.NavigationTimeoutSec)), ct).ConfigureAwait(false);
-        if (state == LoginState.LoggedIn) { _loggedIn = true; return; }
+        var shortWait = TimeSpan.FromSeconds(Math.Min(15, _cfg.NavigationTimeoutSec));
+        var state = await WaitForStateAsync(shortWait, s => s != AconexLoginState.Unknown, ct).ConfigureAwait(false);
+        if (state == AconexLoginState.LoggedIn) { _loggedIn = true; return; }
 
-        if (state == LoginState.LoginForm && _cfg.Login.AutoFillStoredCredential && _vault.Load() is { } cred)
+        var auto = _cfg.Login.AutoFillStoredCredential && !AutoLoginBlocked;
+        if (auto && state == AconexLoginState.WrongPassword && _vault.HasCredential)
         {
-            Say("Login form shown - filling the stored Aconex credential (DPAPI).");
+            // an old error message is on the page: open a clean login page so a new message can be told apart
+            await page.GotoAsync(_cfg.Url(_cfg.HomePath)).ConfigureAwait(false);
+            state = await WaitForStateAsync(shortWait, s => s != AconexLoginState.Unknown, ct).ConfigureAwait(false);
+            if (state == AconexLoginState.LoggedIn) { _loggedIn = true; return; }
+        }
+
+        if (auto && state == AconexLoginState.LoginForm && _vault.Load() is { } cred)
+        {
+            AutoLoginAttempts++;
+            Say($"Login form shown - typing the saved login for {AccountName}.");
             await L("", _cfg.Login.UserNameInput).First.FillAsync(cred.User).ConfigureAwait(false);
             await L("", _cfg.Login.PasswordInput).First.FillAsync(cred.Password).ConfigureAwait(false);
             await L("", _cfg.Login.SubmitButton).First.ClickAsync().ConfigureAwait(false);
-            state = await WaitLoginStateAsync(TimeSpan.FromSeconds(_cfg.NavigationTimeoutSec), ct, waitForLoggedIn: true).ConfigureAwait(false);
-            if (state == LoginState.LoggedIn) { _loggedIn = true; Say("Logged in."); return; }
+            await SettleAsync().ConfigureAwait(false);
+            state = await WaitForStateAsync(TimeSpan.FromSeconds(_cfg.NavigationTimeoutSec),
+                s => s is not (AconexLoginState.LoginForm or AconexLoginState.Unknown), ct).ConfigureAwait(false);
+            if (state == AconexLoginState.LoggedIn) { _loggedIn = true; Say($"Logged in ({AccountName})."); return; }
+            if (state is AconexLoginState.WrongPassword or AconexLoginState.LoginForm or AconexLoginState.AccountLocked)
+            {
+                AutoLoginBlocked = true;
+                throw Refused(state);
+            }
+            // MFA / SSO / CAPTCHA / expired password / unknown page: the user finishes it below
         }
+        if (state == AconexLoginState.AccountLocked) throw Refused(state);
 
         if (_cfg.Headless)
             throw new AconexLoginRequiredException("Aconex needs a login. Run once with the browser visible (Headless = false) and log in; the session is kept in " + ProfileDir + ".");
 
-        Say("Please log in to Aconex in the browser window (SSO / 2FA as usual). Waiting...");
-        await page.BringToFrontAsync().ConfigureAwait(false);
-        state = await WaitLoginStateAsync(TimeSpan.FromSeconds(_cfg.ManualLoginTimeoutSec), ct, waitForLoggedIn: true).ConfigureAwait(false);
-        if (state != LoginState.LoggedIn)
-            throw new AconexLoginRequiredException($"Not logged in after {_cfg.ManualLoginTimeoutSec} s. Check Login.LoggedInSelector in aconex.config.json if you did log in.");
-        _loggedIn = true;
-        Say("Logged in - the session is kept in the browser profile.");
+        await HandOverAsync(state, ct).ConfigureAwait(false);
     }
 
-    private enum LoginState { Unknown, LoginForm, LoggedIn }
+    private AconexLoginFailedException Refused(AconexLoginState state) => new(state == AconexLoginState.AccountLocked
+        ? $"Aconex says the {AccountName} account is locked. Unlock it with Aconex support / your admin, then try again. The app did not retry."
+        : $"Aconex did not accept the saved user name / password for {AccountName}. Correct them in Settings > Aconex and press SAVE. The app will not try again on its own (to avoid locking the account).", state);
 
-    private async Task<LoginState> WaitLoginStateAsync(TimeSpan timeout, CancellationToken ct, bool waitForLoggedIn = false)
+    /// <summary>Brings the browser to the front and waits until the user has finished the login (detected, or CONTINUE pressed).</summary>
+    private async Task HandOverAsync(AconexLoginState state, CancellationToken ct)
+    {
+        var msg = AconexLoginDetector.HandOverMessage(state, AccountName);
+        Say(msg);
+        _continueRequested = false;
+        LoginAttention?.Invoke(msg);
+        try
+        {
+            try { await _page!.BringToFrontAsync().ConfigureAwait(false); } catch (PlaywrightException) { }
+            var until = DateTime.UtcNow + TimeSpan.FromSeconds(_cfg.ManualLoginTimeoutSec);
+            while (DateTime.UtcNow < until)
+            {
+                ct.ThrowIfCancellationRequested();
+                var s = await ProbeStateAsync().ConfigureAwait(false);
+                if (s == AconexLoginState.LoggedIn) { _loggedIn = true; Say($"Logged in ({AccountName}) - the session is kept in the browser profile."); return; }
+                if (_continueRequested)
+                {
+                    _continueRequested = false;
+                    // the user says it is done: accept any Aconex page that no longer asks for a login
+                    if (s == AconexLoginState.Unknown && AconexLoginDetector.IsAllowedLoginHost(_page!.Url, _cfg.Login, _cfg.BaseUrl))
+                    {
+                        _loggedIn = true;
+                        Say($"CONTINUE pressed - carrying on ({AccountName}). If this keeps happening, check Login.LoggedInSelector in aconex.config.json.");
+                        return;
+                    }
+                    Say($"Still not logged in ({s}). Finish the login in the browser, then press CONTINUE again.");
+                }
+                await Task.Delay(400, ct).ConfigureAwait(false);
+            }
+            throw new AconexLoginRequiredException($"Not logged in after {_cfg.ManualLoginTimeoutSec} s ({AccountName}). Check Login.LoggedInSelector in aconex.config.json if you did log in.");
+        }
+        finally { LoginAttention?.Invoke(""); }
+    }
+
+    private async Task<AconexLoginState> WaitForStateAsync(TimeSpan timeout, Func<AconexLoginState, bool> done, CancellationToken ct)
     {
         var until = DateTime.UtcNow + timeout;
-        var state = LoginState.Unknown;
-        while (DateTime.UtcNow < until)
+        var state = AconexLoginState.Unknown;
+        while (true)
         {
             ct.ThrowIfCancellationRequested();
-            if (await VisibleAsync(L("", _cfg.Login.LoggedInSelector)).ConfigureAwait(false)) return LoginState.LoggedIn;
-            if (await VisibleAsync(L("", _cfg.Login.LoginFormSelector)).ConfigureAwait(false))
-            {
-                state = LoginState.LoginForm;
-                if (!waitForLoggedIn) return state;
-            }
+            state = await ProbeStateAsync().ConfigureAwait(false);
+            if (done(state) || DateTime.UtcNow >= until) return state;
             await Task.Delay(250, ct).ConfigureAwait(false);
         }
-        return state;
+    }
+
+    /// <summary>Looks at the page once: configured selectors, visible text and URL (nothing is stored or logged).</summary>
+    private async Task<AconexLoginState> ProbeStateAsync()
+    {
+        var l = _cfg.Login;
+        try
+        {
+            var text = await _page!.EvaluateAsync<string>("() => document.body ? document.body.innerText.slice(0, 20000) : ''").ConfigureAwait(false);
+            async Task<bool> Vis(string sel) => !string.IsNullOrWhiteSpace(sel) && await VisibleAsync(L("", sel)).ConfigureAwait(false);
+            var probe = new AconexLoginProbe(_page.Url, text ?? "",
+                await Vis(l.LoggedInSelector).ConfigureAwait(false), await Vis(l.LoginFormSelector).ConfigureAwait(false), await Vis(l.PasswordInput).ConfigureAwait(false),
+                await Vis(l.MfaInputSelector).ConfigureAwait(false), await Vis(l.CaptchaSelector).ConfigureAwait(false));
+            return LastLoginState = AconexLoginDetector.Classify(probe, l, _cfg.BaseUrl);
+        }
+        catch (PlaywrightException) { return AconexLoginState.Unknown; } // page is navigating
     }
 
     private async Task GotoAsync(string url, CancellationToken ct)

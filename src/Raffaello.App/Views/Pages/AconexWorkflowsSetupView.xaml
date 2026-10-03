@@ -1,7 +1,8 @@
 <UserControl x:Class="Raffaello.App.Views.Pages.AconexWorkflowsSetupView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:c="clr-namespace:Raffaello.App.Controls">
+             xmlns:c="clr-namespace:Raffaello.App.Controls"
+             xmlns:views="clr-namespace:Raffaello.App.Views">
     <!-- [phase4] ACONEX SETUP: config file, browser, folders, optional DPAPI-stored login -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid>
@@ -62,21 +63,7 @@
                         <Button Style="{StaticResource BtnPrimary}" Content="SAVE" Command="{Binding SaveCommand}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource Card}">
-                    <StackPanel>
-                        <TextBlock Text="STORED LOGIN (OPTIONAL)" Style="{StaticResource PanelTitle}"/>
-                        <TextBlock Text="{Binding CredStatus}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,2,0,8"/>
-                        <TextBlock Text="ACONEX USER NAME" Style="{StaticResource Label}" FontSize="10"/>
-                        <TextBox Text="{Binding CredUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
-                        <TextBlock Text="PASSWORD (ENCRYPTED WITH WINDOWS DPAPI, NEVER SHOWN AGAIN)" Style="{StaticResource Label}" FontSize="10"/>
-                        <PasswordBox x:Name="Pwd" Margin="0,2,0,8"/>
-                        <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource BtnGhost}" Content="STORE PASSWORD" Click="OnStorePassword" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="REMOVE" Command="{Binding ClearCredentialCommand}"/>
-                        </StackPanel>
-                        <TextBlock Text="SSO and 2FA are always done by you in the browser window. A stored password only fills the classic Aconex login form." Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,8,0,0"/>
-                    </StackPanel>
-                </Border>
+                <views:AconexAccountsCard DataContext="{Binding Accounts}"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

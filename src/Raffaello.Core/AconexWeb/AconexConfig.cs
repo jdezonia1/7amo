@@ -27,6 +27,8 @@ public sealed class AconexConfig
     public string BrowserChannel { get; set; } = "msedge";
     /// <summary>Explicit browser executable; overrides the channel when set.</summary>
     public string BrowserExecutablePath { get; set; } = "";
+    /// <summary>Extra browser command-line switches (rarely needed, e.g. a proxy). Empty by default.</summary>
+    public List<string> BrowserArgs { get; set; } = new();
     /// <summary>Visible window (needed for the first login / SSO / 2FA). Lookups can run headless once logged in.</summary>
     public bool Headless { get; set; }
     public int NavigationTimeoutSec { get; set; } = 60;
@@ -130,8 +132,23 @@ public sealed class LoginConfig
     public string UserNameInput { get; set; } = "input[name='userName'], input#userName";
     public string PasswordInput { get; set; } = "input[name='password'], input#password";
     public string SubmitButton { get; set; } = "button[type='submit'], #login, input[type='submit']";
-    /// <summary>Fill the DPAPI-stored credential automatically (if one is stored). SSO / 2FA always stay manual.</summary>
+    /// <summary>Fill the DPAPI-stored credential automatically (if one is stored). SSO / 2FA always stay manual.
+    /// False = "Log in manually": the app opens Aconex and waits for the user, as before.</summary>
     public bool AutoFillStoredCredential { get; set; } = true;
+
+    // ---- saved-login detection (two accounts). Texts are matched case-insensitively in the visible page text.
+    /// <summary>One-time code / verification input (MFA). The app never fills it: the user does.</summary>
+    public string MfaInputSelector { get; set; } = "input[autocomplete='one-time-code'], input[name*='otp' i], input[name*='verificationCode' i], input[id*='otp' i], input[name='code']";
+    /// <summary>CAPTCHA widgets. The app never solves them: the user does.</summary>
+    public string CaptchaSelector { get; set; } = "iframe[src*='recaptcha'], iframe[src*='hcaptcha'], .g-recaptcha, .h-captcha, #captcha, img[alt*='captcha' i]";
+    public List<string> MfaTexts { get; set; } = new() { "verification code", "one-time", "one time password", "authenticator", "two-factor", "2-step", "two-step", "security code", "enter the code" };
+    public List<string> CaptchaTexts { get; set; } = new() { "captcha", "i'm not a robot", "i am not a robot" };
+    public List<string> WrongPasswordTexts { get; set; } = new() { "invalid user name or password", "invalid username or password", "incorrect password", "incorrect user name", "login failed", "invalid credentials", "authentication failed", "not recognised", "not recognized" };
+    public List<string> PasswordExpiredTexts { get; set; } = new() { "password has expired", "password expired", "must change your password" };
+    public List<string> AccountLockedTexts { get; set; } = new() { "account is locked", "account has been locked", "locked out", "too many attempts" };
+    public List<string> SsoTexts { get; set; } = new() { "single sign-on", "sign in with your organisation", "sign in with your organization" };
+    /// <summary>Other hosts where the saved Aconex password may be typed (only if Aconex itself moves its login page). Empty = only the BaseUrl host.</summary>
+    public List<string> AllowedLoginHosts { get; set; } = new();
 }
 
 public sealed class WorkflowSearchConfig

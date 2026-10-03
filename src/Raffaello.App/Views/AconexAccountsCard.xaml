@@ -1,0 +1,53 @@
+<UserControl x:Class="Raffaello.App.Views.AconexAccountsCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:Raffaello.App.Controls">
+    <!-- Saved Aconex logins (two accounts). DataContext = AconexAccountsViewModel. Passwords go from the PasswordBox straight to the DPAPI vault (never bound). -->
+    <Border Style="{StaticResource Card}">
+        <StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                <c:IconView Data="{StaticResource IconFolder}" Foreground="{DynamicResource AccentBrush}"/>
+                <TextBlock Text="ACONEX ACCOUNTS (SAVED LOGINS)" Style="{StaticResource PanelTitle}" Margin="8,0,0,0"/>
+            </StackPanel>
+            <TextBlock Text="{Binding StorageNote}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+            <Border Background="#FFFF00" CornerRadius="4" Padding="10,8" Margin="0,0,0,10" Visibility="{Binding HasAttention, Converter={StaticResource BoolToVis}}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource BtnPrimary}" Content="CONTINUE" Command="{Binding ContinueCommand}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Attention}" Foreground="Black" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Accounts}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#A6A6A6" BorderThickness="0,0,0,1" Padding="0,6,0,10" Margin="0,0,0,6">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Title}" Style="{StaticResource BodyStrong}" FontSize="13"/>
+                                    <TextBlock Text="{Binding Status}" Style="{StaticResource Label}" FontSize="10" Foreground="{DynamicResource AccentBrush}" Margin="10,2,0,0"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding UsedFor}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,6"/>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="ACONEX USER NAME" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,3,0,0"/></StackPanel>
+                                    <StackPanel Grid.Column="2"><TextBlock Text="PASSWORD" Style="{StaticResource Label}" FontSize="10"/><PasswordBox x:Name="Pwd" Margin="0,3,0,0"/></StackPanel>
+                                </Grid>
+                                <WrapPanel>
+                                    <Button Style="{StaticResource BtnPrimary}" Content="SAVE" Click="OnSave" Tag="{Binding ElementName=Pwd}" Margin="0,0,8,4"/>
+                                    <Button Style="{StaticResource BtnGhost}" Content="TEST LOGIN" Command="{Binding DataContext.TestCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,8,4"/>
+                                    <Button Style="{StaticResource BtnGhost}" Content="FORGET" Command="{Binding DataContext.ForgetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,8,4"/>
+                                    <TextBlock Text="{Binding LastTest}" Style="{StaticResource Small}" FontSize="11" VerticalAlignment="Center"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <CheckBox Content="Log in manually (open Aconex and wait for me - do not type the saved login)" IsChecked="{Binding ManualLogin}" Margin="0,4,0,6"/>
+            <TextBlock Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap"
+                       Text="The app types the saved login once. If Aconex asks for a one-time code, single sign-on, a CAPTCHA or a new password, the browser comes to the front: finish the login there and press CONTINUE (or the app notices by itself). A refused password is never retried automatically, so the account is not locked. The ACONEX page lets you choose the other account for a run."/>
+        </StackPanel>
+    </Border>
+</UserControl>
