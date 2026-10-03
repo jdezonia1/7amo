@@ -124,7 +124,9 @@ public sealed partial class ContractsViewModel : PageViewModel
             Contracts.Add(new ContractRow { Contract = c, Claimed = t.Claimed, Certified = t.Certified });
         }
         var inBuilding = s.Contracts.Where(c => InBuilding(c.Building)).Select(c => c.ContractNo).ToHashSet();
-        var nos = s.ContractItems.Select(i => i.ContractNo).Distinct().Where(n => BuildingFilter is null || inBuilding.Contains(n) || s.Contracts.All(c => c.ContractNo != n)).OrderBy(x => x).ToList();
+        // every contract can be picked (documents, terms and rules work before its items are imported), plus item-only contract numbers
+        var nos = s.ContractItems.Select(i => i.ContractNo).Concat(s.Contracts.Select(c => c.ContractNo)).Where(n => n.Length > 0).Distinct()
+            .Where(n => BuildingFilter is null || inBuilding.Contains(n) || s.Contracts.All(c => c.ContractNo != n)).OrderBy(x => x).ToList();
         if (!ContractNos.SequenceEqual(nos)) { ContractNos.Clear(); foreach (var n in nos) ContractNos.Add(n); }
         if (!ContractNos.Contains(SelectedContractNo)) SelectedContractNo = ContractNos.FirstOrDefault() ?? "";
         else FillItems();

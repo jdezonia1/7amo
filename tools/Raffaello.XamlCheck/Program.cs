@@ -32,7 +32,9 @@ sealed class Checker
         _src = src;
         var runtime = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
         var nuget = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages", "microsoft.windowsdesktop.app.ref");
-        var wpfRef = Directory.GetDirectories(nuget).OrderBy(d => d).Last();
+        // Linux/cloud: NuGet cache; Windows: the SDK's packs folder (dotnet\packs\Microsoft.WindowsDesktop.App.Ref\<ver>)
+        if (!Directory.Exists(nuget)) nuget = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(runtime)))!, "packs", "Microsoft.WindowsDesktop.App.Ref");
+        var wpfRef = Directory.GetDirectories(nuget).Where(d => Directory.Exists(Path.Combine(d, "ref", "net8.0"))).OrderBy(d => d).Last();
         var files = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         // WPF reference assemblies first: the runtime folder only has a WindowsBase facade
         foreach (var f in Directory.GetFiles(Path.Combine(wpfRef, "ref", "net8.0"), "*.dll")) files.TryAdd(Path.GetFileName(f), f);
