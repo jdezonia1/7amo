@@ -53,10 +53,10 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="STEP NAME" Binding="{Binding StepName}" Width="1.3*" ElementStyle="{StaticResource CellKey}"/>
                     <DataGridTextColumn Header="ASSIGNED TO" Binding="{Binding AssignedTo}" Width="1.8*" ElementStyle="{StaticResource CellText}"/>
-                    <DataGridTextColumn Header="DATE IN" Binding="{Binding DateIn, StringFormat=dd MMM yy}" Width="72" ElementStyle="{StaticResource CellNum}"/>
-                    <DataGridTextColumn Header="DATE DUE" Binding="{Binding DateDue, StringFormat=dd MMM yy}" Width="72" ElementStyle="{StaticResource CellNum}"/>
-                    <DataGridTextColumn Header="ORIG. DUE" Binding="{Binding OriginalDueDate, StringFormat=dd MMM yy}" Width="72" ElementStyle="{StaticResource CellNum}"/>
-                    <DataGridTextColumn Header="COMPLETED" Binding="{Binding DateCompleted, StringFormat=dd MMM yy}" Width="78" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DATE IN" Binding="{Binding DateIn, StringFormat=dd MMM yy}" Width="92" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DATE DUE" Binding="{Binding DateDue, StringFormat=dd MMM yy}" Width="92" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="ORIG. DUE" Binding="{Binding OriginalDueDate, StringFormat=dd MMM yy}" Width="92" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="COMPLETED" Binding="{Binding DateCompleted, StringFormat=dd MMM yy}" Width="92" ElementStyle="{StaticResource CellNum}"/>
                     <DataGridTextColumn Header="STATUS" Binding="{Binding StepStatusText}" Width="80" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="OUTCOME" Binding="{Binding StepOutcome}" Width="*" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="DOCUMENT" Binding="{Binding DocumentNo}" Width="1.3*" ElementStyle="{StaticResource CellText}"/>

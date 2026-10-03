@@ -71,7 +71,7 @@
                     <DataGridTextColumn Header="REV" Binding="{Binding Revision}" Width="44" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="TYPE" Binding="{Binding DocType}" Width="70" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="TITLE" Binding="{Binding Title}" Width="*" ElementStyle="{StaticResource CellText}"/>
-                    <DataGridTextColumn Header="DATE" Binding="{Binding DocDate, StringFormat=dd MMM yy}" Width="72" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DATE" Binding="{Binding DocDate, StringFormat=dd MMM yy}" Width="92" ElementStyle="{StaticResource CellNum}"/>
                     <DataGridTextColumn Header="TRIES" Binding="{Binding Attempts}" Width="48" ElementStyle="{StaticResource CellNum}"/>
                     <DataGridTextColumn Header="MESSAGE" Binding="{Binding Message}" Width="*" ElementStyle="{StaticResource CellText}"/>
                 </DataGrid.Columns>
@@ -94,7 +94,7 @@
                     <DataGridTextColumn Header="FILE" Binding="{Binding FileName}" Width="*" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="ZIP" Binding="{Binding FromZip}" Width="44" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="SHA-256" Binding="{Binding Sha256}" Width="120" ElementStyle="{StaticResource CellText}"/>
-                    <DataGridTextColumn Header="DOWNLOADED" Binding="{Binding DownloadedAt, StringFormat=dd MMM yy HH:mm}" Width="110" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DOWNLOADED" Binding="{Binding DownloadedAt, StringFormat=dd MMM yy HH:mm}" Width="130" ElementStyle="{StaticResource CellNum}"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>

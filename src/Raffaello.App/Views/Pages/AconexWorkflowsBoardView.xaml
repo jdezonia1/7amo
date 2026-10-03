@@ -62,7 +62,7 @@
                     <DataGridTextColumn Header="WORKFLOW" Binding="{Binding WorkflowNo}" Width="96" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="CURRENT STEP" Binding="{Binding CurrentStep}" Width="1.4*" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="WITH" Binding="{Binding WithWhom}" Width="1.6*" ElementStyle="{StaticResource CellText}"/>
-                    <DataGridTextColumn Header="DUE" Binding="{Binding DateDue, StringFormat=dd MMM yy}" Width="72" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DUE" Binding="{Binding DateDue, StringFormat=dd MMM yy}" Width="92" ElementStyle="{StaticResource CellNum}"/>
                     <DataGridTextColumn Header="LATE (D)" Binding="{Binding DaysOverdue}" Width="62" ElementStyle="{StaticResource CellNumStrong}"/>
                     <DataGridTextColumn Header="OUTCOME" Binding="{Binding Outcome}" Width="*" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="IN WF (D)" Binding="{Binding DaysInWorkflow}" Width="66" ElementStyle="{StaticResource CellNum}"/>

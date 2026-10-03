@@ -183,7 +183,7 @@
                     <StackPanel Margin="0,0,8,0"><TextBlock Text="PAGES (5-8,12)" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementPages}" Width="90"/></StackPanel>
                     <StackPanel Margin="0,0,8,0"><TextBlock Text="SUBCONTRACTOR" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementSub}" Width="130"/></StackPanel>
                     <StackPanel Margin="0,0,8,0"><TextBlock Text="INVOICE NO" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementInvoice}" Width="60"/></StackPanel>
-                    <StackPanel Margin="0,0,8,0"><TextBlock Text="STAGE" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementStage}" Width="80"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="STAGE" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementStage}" Width="110"/></StackPanel>
                     <StackPanel Margin="0,0,8,0"><TextBlock Text="TYPICAL UNIT ROOMS (P2-106, P3-103)" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementRooms}" Width="200"/></StackPanel>
                     <Button Style="{StaticResource BtnPrimary}" Content="VERIFY" Command="{Binding VerifyStatementCommand}" VerticalAlignment="Bottom"/>
                 </WrapPanel>

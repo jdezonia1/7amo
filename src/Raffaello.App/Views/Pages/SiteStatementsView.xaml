@@ -47,7 +47,7 @@
                             <DataGridTextColumn Header="NO" Binding="{Binding StatementNo}" Width="*" ElementStyle="{StaticResource CellKey}"/>
                             <DataGridTextColumn Header="SUB" Binding="{Binding Subcontractor}" Width="80" ElementStyle="{StaticResource CellText}"/>
                             <DataGridTextColumn Header="LINES" Binding="{Binding Lines}" Width="46" ElementStyle="{StaticResource CellNum}"/>
-                            <DataGridTextColumn Header="DATE" Binding="{Binding At, StringFormat=dd MMM yy}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="DATE" Binding="{Binding At, StringFormat=dd MMM yy}" Width="92" ElementStyle="{StaticResource CellText}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>

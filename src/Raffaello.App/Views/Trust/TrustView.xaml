@@ -60,7 +60,7 @@
                     <DataGridTextColumn Header="PURPOSE" Binding="{Binding Purpose}" Width="90" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="KIND" Binding="{Binding Kind}" Width="70" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="SIGNER" Binding="{Binding Signer}" Width="180" ElementStyle="{StaticResource CellText}"/>
-                    <DataGridTextColumn Header="SIGNED" Binding="{Binding SignedAt, StringFormat=dd MMM yy HH:mm}" Width="110" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="SIGNED" Binding="{Binding SignedAt, StringFormat=dd MMM yy HH:mm}" Width="130" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="KEY" Binding="{Binding Key}" Width="140" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="MESSAGE" Binding="{Binding Message}" Width="*" ElementStyle="{StaticResource CellText}"/>
                 </DataGrid.Columns>

@@ -40,8 +40,8 @@
                         <DataGridTextColumn Header="LEVEL" Binding="{Binding Level}" Width="50" ElementStyle="{StaticResource CellText}"/>
                         <DataGridTextColumn Header="SYSTEM" Binding="{Binding System}" Width="86" ElementStyle="{StaticResource CellText}"/>
                         <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="70" ElementStyle="{StaticResource CellText}"/>
-                        <DataGridTextColumn Header="SUBMITTED" Binding="{Binding SubmittedAt, StringFormat=dd MMM yy}" Width="80" ElementStyle="{StaticResource CellNum}"/>
-                        <DataGridTextColumn Header="RESPONSE" Binding="{Binding ApprovedAt, StringFormat=dd MMM yy}" Width="80" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="SUBMITTED" Binding="{Binding SubmittedAt, StringFormat=dd MMM yy}" Width="92" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="RESPONSE" Binding="{Binding ApprovedAt, StringFormat=dd MMM yy}" Width="92" ElementStyle="{StaticResource CellNum}"/>
                         <DataGridTextColumn Header="DAYS" Binding="{Binding Days}" Width="46" ElementStyle="{StaticResource CellNumStrong}"/>
                         <DataGridTextColumn Header="LINES" Binding="{Binding Lines}" Width="46" ElementStyle="{StaticResource CellNum}"/>
                         <DataGridTextColumn Header="QTY" Binding="{Binding Qty, StringFormat=N0}" Width="56" ElementStyle="{StaticResource CellNum}"/>

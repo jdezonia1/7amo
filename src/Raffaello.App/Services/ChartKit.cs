@@ -52,6 +52,8 @@ public static class ChartKit
     public static Axis YValues(Func<double, string>? labeler = null, double? min = 0, double? max = null) => new()
     {
         Labeler = labeler ?? (v => v.ToString("N0")),
+        // Whole-number labels need whole-number steps; small counts (MIR ageing: 0..1) showed "1 1 1 1 0 0 0".
+        MinStep = labeler is null ? 1 : 0,
         LabelsPaint = new SolidColorPaint(Muted),
         TextSize = 11,
         MinLimit = min,
