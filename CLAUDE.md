@@ -54,3 +54,13 @@ PO (PDF/Excel) + MIR/DN PDFs -> PROGRESS sheet with one column per DN, SUMPRODUC
 PCS<->m pipe conversion (6 m default).
 Open: test GUI on work PC (1-Oct); install Tesseract (UB Mannheim) or use API key; tune PO reader on one real
 signed PO PDF; pipe conversion untested on a real DN.
+
+## Working rules (from Mohamed, 03-Oct-2026) - follow in every session
+- ALWAYS commit AND push to GitHub (repo jdezonia1/7amo, branch claude/dazzling-turing-20kq62) automatically after
+  every finished task, fix or update - do not wait to be asked. Before each commit: build, run
+  `dotnet run --project tools/Raffaello.XamlCheck -- src/Raffaello.App/bin/Debug/net8.0-windows10.0.19041.0 src/Raffaello.App`
+  (0 problems) and the Core tests. Never force-push (the patch updater needs the history).
+- Updates reach Mohamed as PATCHES (tools/update.ps1, SETTINGS > UPDATES > UPDATE NOW), never as a zip to download.
+  Line 1 of every commit message is what he sees in the update list - write it in plain words.
+- His single folder on the work PC: C:\Users\DELL\RAFFAELLO (app installed by the updater in code\, chat in CHAT\,
+  README.txt). Real data findings and his decisions: docs/DATA_FINDINGS.md.
