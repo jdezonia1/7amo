@@ -222,10 +222,13 @@ sealed class Checker
 
     private static List<string> SplitTop(string s)
     {
-        var res = new List<string>(); var depth = 0; var start = 0;
+        // Commas inside {..} or '..' (e.g. StringFormat='#,##0.00;-#,##0.00;-') do not split arguments.
+        var res = new List<string>(); var depth = 0; var start = 0; var quoted = false;
         for (var i = 0; i < s.Length; i++)
         {
-            if (s[i] == '{') depth++;
+            if (s[i] == (char)39) quoted = !quoted;   // single quote
+            else if (quoted) continue;
+            else if (s[i] == '{') depth++;
             else if (s[i] == '}') depth--;
             else if (s[i] == ',' && depth == 0) { res.Add(s[start..i]); start = i + 1; }
         }
