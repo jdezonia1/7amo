@@ -118,14 +118,16 @@ public sealed class WorkflowService
                + (r.CableSummary.Length > 0 ? "; cables: " + r.CableSummary : "");   // [cables]
     }
 
-    /// <summary>[recon] HOTEL RECON: new hotel 100% total (PROJECT QTY) + cleaned past claims (CLEAN CLAIMS).</summary>
-    public Recon.HotelReconResult PreviewHotelRecon(string projectQtyPath, string cleanClaimsPath) => Recon.HotelReconImporter.Read(projectQtyPath, cleanClaimsPath);
-    public string CommitHotelRecon(Recon.HotelReconResult r)
+    /// <summary>[recon] RECON of one building (HOTEL / BRANDED): 100% total (PROJECT QTY) + cleaned past claims (CLEAN CLAIMS, NO CAP (CABLES)).</summary>
+    public Recon.ReconImportResult PreviewRecon(string building, string projectQtyPath, string cleanClaimsPath) => Recon.ReconImporter.Read(building, projectQtyPath, cleanClaimsPath);
+    public Recon.ReconImportResult PreviewHotelRecon(string projectQtyPath, string cleanClaimsPath) => Recon.HotelReconImporter.Read(projectQtyPath, cleanClaimsPath);
+    public string CommitRecon(Recon.ReconImportResult r)
     {
-        var (rooms, qty, claims, removed) = Recon.HotelReconImporter.Commit(r, _p.Store);
+        var (rooms, qty, claims, removed) = Recon.ReconImporter.Commit(r, _p.Store);
         _p.Reload();
-        return $"{rooms} locations, {qty} PROJECT QTY, {claims} RECON claim lines ({removed} earlier RECON lines replaced)";
+        return $"{r.Building}: {rooms} locations, {qty} PROJECT QTY, {claims} RECON claim lines incl. {r.NotCompared.Count} not compared ({removed} earlier {r.Building} RECON lines replaced)";
     }
+    public string CommitHotelRecon(Recon.ReconImportResult r) => CommitRecon(r);
 
     /// <summary>[phase6] Room list of a building (e.g. HOTEL) by header text.</summary>
     public RoomListImportResult PreviewRoomList(string path, string building) => RoomListImporter.Read(path, building);

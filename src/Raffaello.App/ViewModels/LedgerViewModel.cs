@@ -336,27 +336,40 @@ public sealed partial class LedgerViewModel : PageViewModel
         Ctx.Toasts.Show("TRACKER IMPORTED", msg, ToastKind.Good, 8);
     }
 
-    /// <summary>[recon] HOTEL RECON: the new hotel 100% total (HOTEL_PROJECT_QTY.xlsx) + the cleaned past claims (HOTEL_REMAINING.xlsx, CLEAN CLAIMS).</summary>
+    /// <summary>[recon] Building the IMPORT RECON button loads (HOTEL / BRANDED).</summary>
+    public string[] ReconBuildings { get; } = { Raffaello.Core.Domain.Buildings.Hotel, Raffaello.Core.Domain.Buildings.Branded };
+    [ObservableProperty] private string _reconBuilding = Raffaello.Core.Domain.Buildings.Hotel;
+
+    /// <summary>
+    /// [recon] RECON of the building chosen next to the button: the building's 100% total (sheet PROJECT QTY) + the cleaned past claims
+    /// (sheet CLEAN CLAIMS; NO CAP (CABLES) = not compared). When the REMAINING workbook also has PROJECT QTY, one file is enough.
+    /// </summary>
     [RelayCommand]
-    private async Task ImportHotelRecon()
+    private async Task ImportRecon()
     {
-        var projectFile = Ctx.Dialogs.OpenFile("HOTEL RECON 1/2 - hotel 100% total (sheet PROJECT QTY)");
-        if (projectFile is null) return;
-        var claimsFile = Ctx.Dialogs.OpenFile("HOTEL RECON 2/2 - cleaned past claims (sheet CLEAN CLAIMS)");
+        var building = ReconBuilding;
+        var claimsFile = Ctx.Dialogs.OpenFile($"{building} RECON - {building}_REMAINING.xlsx (CLEAN CLAIMS)");
         if (claimsFile is null) return;
-        Raffaello.Core.Recon.HotelReconResult? r;
+        string? projectFile = claimsFile;
+        try { if (!Raffaello.Core.Recon.ReconImporter.HasSheet(claimsFile, Raffaello.Core.Recon.ReconImporter.ProjectSheet)) projectFile = null; }
+        catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ RECON", ex.Message, ToastKind.Error); return; }
+        projectFile ??= Ctx.Dialogs.OpenFile($"{building} RECON 2/2 - 100% total (sheet PROJECT QTY)");
+        if (projectFile is null) return;
+        Raffaello.Core.Recon.ReconImportResult? r;
         Raffaello.Core.Recon.ReconCheckResult? check;
         try
         {
-            r = await Task.Run(() => Project.Workflow.PreviewHotelRecon(projectFile, claimsFile));
+            r = await Task.Run(() => Project.Workflow.PreviewRecon(building, projectFile, claimsFile));
             check = Raffaello.Core.Recon.ReconCheck.Run(r);
         }
-        catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ HOTEL RECON", ex.Message, ToastKind.Error); return; }
+        catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ RECON", ex.Message, ToastKind.Error); return; }
         var issues = string.Join("\n", r.Issues.GroupBy(i => System.Text.RegularExpressions.Regex.Replace(i.Message, @"(row \d+|location ).*$", "*")).Take(6).Select(g => $"- {g.First().Message} (x{g.Count()})"));
-        if (!Ctx.Dialogs.Confirm("Import HOTEL RECON", $"{r.Summary}\n\nCheck: {check.Summary}\n\n{issues}\n\nImport? HOTEL PROJECT QTY is replaced and earlier RECON claim lines are replaced. Other HOTEL ledger lines (tracker, manual) are kept and still count.")) return;
+        var warnings = string.Join("\n", check.Warnings.Select(w => w.Length > 600 ? w[..600] + " ..." : w));
+        if (!Ctx.Dialogs.Confirm($"Import {building} RECON", $"{r.Summary}\n\nCheck: {check.Summary}\n\n{warnings}\n\n{issues}\n\nImport into {building}? {building} PROJECT QTY is replaced and earlier {building} RECON claim lines are replaced. " +
+                $"Cable pulling / cable tray lines are kept but NOT COMPARED with any total. Other {building} ledger lines (tracker, manual) are kept and still count. The other building is not touched.")) return;
         string msg = "";
-        await Ctx.Data.WriteAsync(p => msg = p.Workflow.CommitHotelRecon(r), Ctx.Toasts);
-        Ctx.Toasts.Show("HOTEL RECON IMPORTED", msg, ToastKind.Good, 8);
+        await Ctx.Data.WriteAsync(p => msg = p.Workflow.CommitRecon(r), Ctx.Toasts);
+        Ctx.Toasts.Show($"{building} RECON IMPORTED", msg, ToastKind.Good, 8);
     }
 
     /// <summary>[phase6] Room list of the building chosen in the switcher (HOTEL ...), columns found by header text.</summary>

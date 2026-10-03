@@ -29,6 +29,14 @@ public static class LedgerRules
     public const double Eps = 1e-9;
 
     /// <summary>
+    /// WorkType of claim lines that are kept in the ledger but never compared with a total (cable pulling = site statement,
+    /// cable tray = waits for the final Revit model). Like rework, they are left out of the balances, so they never show as OVER.
+    /// </summary>
+    public const string NotComparedWorkType = "NOT COMPARED";
+
+    public static bool IsNotCompared(ClaimLine c) => string.Equals((c.WorkType ?? "").Trim(), NotComparedWorkType, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Lines that count: for each subcontractor x room x stage x item, a cumulative invoice (lines flagged IsCumulative) replaces
     /// that subcontractor's lines from earlier invoices for the same key. Lines of the cumulative invoice itself and of later
     /// invoices count as usual. Other subcontractors and other keys are untouched.
@@ -57,7 +65,7 @@ public static class LedgerRules
     {
         claims = Effective(claims);
         var caps = project.GroupBy(q => q.Key).ToDictionary(g => g.Key, g => g.Sum(q => q.Qty));
-        var byKey = claims.Where(c => !c.Rework).GroupBy(c => c.Key).ToDictionary(g => g.Key, g => g.ToList());
+        var byKey = claims.Where(c => !c.Rework && !IsNotCompared(c)).GroupBy(c => c.Key).ToDictionary(g => g.Key, g => g.ToList());
         var keys = caps.Keys.Union(byKey.Keys);
         var res = new Dictionary<string, RoomBalance>();
         foreach (var k in keys)
@@ -74,7 +82,7 @@ public static class LedgerRules
     {
         var key = LedgerKeys.Key(room, stage, item);
         var cap = project.Where(q => q.Key == key).Sum(q => q.Qty);
-        var list = Effective(claims.Where(c => c.Key == key)).Where(c => !c.Rework).ToList();
+        var list = Effective(claims.Where(c => c.Key == key)).Where(c => !c.Rework && !IsNotCompared(c)).ToList();
         return new RoomBalance(room, stage, item, cap, list.Sum(c => c.Qty), list.GroupBy(c => c.Subcontractor).ToDictionary(g => g.Key, g => g.Sum(c => c.Qty)));
     }
 

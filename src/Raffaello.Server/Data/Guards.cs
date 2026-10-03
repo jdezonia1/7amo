@@ -114,7 +114,7 @@ public sealed class LedgerGuard : IWriteGuard
 
     private void ValidateRemaining(WriteCheck c, ClaimLine line)
     {
-        if (line.Rework || line.Qty <= LedgerRules.Eps || !ValidatedSources.Contains(line.Source ?? "")) return;
+        if (line.Rework || LedgerRules.IsNotCompared(line) || line.Qty <= LedgerRules.Eps || !ValidatedSources.Contains(line.Source ?? "")) return;
         if (line.IsOver && !string.IsNullOrWhiteSpace(line.OverReason)) return;   // explicitly posted OVER with a reason
         var key = LedgerKeys.Key(line.Room, line.Stage, line.Item);
         c.Tx.Lock("ledger|" + key);

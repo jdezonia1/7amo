@@ -96,7 +96,7 @@ public class HotelReconTests
         Assert.All(r.Claims, c => { Assert.Equal("RECON", c.Source); Assert.Equal(Buildings.Hotel, c.Building); Assert.Equal("no", c.Unit); });
         Assert.Equal(r.Claims.Count, r.Claims.Select(c => c.SourceKey).Distinct().Count());
         Assert.Equal("SUBA", r.Claims[0].Subcontractor);
-        Assert.Equal("RECON|row4", r.Claims[0].SourceKey);
+        Assert.Equal("RECON|HOTEL|row4", r.Claims[0].SourceKey);
 
         var pool = r.Claims.Single(c => c.Qty == 0.75);
         Assert.Equal(("H1-ELEC ROOM", "CEILING", "POWER", 1), (pool.Room, pool.Stage, pool.Item, pool.InvoiceNo));
