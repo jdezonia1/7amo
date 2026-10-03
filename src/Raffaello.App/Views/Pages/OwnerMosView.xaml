@@ -34,7 +34,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="10,0,0,0">
                     <TextBlock Text="PERIOD TO" Style="{StaticResource Label}"/>
-                    <TextBox Text="{Binding PeriodTo, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                    <TextBox Text="{Binding PeriodTo, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                     <Button Style="{StaticResource BtnPrimary}" Content="BUILD" Command="{Binding BuildCommand}"/>

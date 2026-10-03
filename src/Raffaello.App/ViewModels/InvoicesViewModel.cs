@@ -173,8 +173,12 @@ public sealed partial class InvoicesViewModel : PageViewModel
     protected override void Refresh()
     {
         var s = Project.Snapshot;
+        // Sync clears a list when it changed and its ComboBox then writes null back - keep the picks.
+        var (keepContract, keepSub) = (ContractNo ?? "", Sub ?? "");
         Sync(ContractNos, s.ContractItems.Where(i => BuildingFilter is null || s.Contracts.Where(c => c.ContractNo == i.ContractNo).All(c => InBuilding(c.Building))).Select(i => i.ContractNo).Concat(s.TemplateRows.Select(t => t.ContractNo)).Where(x => x.Length > 0).Distinct().OrderBy(x => x));
         Sync(Subcontractors, s.Claims.Select(c => c.Subcontractor).Concat(s.SubInvoices.Select(i => i.Subcontractor)).Where(x => x.Length > 0).Distinct().OrderBy(x => x));
+        if (ContractNo != keepContract) ContractNo = keepContract;
+        if (Sub != keepSub) Sub = keepSub;
         if (ContractNo.Length == 0) ContractNo = ContractNos.FirstOrDefault() ?? "";
         if (Sub.Length == 0) Sub = s.Contracts.FirstOrDefault(c => c.ContractNo == ContractNo)?.Subcontractor is { Length: > 0 } cs ? cs : Subcontractors.FirstOrDefault() ?? "";
         var keep = SelectedStored?.Invoice.Id;

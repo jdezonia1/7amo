@@ -29,10 +29,10 @@
                 <DataGridTextColumn Header="ITEM" Binding="{Binding Label}" Width="*" MinWidth="240" ElementStyle="{StaticResource CellText}"/>
                 <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="44" ElementStyle="{StaticResource CellText}"/>
                 <DataGridTextColumn Header="SOURCES" Binding="{Binding Sources}" Width="130" ElementStyle="{StaticResource CellText}"/>
-                <DataGridTextColumn Header="MIN" Binding="{Binding Min, StringFormat=N2}" Width="66" ElementStyle="{StaticResource CellNum}"/>
-                <DataGridTextColumn Header="AVG" Binding="{Binding Avg, StringFormat=N2}" Width="66" ElementStyle="{StaticResource CellNum}"/>
-                <DataGridTextColumn Header="MAX" Binding="{Binding Max, StringFormat=N2}" Width="66" ElementStyle="{StaticResource CellNum}"/>
-                <DataGridTextColumn Header="MAX / MIN" Binding="{Binding Spread, StringFormat=0.00}" Width="64" ElementStyle="{StaticResource CellNumStrong}"/>
+                <DataGridTextColumn Header="MIN" Binding="{Binding Min, StringFormat='#,##0.00;-#,##0.00;–'}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                <DataGridTextColumn Header="AVG" Binding="{Binding Avg, StringFormat='#,##0.00;-#,##0.00;–'}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                <DataGridTextColumn Header="MAX" Binding="{Binding Max, StringFormat='#,##0.00;-#,##0.00;–'}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                <DataGridTextColumn Header="MAX / MIN" Binding="{Binding Spread, StringFormat='0.00;-0.00;–'}" Width="64" ElementStyle="{StaticResource CellNumStrong}"/>
                 <DataGridTextColumn Header="OUTLIERS" Binding="{Binding Outliers}" Width="60" ElementStyle="{StaticResource CellNum}"/>
                 <DataGridTextColumn Header="OWNER" Binding="{Binding OwnerRate, StringFormat=N2}" Width="66" ElementStyle="{StaticResource CellNum}"/>
                 <DataGridTextColumn Header="MARGIN %" Binding="{Binding MarginPct, StringFormat=P0}" Width="66" ElementStyle="{StaticResource CellNumStrong}"/>
