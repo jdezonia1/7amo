@@ -26,7 +26,7 @@ public sealed partial class BoqViewModel : PageViewModel
 
     public override string Key => "Boq";
     public override string Title => "BOQ";
-    public override string Subtitle => "Owner BOQ by system and category - corrections are learned";
+    public override string Subtitle => "Contract BOQ by system and category, each item with its project code - corrections are learned";
     public override bool ShowFilterBar => false;
     protected override bool UsesFilter => false;
 
@@ -104,11 +104,16 @@ public sealed partial class BoqViewModel : PageViewModel
     [RelayCommand]
     private async Task Import()
     {
-        var path = Ctx.Dialogs.OpenFile("Owner BOQ workbook");
+        var path = Ctx.Dialogs.OpenFile("Contract (owner) BOQ workbook");
         if (path is null) return;
         try
         {
-            _preview = await Task.Run(() => BoqImporter.Read(path, _m.Snapshot.BoqRules));
+            // project codes (CONTRACTS & BOQ > PROJECT CODE LIST) give every contract BOQ item its code
+            var codes = Project.Snapshot.BoqItems.Where(b => b.ItemCode.Length > 0)
+                .Select(b => new ProjectCodeRef(b.ItemCode, b.Description, b.Unit)).ToList();
+            _preview = await Task.Run(() => BoqImporter.Read(path, _m.Snapshot.BoqRules, codes));
+            if (codes.Count == 0 && _preview.Rows.Any(r => r.Page > 0))
+                Ctx.Toasts.Show("NO PROJECT CODE LIST", "Import it first (CONTRACTS & BOQ > PROJECT CODE LIST) so each BOQ item gets its project code.", ToastKind.Warn, 10);
             IsPreview = true;
             _all = _preview.Rows;
             Issues.Clear();
@@ -191,7 +196,7 @@ public sealed partial class BoqViewModel : PageViewModel
     {
         yield return new ExportSheet
         {
-            Name = "BOQ", Title = $"OWNER BOQ - {Source}", Subtitle = Summary,
+            Name = "BOQ", Title = $"CONTRACT BOQ - {Source}", Subtitle = Summary,
             Columns = new() { new("SHEET"), new("ROW", ColumnKind.Integer), new("ITEM"), new("BOQ CODE"), new("DESCRIPTION", Width: 60), new("UNIT"), new("QTY", ColumnKind.Number), new("RATE", ColumnKind.Money), new("AMOUNT", ColumnKind.Money), new("SYSTEM"), new("CATEGORY"), new("SOURCE"), new("SCORE", ColumnKind.Percent) },
             Rows = Rows.Select(r => new object?[] { r.Sheet, r.RowNo, r.ItemNo, r.BoqCode, r.Description, r.Unit, r.Qty, r.Rate, r.Amount, r.System, r.Category, r.CatSource, r.CatScore }).ToList(),
         };

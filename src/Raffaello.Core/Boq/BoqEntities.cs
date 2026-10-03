@@ -24,6 +24,19 @@ public sealed class BoqLine : Entity
     public string CatSource { get; set; } = "";
     public double CatScore { get; set; }
     public bool Confirmed { get; set; }
+    // contract BOQ (print-style bills, 03-Oct): position on the printed page, used to find the project code
+    /// <summary>Section letter from the page footer / banner, e.g. "R" (electrical installations).</summary>
+    public string Section { get; set; } = "";
+    /// <summary>Page number from the footer "B6.R / Page 3".</summary>
+    public int Page { get; set; }
+    /// <summary>Item letter on the page (A..Z, AA..).</summary>
+    public string Ref { get; set; } = "";
+    /// <summary>"Rate Only" / note text in the Total column: priced but no quantity value.</summary>
+    public bool RateOnly { get; set; }
+    /// <summary>How BoqCode was found: PROJECT CODE (exact page), PROJECT CODE (PAGE MAP: project code pages restart per division), PAGE KEY (no project code).</summary>
+    public string CodeSource { get; set; } = "";
+    /// <summary>"B6.R / Page 3 / AM" - the printed reference.</summary>
+    public string PageRef => Page > 0 ? $"{Bill}.{Section} / Page {Page} / {Ref}" : "";
 }
 
 /// <summary>A learned categorisation correction: normalised description (or keyword) -> system + category.</summary>

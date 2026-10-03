@@ -11,6 +11,8 @@ public sealed class BoqImportResult
     public List<BoqLine> Rows { get; } = new();
     public List<string> Issues { get; } = new();
     public List<string> Sheets { get; } = new();
+    /// <summary>Contract BOQ only: how many items found their project code.</summary>
+    public ProjectCodeMatchResult? ProjectCodes { get; set; }
     public int Items => Rows.Count(r => !r.IsHeading);
     public double Total => Rows.Where(r => !r.IsHeading).Sum(r => r.Amount);
     public string Summary => $"{Sheets.Count} sheet(s), {Items} items, {Rows.Count(r => r.IsHeading)} headings, SAR {Total:N2}; categorised {Rows.Count(r => !r.IsHeading && r.System.Length > 0)} / {Items}";
@@ -22,7 +24,7 @@ public sealed class BoqImportResult
 /// </summary>
 public static class BoqImporter
 {
-    public static BoqImportResult Read(string path, IEnumerable<BoqCatRule>? learned = null)
+    public static BoqImportResult Read(string path, IEnumerable<BoqCatRule>? learned = null, IEnumerable<ProjectCodeRef>? projectCodes = null)
     {
         var res = new BoqImportResult { FileName = Path.GetFileName(path) };
         using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -31,6 +33,8 @@ public static class BoqImporter
         {
             var used = ws.RangeUsed();
             if (used is null) continue;
+            // contract BOQ bills (print layout with "B6.R / Page n" footers) have their own reader
+            if (ContractBoqReader.Detect(ws) is { } layout) { res.Sheets.Add(ws.Name); ContractBoqReader.ReadSheet(ws, layout, res); continue; }
             int headerRow = 0; var cols = new Dictionary<string, int>();
             var lastCol = used.LastColumn().ColumnNumber();
             for (var r = used.FirstRow().RowNumber(); r <= Math.Min(used.LastRow().RowNumber(), 40) && headerRow == 0; r++)
@@ -82,6 +86,12 @@ public static class BoqImporter
         if (res.Sheets.Count == 0) res.Issues.Add("No sheet with a DESCRIPTION / UNIT / QTY header row was found.");
         foreach (var dup in res.Rows.Where(r => !r.IsHeading && r.BoqCode.Length > 0).GroupBy(r => r.BoqCode).Where(g => g.Count() > 1).Take(20))
             res.Issues.Add($"BOQ code {dup.Key} appears {dup.Count()} times");
+        if (projectCodes != null && res.Rows.Any(r => r.Page > 0))
+        {
+            res.ProjectCodes = ProjectCodeMatcher.Apply(res.Rows, projectCodes);
+            res.Issues.Insert(0, res.ProjectCodes.Summary);
+            res.Issues.AddRange(res.ProjectCodes.Issues);
+        }
         BoqCategorizer.Apply(res.Rows, learned ?? Array.Empty<BoqCatRule>());
         return res;
     }

@@ -49,8 +49,9 @@
             <TextBlock Grid.Row="1" Text="{Binding Summary}" Style="{StaticResource Label}" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,6"/>
             <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected, Mode=TwoWay}">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ITEM" Binding="{Binding ItemNo}" Width="50" ElementStyle="{StaticResource CellKey}"/>
-                    <DataGridTextColumn Header="BOQ CODE" Binding="{Binding BoqCode}" Width="150" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="PAGE REF" Binding="{Binding PageRef, Mode=OneWay}" Width="130" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="PROJECT CODE" Binding="{Binding BoqCode}" Width="190" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="CODE FROM" Binding="{Binding CodeSource}" Width="110" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*" MinWidth="200" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="44" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="QTY" Binding="{Binding Qty, StringFormat=N2}" Width="70" ElementStyle="{StaticResource CellNum}"/>
