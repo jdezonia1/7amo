@@ -73,3 +73,16 @@ Files live in `Desktop\RAFFLES MASTER FOLDER` (not in the repo). Trackers are no
 - Link check: warns when an item's system family (power & lighting / low current / fire & evacuation / BMS / metering)
   differs from the linked code's, or the code is mechanical (CSI 21/22/23) and not a gas meter. Hotel link table:
   26 warnings on 8 items (e.g. item 105 "fire" linked to AV / CCTV / access codes, item 321 power -> fire alarm panels).
+
+## Real data loaded into the app (03-Oct, work PC) - the demo data is gone
+- Data file C:\Users\DELL\AppData\Local\Raffaello\raffaello.db; demo kept as raffaello_DEMO_backup_20261003_1202.db;
+  SeedDemoData = false. Loaded with the app's own importers:
+  HOTEL tracker 2,226 rooms / 21,959 PROJECT QTY / 6,109 ledger lines (19 subs, 38 invoices) / 923 shapes;
+  BRANDED tracker 119 rooms / 3,684 / 3,958 lines (6 subs, 14 invoices) / 119 shapes; 11,444 project codes;
+  contract BOQ 11,750 items (SAR 954.3M, 10,493 with project code). All 28 pages open with 0 errors.
+- Residence link table (CODING NEW INVOICES\Contract For Residence Subcontractors - English 24.6.2026 updated.xlsx):
+  314 items, 1,805 links; gas-meter fix 13 links (items 267-279, B6-..-6-22-X-18 -> B6-01-01-00-6-22-R-18);
+  link check 32 warnings on 7 items (item 105 "fire" linked to IT racks / CCTV / AV / access - same in the Hotel table).
+- Still empty because not loaded: WIR / MIR register (Aconex export not on this PC), subcontract contracts + past invoices
+  (per subcontractor: link table + invoice workbook), POs / DNs / MIRs (MATERIAL INVOICES, ~60 supplier folders),
+  QS / GIVEN quantities chain (HOTEL_SUBCONTRACTOR_QTY.xlsx).
