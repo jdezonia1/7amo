@@ -49,3 +49,14 @@ Files live in `Desktop\RAFFLES MASTER FOLDER` (not in the repo). Trackers are no
   BOQ codes, INV8 PC-007 approved file ~229k above progress file, over-cap claims (emergency 881 vs 104, terrace light),
   ledger lines carry RATE 0.
 - Code evidence: AV -> S-9 (AV/BGM points), EVAC -> C-9 (VES to equipment); GRMS W-7 vs AB-7 still ambiguous.
+
+## Decisions (Mohamed, 03-Oct) and what was built
+- IPC: the app produces App F (MOS) only. MOS = 75% of the supplier / PO rate x balance, capped at 75% x BOQ rate x
+  contract qty. Built: MosLine App F fields, App F Excel export (no VAT), OWNER MOS screen columns.
+- Codes: the E-Promise-style code is the master key and is called "project code" in the app. "Modified BOQ rev 0" is the
+  contract BOQ. Built: ContractBoqReader (print layout) + ProjectCodeMatcher (page map learned per division).
+- Variations: fixed markups (5 / 8 / 9 %, compounding, editable per variation), omissions negative, no EOT (planning does it).
+  Built: proposal header fields + markups, PROPOSAL sheet (OMITTED / ADDITIONAL by bill + section, variance, markups, VAT).
+- CONCRETE PLUS: only the existing invoices (1, 2, 5 had no electrical).
+- Still open: GRMS W-7 vs AB-7; INV8 official figure (PC-007 approved vs progress file); over-cap CONCRETE PLUS claims;
+  -400,000 / -650,000 manual adjustments in IPC 4. Summary; gas meters electrical or mechanical subcontractor.

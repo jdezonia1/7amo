@@ -25,11 +25,88 @@ public static class VariationExporter
         (VariationLineKinds.NewItem, "C. NEW ITEMS (rate build-up)"),
     };
 
+    // ------------------------------------------------------------------ MOBCO commercial proposal (03-Oct, real EI-04 / EI-13 layout)
+
+    /// <summary>
+    /// "Commercial Proposal" sheet: header (project, contract, client, consultant, contractor, subject = EI + letter ref, vendor),
+    /// OMITTED ITEMS then ADDITIONAL ITEMS, each grouped by Bill and BOQ section, columns Ref | Item | Quantity | Unit | Rate | Total
+    /// (omissions negative), then Total omitted / Total additional / VARIANCE, the compounding markups and VAT.
+    /// </summary>
+    public static void ProposalSheet(IXLWorksheet ws, Variation v, IReadOnlyList<VariationLine> lines, VariationHeaderInfo info)
+    {
+        var r = 1;
+        ws.Cell(r, 1).Value = "COMMERCIAL PROPOSAL"; ws.Cell(r, 1).Style.Font.SetBold().Font.SetFontSize(14);
+        r += 2;
+        void Hdr(string label, string value) { ws.Cell(r, 1).Value = label; ws.Cell(r, 1).Style.Font.Bold = true; ws.Cell(r, 3).Value = value; r++; }
+        Hdr("Project", info.Project);
+        Hdr("Contract No.", v.ContractNo);
+        Hdr("Client", v.Client);
+        Hdr("Consultant", v.Consultant);
+        Hdr("Contractor", info.Contractor);
+        var subject = string.Join(" - ", new[] { v.ConsultantRef, v.Title }.Where(x => !string.IsNullOrWhiteSpace(x)))
+                      + (string.IsNullOrWhiteSpace(v.LetterRef) ? "" : $" (_{v.LetterRef.Trim()})");
+        Hdr("Subject", subject.Length > 0 ? subject : v.Number);
+        if (!string.IsNullOrWhiteSpace(v.Vendor)) Hdr("Vendor / supplier", v.Vendor);
+        Hdr("Date", v.Date.ToString("dd-MMM-yyyy"));
+        r++;
+        string[] cols = { "Ref", "Item", "Quantity", "Unit", "Rate", "Total" };
+        void Block(string title, IEnumerable<VariationLine> blockLines)
+        {
+            ws.Cell(r, 1).Value = title; ws.Range(r, 1, r, 6).Style.Font.Bold = true; ws.Range(r, 1, r, 6).Style.Fill.BackgroundColor = Grey; r++;
+            for (var i = 0; i < cols.Length; i++) ws.Cell(r, i + 1).Value = cols[i];
+            ws.Range(r, 1, r, 6).Style.Font.Bold = true; ws.Range(r, 1, r, 6).Style.Border.BottomBorder = XLBorderStyleValues.Thin; r++;
+            var first = r;
+            foreach (var bill in blockLines.GroupBy(l => VariationMath.BoqPlace(l).Bill).OrderBy(g => g.Key == "" ? "99" : g.Key))
+            {
+                ws.Cell(r, 2).Value = VariationMath.BillName(bill.Key); ws.Cell(r, 2).Style.Font.Bold = true; r++;
+                foreach (var sec in bill.GroupBy(l => VariationMath.BoqPlace(l).Section).OrderBy(g => g.Key))
+                {
+                    if (sec.Key.Length > 0) { ws.Cell(r, 2).Value = VariationMath.SectionName(sec.Key); ws.Cell(r, 2).Style.Font.Italic = true; r++; }
+                    foreach (var l in sec.OrderBy(x => x.Order))
+                    {
+                        var place = VariationMath.BoqPlace(l);
+                        ws.Cell(r, 1).Value = place.Ref.Length > 0 ? $"{place.Ref} (p{place.Page})" : l.ItemCode;
+                        ws.Cell(r, 2).Value = l.Description; ws.Cell(r, 2).Style.Alignment.WrapText = true;
+                        ws.Cell(r, 3).Value = VariationMath.SignedQty(l); ws.Cell(r, 4).Value = l.Unit; ws.Cell(r, 5).Value = VariationMath.RateOf(l);
+                        ws.Cell(r, 6).FormulaA1 = $"ROUND(C{r}*E{r},2)";
+                        r++;
+                    }
+                }
+            }
+            ws.Cell(r, 5).Value = "Total"; ws.Cell(r, 6).FormulaA1 = r > first ? $"SUM(F{first}:F{r - 1})" : "0";
+            ws.Range(r, 5, r, 6).Style.Font.Bold = true; ws.Range(r, 1, r, 6).Style.Border.TopBorder = XLBorderStyleValues.Thin;
+            r += 2;
+        }
+        var omitted = lines.Where(l => l.Kind == VariationLineKinds.Omission).ToList();
+        var added = lines.Where(l => l.Kind != VariationLineKinds.Omission).ToList();
+        if (omitted.Count > 0) Block("OMITTED ITEMS", omitted);
+        if (added.Count > 0) Block("ADDITIONAL ITEMS", added);
+        var t = VariationMath.Proposal(v, lines);
+        void Tot(string label, double value, bool bold = false)
+        {
+            ws.Cell(r, 4).Value = label; ws.Cell(r, 6).Value = value; ws.Cell(r, 6).Style.NumberFormat.Format = "#,##0.00;-#,##0.00";
+            if (bold) ws.Range(r, 4, r, 6).Style.Font.Bold = true;
+            r++;
+        }
+        Tot("Total Omitted", t.Omitted); Tot("Total Additional", t.Additional); Tot("VARIANCE", t.Variance, true);
+        if (v.MarkupGrPct > 0) Tot($"General Requirements & Logistics {v.MarkupGrPct:P0}", t.Gr);
+        if (v.MarkupEngPct > 0) Tot($"Engineering & Logistics {v.MarkupEngPct:P0}", t.Eng);
+        if (v.MarkupOhPct > 0) Tot($"Overhead {v.MarkupOhPct:P0}", t.Oh);
+        Tot("TOTAL EXCL. VAT", t.ExclVat, true);
+        Tot($"VAT {v.VatPct:P0}", t.Vat);
+        Tot("TOTAL INCL. VAT", t.InclVat, true);
+        ws.Range(1, 3, r, 3).Style.NumberFormat.Format = "#,##0.##;-#,##0.##";
+        ws.Range(1, 5, r, 6).Style.NumberFormat.Format = "#,##0.00;-#,##0.00";
+        ws.Column(1).Width = 14; ws.Column(2).Width = 70; ws.Column(3).Width = 12; ws.Column(4).Width = 34; ws.Column(5).Width = 14; ws.Column(6).Width = 16;
+        ws.PageSetup.PaperSize = XLPaperSize.A4Paper; ws.PageSetup.FitToPages(1, 0);
+    }
+
     // ------------------------------------------------------------------ submission Excel
 
     public static void SubmissionExcel(string path, Variation v, IReadOnlyList<VariationLine> lines, IReadOnlyList<VariationDoc> docs, VariationHeaderInfo info)
     {
         using var wb = new XLWorkbook();
+        ProposalSheet(wb.Worksheets.Add("PROPOSAL"), v, lines, info);
         var ws = wb.Worksheets.Add(SafeSheet(v.Number));
         var r = 1;
         ws.Cell(r, 1).Value = $"{TypeName(v.Type)} SUBMISSION";

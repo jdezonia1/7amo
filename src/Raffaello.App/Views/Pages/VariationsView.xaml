@@ -74,7 +74,17 @@
             <Border Style="{StaticResource Card}" Margin="0,0,0,10">
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="10"/><ColumnDefinition Width="80"/><ColumnDefinition Width="10"/><ColumnDefinition Width="130"/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition Width="130"/></Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <WrapPanel Grid.Row="6" Grid.ColumnSpan="9">
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="CLIENT" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding Client, UpdateSourceTrigger=PropertyChanged}" Width="130" IsReadOnly="{Binding IsLocked}"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="CONSULTANT" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding Consultant, UpdateSourceTrigger=PropertyChanged}" Width="110" IsReadOnly="{Binding IsLocked}"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="CONTRACT NO" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding ContractNo, UpdateSourceTrigger=PropertyChanged}" Width="110" IsReadOnly="{Binding IsLocked}"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="ACONEX LETTER" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding LetterRef, UpdateSourceTrigger=PropertyChanged}" Width="90" IsReadOnly="{Binding IsLocked}" ToolTip="Letter of the instruction, e.g. L0135"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="VENDOR" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding Vendor, UpdateSourceTrigger=PropertyChanged}" Width="130" IsReadOnly="{Binding IsLocked}"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="GR &amp; LOG %" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding MarkupGr, UpdateSourceTrigger=PropertyChanged}" Width="60" IsReadOnly="{Binding IsLocked}"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="ENG &amp; LOG %" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding MarkupEng, UpdateSourceTrigger=PropertyChanged}" Width="60" IsReadOnly="{Binding IsLocked}"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="OVERHEAD %" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding MarkupOh, UpdateSourceTrigger=PropertyChanged}" Width="60" IsReadOnly="{Binding IsLocked}" ToolTip="Markups compound on the variance: +5%, then +8%, then +9%"/></StackPanel>
+                    </WrapPanel>
                     <StackPanel><TextBlock Text="NUMBER" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding Number}" Style="{StaticResource PanelTitle}"/></StackPanel>
                     <StackPanel Grid.Column="2"><TextBlock Text="TYPE" Style="{StaticResource Label}" FontSize="10"/><ComboBox ItemsSource="{Binding Types}" SelectedItem="{Binding Type, Mode=TwoWay}" IsEnabled="{Binding IsLocked, Converter={x:Static c:NotConverter.Instance}}"/></StackPanel>
                     <StackPanel Grid.Column="4"><TextBlock Text="DATE" Style="{StaticResource Label}" FontSize="10"/><DatePicker SelectedDate="{Binding Date}"/></StackPanel>
@@ -130,7 +140,8 @@
             </DataGrid>
             <Border Grid.Row="3" Background="{DynamicResource AccentSoftBrush}" CornerRadius="{StaticResource RadiusCard}" Padding="12,8" Margin="0,8,0,0">
                 <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="4" Margin="16,0,0,0" ToolTip="Variance + markups, before VAT (the proposal total)"><TextBlock Text="EXCL. VAT" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding ProposalTotal}" Style="{StaticResource NumTotal}"/></StackPanel>
                     <TextBlock Text="{Binding LineWarnings}" Style="{StaticResource Small}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}"/>
                     <StackPanel Grid.Column="1" Margin="16,0,0,0"><TextBlock Text="ADDITIONS" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding AddTotal}" Style="{StaticResource NumTotal}"/></StackPanel>
                     <StackPanel Grid.Column="2" Margin="16,0,0,0"><TextBlock Text="OMISSIONS" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding OmitTotal}" Style="{StaticResource NumTotal}"/></StackPanel>

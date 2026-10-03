@@ -129,6 +129,21 @@ public sealed partial class VariationsViewModel : PageViewModel
     [ObservableProperty] private string _notes = "";
     [ObservableProperty] private string _status = "";
     [ObservableProperty] private string _statusNote = "";
+    // commercial proposal header + markups (percent as typed, e.g. 5)
+    [ObservableProperty] private string _client = "";
+    [ObservableProperty] private string _consultant = "";
+    [ObservableProperty] private string _contractNo = "";
+    [ObservableProperty] private string _letterRef = "";
+    [ObservableProperty] private string _vendor = "";
+    [ObservableProperty] private string _markupGr = "5";
+    [ObservableProperty] private string _markupEng = "8";
+    [ObservableProperty] private string _markupOh = "9";
+    [ObservableProperty] private string _proposalTotal = "";
+    partial void OnMarkupGrChanged(string value) => UpdateTotals();
+    partial void OnMarkupEngChanged(string value) => UpdateTotals();
+    partial void OnMarkupOhChanged(string value) => UpdateTotals();
+    private static string Pct(double f) => (f * 100).ToString("0.##", CultureInfo.InvariantCulture);
+    private static double Frac(string s) => double.TryParse(s.Replace("%", "").Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d / 100 : 0;
     [ObservableProperty] private VariationLineRow? _selectedLine;
     [ObservableProperty] private VariationDoc? _selectedDoc;
 
@@ -197,6 +212,8 @@ public sealed partial class VariationsViewModel : PageViewModel
         IsLocked = VariationStatus.IsClosed(v.Status);
         Number = v.Number; Type = v.Type; Date = v.Date; ConsultantRef = v.ConsultantRef; VTitle = v.Title; Description = v.Description; Building = v.Building;
         AconexWorkflowNo = v.AconexWorkflowNo; Notes = v.Notes; Status = v.Status;
+        Client = v.Client; Consultant = v.Consultant; ContractNo = v.ContractNo; LetterRef = v.LetterRef; Vendor = v.Vendor;
+        MarkupGr = Pct(v.MarkupGrPct); MarkupEng = Pct(v.MarkupEngPct); MarkupOh = Pct(v.MarkupOhPct);
         ApprovedAmount = v.ApprovedAmount?.ToString("0.##", CultureInfo.InvariantCulture) ?? "";
         foreach (var l in Lines) l.Changed -= UpdateTotals;
         Lines.Clear();
@@ -219,6 +236,8 @@ public sealed partial class VariationsViewModel : PageViewModel
         AddTotal = t.AddTotal.ToString("N2");
         OmitTotal = t.OmitTotal.ToString("N2");
         NetTotal = t.Net.ToString("N2");
+        var p = VariationMath.Proposal(new Variation { MarkupGrPct = Frac(MarkupGr), MarkupEngPct = Frac(MarkupEng), MarkupOhPct = Frac(MarkupOh), VatPct = _current?.VatPct ?? 0.15 }, entities);
+        ProposalTotal = p.ExclVat.ToString("N2");
         var warn = entities.Select((l, i) => (i, VariationMath.Validate(l))).Where(x => x.Item2.Count > 0).Select(x => $"line {x.i + 1}: {string.Join(", ", x.Item2)}").ToList();
         LineWarnings = string.Join("  |  ", warn.Take(4)) + (warn.Count > 4 ? $"  (+{warn.Count - 4} more)" : "");
     }
@@ -247,6 +266,8 @@ public sealed partial class VariationsViewModel : PageViewModel
         var v = _current;
         v.Type = Type; v.Date = Date ?? v.Date; v.ConsultantRef = ConsultantRef.Trim(); v.Title = VTitle.Trim(); v.Description = Description; v.Building = Building.Trim();
         v.AconexWorkflowNo = AconexWorkflowNo.Trim().ToUpperInvariant(); v.Notes = Notes;
+        v.Client = Client.Trim(); v.Consultant = Consultant.Trim(); v.ContractNo = ContractNo.Trim(); v.LetterRef = LetterRef.Trim().ToUpperInvariant(); v.Vendor = Vendor.Trim();
+        v.MarkupGrPct = Frac(MarkupGr); v.MarkupEngPct = Frac(MarkupEng); v.MarkupOhPct = Frac(MarkupOh);
         v.ApprovedAmount = double.TryParse(ApprovedAmount, NumberStyles.Float, CultureInfo.InvariantCulture, out var a) ? a : null;
         return v;
     }

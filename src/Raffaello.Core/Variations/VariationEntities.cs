@@ -73,6 +73,19 @@ public sealed class Variation : Entity
     public double? ApprovedAmount { get; set; }
     public string Notes { get; set; } = "";
     public string CreatedBy { get; set; } = "";
+    // MOBCO "Commercial Proposal" header (03-Oct, from the real EI-04 / EI-13 proposals)
+    public string Client { get; set; } = "Diriyah Company";
+    public string Consultant { get; set; } = "Mirage";
+    public string ContractNo { get; set; } = "DD-2022-370";
+    /// <summary>Aconex letter of the instruction, e.g. L0135.</summary>
+    public string LetterRef { get; set; } = "";
+    public string Vendor { get; set; } = "";
+    /// <summary>Markups on the variance, applied one after the other (compounding): General Requirements &amp; Logistics,
+    /// Engineering &amp; Logistics, Overhead. 0 = not applied.</summary>
+    public double MarkupGrPct { get; set; } = 0.05;
+    public double MarkupEngPct { get; set; } = 0.08;
+    public double MarkupOhPct { get; set; } = 0.09;
+    public double VatPct { get; set; } = 0.15;
 }
 
 public sealed class VariationLine : Entity

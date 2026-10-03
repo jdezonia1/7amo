@@ -11,6 +11,12 @@ public sealed record VariationTotals(double Additions, double Omissions, double 
 
 public sealed record AgeingRow(string Bucket, int Count, double Net);
 
+/// <summary>Commercial proposal totals: omitted (negative) + additional = variance, then the compounding markups and VAT.</summary>
+public sealed record ProposalTotals(double Omitted, double Additional, double Variance, double Gr, double Eng, double Oh, double ExclVat, double Vat)
+{
+    public double InclVat => Math.Round(ExclVat + Vat, 2);
+}
+
 public static class VariationMath
 {
     /// <summary>NEW ITEM rate = (material + labour + equipment) x (1 + overhead %) x (1 + profit %).</summary>
@@ -44,6 +50,47 @@ public static class VariationMath
         }
         return new VariationTotals(Math.Round(add, 2), Math.Round(omit, 2), Math.Round(nw, 2), n);
     }
+
+    /// <summary>
+    /// Variance = additional + omitted (omissions are negative). Markups compound on the running total in the order
+    /// GR &amp; logistics, engineering &amp; logistics, overhead (EI-07: 9,898,846 + 8% + 9% = 11,652,921.74); VAT on top.
+    /// </summary>
+    public static ProposalTotals Proposal(Variation v, IEnumerable<VariationLine> lines)
+    {
+        var t = Totals(lines);
+        static double R(double x) => Math.Round(x, 2, MidpointRounding.AwayFromZero);
+        var variance = R(t.AddTotal + t.OmitTotal);
+        var gr = R(variance * v.MarkupGrPct);
+        var eng = R((variance + gr) * v.MarkupEngPct);
+        var oh = R((variance + gr + eng) * v.MarkupOhPct);
+        var excl = R(variance + gr + eng + oh);
+        return new ProposalTotals(t.OmitTotal, t.AddTotal, variance, gr, eng, oh, excl, R(excl * v.VatPct));
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex ProjectCode =
+        new(@"^B(\d+)-\d{2}-\d{2}-\d{2}-\d+-(\d+)-([A-Z]+)-(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    /// <summary>Bill ("06"), section letter ("R") and BOQ reference ("AM", page 3) of a line from its project code.</summary>
+    public static (string Bill, string Section, string Ref, string Page) BoqPlace(VariationLine l)
+    {
+        var m = ProjectCode.Match(l.ItemCode.Trim());
+        if (!m.Success) return ("", "", "", "");
+        var div = int.Parse(m.Groups[2].Value);
+        var section = div is 26 or 27 or 28 ? "R" : div is 21 or 22 or 23 or 25 ? "Q" : "";
+        return (int.Parse(m.Groups[1].Value).ToString("00"), section, m.Groups[3].Value.ToUpperInvariant(), m.Groups[4].Value);
+    }
+
+    public static string BillName(string bill) => bill switch
+    {
+        "02" => "Bill No. 02 - Hotel Basement", "03" => "Bill No. 03 - Hotel",
+        "05" => "Bill No. 05 - Basement - Branded Residences", "06" => "Bill No. 06 - Main Building - Branded Residences",
+        "" => "New items / other", _ => $"Bill No. {bill}",
+    };
+
+    public static string SectionName(string s) => s switch
+    {
+        "R" => "SECTION R - ELECTRICAL INSTALLATIONS", "Q" => "SECTION Q - MECHANICAL INSTALLATIONS", "" => "", _ => $"SECTION {s}",
+    };
 
     /// <summary>Days a variation has been waiting: from submission (or its date while still a draft) to the decision or today.</summary>
     public static int AgeDays(Variation v, DateTime today)
