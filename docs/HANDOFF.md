@@ -1,4 +1,27 @@
-# STATUS 02-Oct-2026 night (branch claude/dazzling-turing-20kq62) - READ THIS FIRST
+# STATUS 03-Oct-2026 (branch claude/dazzling-turing-20kq62) - READ THIS FIRST
+
+- Local session on the work PC (DELL): every sidebar page (28) and every sub-tab (49) opened in light, dark and at
+  1366x768; error.log / binding_errors.log are EMPTY after a full sweep. XamlCheck: 0 problems.
+- Fixed this session:
+  - Crash "SOMETHING WENT WRONG" leaving PLAN VIEW (WPF NullReference in DetermineWhetherDBNullIsValid): pages are hosted
+    by Controls/PageHost (drops the outgoing view's SelectedItem bindings, then swaps the view).
+  - Hundreds of 'Status' binding errors (BOQ BREAKDOWN, MATERIAL RECON, RATE BENCHMARK, ANOMALIES): Controls/RowStatusStripe.
+  - ANOMALIES list empty although HIGH = 1 (refilled KIND / SUB combos wrote null into the filters). Same null write-back
+    would crash SITE STATEMENTS and INVOICES on refresh (Sub.Length / ContractNo.Length) - fixed; PLAN filters kept.
+  - Grids at 1366x768 crushed every column to one letter -> Controls/GridColumnGuard (they scroll instead).
+  - ComboBox with DisplayMemberPath showed "Choice { Value = en, ... }" (SETTINGS > LANGUAGE) - template fixed.
+  - Clipping: grid padding 12 -> 6 px, STATEMENTS RATE, dates "dd MMM yy" (this PC writes "Sept"), ledger subcontractor
+    picker, scan pages, Owner MOS period, Drawings stage box. Chart Y axis whole-number steps. DRAWINGS tabs + DatePickers
+    styled. Dark mode: no empty white sheet on PLAN VIEW / DRAWINGS. RATE BENCHMARK shows "-" instead of 0.00.
+- Known, not bugs: demo data fills only the legacy tables - MATERIALS hub tabs (except OVERVIEW), INVOICES saved list,
+  ROOMS & LEDGER and BOQ are empty until real imports. Not exercised: buttons that open files / dialogs / Aconex / Claude.
+- Testing loop used (C:\Users\DELL\RaffaelloTools, not in the repo): UI Automation selects each sidebar RadioButton /
+  tab, PrintWindow captures the window, logs checked after each page. The computer-use screenshot tool returned a blank
+  screen on this PC, so UIA + PrintWindow was used instead. Repo cloned under the Claude scratch folder needs
+  `git config core.longpaths true`.
+- Still paused (do not start without Mohamed): B5/B6 bill rule + gas-meter vs BMS link-table check (section 2b).
+
+# STATUS 02-Oct-2026 night (previous) (branch claude/dazzling-turing-20kq62) - READ THIS FIRST
 
 - Windows: RUN_ONE_CLICK.bat -> BUILD OK, all tests pass (Core 443, Server 9 + 42 skipped without PostgreSQL, Automation 9, OCR 9).
 - Fixed on Windows: SQLite temp-file lock in tests, server SafeName drive-letter bug, duplicate x:Key "Num" (start-up crash),
