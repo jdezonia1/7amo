@@ -105,6 +105,16 @@ public class Phase3CodingMosBoqTests
     }
 
     [Fact]
+    public void Mos_line_is_capped_at_75_percent_of_the_boq_value()
+    {
+        var l = new MosLine { BoqRate = 40, ContractQty = 10, MarketRate = 100, MosPct = 0.75, DeliveredQty = 50 };
+        Assert.Equal(40 * 10 * 0.75, l.CumAmount, 2);                    // 50 x 100 x 75% = 3,750 > cap 300
+        Assert.True(l.Capped);
+        var old = new MosLine { BoqRate = 40, MosPct = 0.75, DeliveredQty = 10 };   // saved before App F: BOQ-rate basis
+        Assert.Equal(300, old.CumAmount, 2);
+    }
+
+    [Fact]
     public void Mos_values_delivered_less_installed_at_boq_rate_and_releases()
     {
         using var env = NewEnv();
@@ -122,7 +132,10 @@ public class Phase3CodingMosBoqTests
 
         var b = MosService.Build(env.Project.Snapshot, s, env.Service.Settings, 1, 0, new DateTime(2026, 8, 31));
         var r2 = b.Lines.Single(l => l.BoqCode.EndsWith("R-2"));
-        Assert.Equal(360 * 40 * 0.8, r2.CumAmount, 2);
+        // App F rule (03-Oct): MOS % of the supplier / PO rate, not the BOQ rate (no contract qty here, so no cap)
+        Assert.True(r2.UsesMarketRate);
+        Assert.Equal(Math.Round(360 * r2.MarketRate * 0.8, 2), r2.CumAmount, 2);
+        Assert.Equal(360, r2.ThisMonthQty, 6);
         Assert.Contains(b.Warnings, w => w.Contains("not valued: no owner BOQ code"));     // MICA line has no owner code
         var v = MosService.SaveDraft(env.Store, s, b);
         MosService.Approve(env.Store, v);
@@ -135,8 +148,10 @@ public class Phase3CodingMosBoqTests
         var b2 = MosService.Build(env.Project.Snapshot, env.Service.Snapshot, env.Service.Settings, 2, 0, new DateTime(2026, 9, 30));
         var l2 = b2.Lines.Single(l => l.BoqCode.EndsWith("R-2"));
         Assert.Equal(r2.CumAmount, l2.PrevAmount, 2);
-        Assert.Equal(260 * 40 * 0.8, l2.CumAmount, 2);
-        Assert.Equal(100 * 40 * 0.8, l2.Released, 2);
+        Assert.Equal(Math.Round(260 * l2.MarketRate * 0.8, 2), l2.CumAmount, 2);
+        Assert.Equal(Math.Round(100 * l2.MarketRate * 0.8, 2), l2.Released, 2);
+        Assert.Equal(360, l2.PrevDeliveredQty, 6);
+        Assert.Equal("MIR-1", l2.MirRefs);
         Assert.Equal(2, MosService.NextNo(env.Service.Snapshot));
         Assert.Single(MosService.Diff(b, b2));
 
@@ -145,9 +160,11 @@ public class Phase3CodingMosBoqTests
         MosExporter.ExportPdf(p, b2, new InvoiceHeaderInfo());
         Assert.True(new FileInfo(p).Length > 1000);
         using var wb = new XLWorkbook(x);
-        var ws = wb.Worksheets.First();
-        Assert.Equal("BOQ CODE", ws.Cell(8, 2).GetString());
-        Assert.Contains("ROUND(H9*E9*I9", ws.Cell(9, 10).FormulaA1);
+        var ws = wb.Worksheet("11. App F - MOS On");
+        Assert.Equal("BOQ Item", ws.Cell(10, 2).GetString());
+        Assert.Equal("Delivered Qty", ws.Cell(10, 8).GetString());
+        Assert.Contains("ROUND(IF(G13*E13>0", ws.Cell(13, 15).FormulaA1);
+        Assert.Equal("Total carried forward to IPC", ws.Cell(13 + b2.Lines.Count, 3).GetString());
     }
 
     [Fact]

@@ -77,13 +77,20 @@ public static class MosService
         return new DeliveredRow(dn, l, code, src, mir?.MirNo ?? "", mir?.Status ?? "", counts, why);
     }
 
-    /// <summary>Owner BOQ rate by code: imported owner BOQ first, else the E-Promise list (flagged).</summary>
+    /// <summary>Contract BOQ rate by project code: imported contract BOQ first, else the project code list (flagged).</summary>
     public static (double Rate, string Description, string Unit, string Source) RateOf(ProjectSnapshot p, MaterialsSnapshot m, string code)
     {
+        var (rate, desc, unit, _, src) = BoqOf(p, m, code);
+        return (rate, desc, unit, src);
+    }
+
+    /// <summary>Contract BOQ rate, description, unit and contract quantity by project code.</summary>
+    public static (double Rate, string Description, string Unit, double Qty, string Source) BoqOf(ProjectSnapshot p, MaterialsSnapshot m, string code)
+    {
         var b = m.BoqLines.FirstOrDefault(x => x.BoqCode.Equals(code, StringComparison.OrdinalIgnoreCase) && x.Rate > 0);
-        if (b != null) return (b.Rate, b.Description, b.Unit, "OWNER BOQ");
+        if (b != null) return (b.Rate, b.Description, b.Unit, b.Qty, "OWNER BOQ");
         var e = p.BoqItems.FirstOrDefault(x => x.ItemCode.Equals(code, StringComparison.OrdinalIgnoreCase));
-        return e is null ? (0, "", "", "") : (e.Rate, e.Description, e.Unit, e.Rate > 0 ? "PROJECT CODES" : "");
+        return e is null ? (0, "", "", 0, "") : (e.Rate, e.Description, e.Unit, e.BoqQty, e.Rate > 0 ? "PROJECT CODES" : "");
     }
 
     public static MosBuild Build(ProjectSnapshot p, MaterialsSnapshot m, MaterialsSettings settings, int no, int revision, DateTime periodTo, AutoCoder? coder = null)
@@ -96,24 +103,36 @@ public static class MosService
         var prevLines = prev is null ? new Dictionary<string, MosLine>(StringComparer.OrdinalIgnoreCase)
             : m.MosLines.Where(l => l.ValuationId == prev.Id).GroupBy(l => l.BoqCode, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
         var order = 0;
+        var poLines = m.PoLines.ToDictionary(l => l.Id);
+        var pos = m.Pos.ToDictionary(x => x.Id);
         var codes = ledger.Where(r => r.Counts).Select(r => r.BoqCode).Concat(prevLines.Keys).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(c => c, StringComparer.Ordinal);
         foreach (var code in codes)
         {
             var rows = ledger.Where(r => r.Counts && r.BoqCode.Equals(code, StringComparison.OrdinalIgnoreCase)).ToList();
-            var (rate, desc, unit, rsrc) = RateOf(p, m, code);
+            var (rate, desc, unit, contractQty, rsrc) = BoqOf(p, m, code);
             if (rate <= 0) b.Warnings.Add($"{code}: no owner BOQ rate - import the owner BOQ (BOQ screen) or enter the rate");
             else if (rsrc == "PROJECT CODES") b.Warnings.Add($"{code}: rate taken from the project code list - check it against the contract BOQ");
             var installed = m.MosInstalled.Where(x => x.BoqCode.Equals(code, StringComparison.OrdinalIgnoreCase) && x.AsOf.Date <= periodTo.Date).Sum(x => x.Qty);
             var delivered = rows.Sum(r => r.Qty);
             if (installed > delivered + 1e-6) b.Warnings.Add($"{code}: installed {Units.Fmt(installed)} is more than delivered {Units.Fmt(delivered)} - MOS is zero");
-            b.Lines.Add(new MosLine
+            // App F column M: supplier / PO rate, weighted by the delivered quantity of each PO line
+            var priced = rows.Select(r => (r.Qty, Rate: r.Line.PoLineId is long pid && poLines.TryGetValue(pid, out var pol) ? pol.Rate : 0)).Where(x => x.Rate > 0).ToList();
+            var market = priced.Sum(x => x.Qty) > 0 ? Math.Round(priced.Sum(x => x.Qty * x.Rate) / priced.Sum(x => x.Qty), 4) : 0;
+            if (delivered > 0 && market <= 0) b.Warnings.Add($"{code}: no PO rate on the delivered lines - valued at the BOQ rate (App F needs the supplier rate)");
+            var poNos = rows.Select(r => r.Line.PoLineId is long pid && poLines.TryGetValue(pid, out var pol) ? pos.GetValueOrDefault(pol.PoId)?.PoNo ?? "" : "").Where(x => x.Length > 0).Distinct();
+            var line = new MosLine
             {
                 RowOrder = order++, BoqCode = code, BoqDescription = desc.Length > 0 ? desc : rows.FirstOrDefault()?.Line.Description ?? "", Unit = unit.Length > 0 ? unit : rows.FirstOrDefault()?.Unit ?? "",
+                Material = string.Join(" / ", rows.Select(r => r.Line.Description).Where(x => x.Length > 0).Distinct().Take(3)),
+                ContractQty = contractQty, MarketRate = market, PrevDeliveredQty = prevLines.TryGetValue(code, out var pd) ? pd.DeliveredQty : 0,
+                MirRefs = string.Join(", ", rows.Select(r => r.MirNo).Where(x => x.Length > 0).Distinct()), PoRefs = string.Join(", ", poNos),
                 BoqRate = rate, DeliveredQty = Math.Round(delivered, 4), InstalledQty = Math.Round(installed, 4), MosPct = settings.MosPct,
                 PrevAmount = prevLines.TryGetValue(code, out var pl) ? pl.CumAmount : 0,
                 Sources = string.Join(", ", rows.GroupBy(r => r.Dn.DnNo).Select(g => $"DN {g.Key}{(g.First().MirNo.Length > 0 ? " / " + g.First().MirNo : "")}")),
                 CodeSource = string.Join(" | ", rows.Select(r => r.CodeSource).Distinct().Take(3)),
-            });
+            };
+            if (line.Capped) b.Warnings.Add($"{code}: capped at 75% of the BOQ value (SAR {line.Cap:N2})");
+            b.Lines.Add(line);
         }
         return b;
     }

@@ -50,16 +50,22 @@
 
             <DataGrid Grid.Row="3" Style="{StaticResource CardGrid}" ItemsSource="{Binding Lines}" Visibility="{Binding IsValuation, Converter={StaticResource BoolToVis}}">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="BOQ CODE" Binding="{Binding BoqCode}" Width="150" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="PROJECT CODE" Binding="{Binding BoqCode}" Width="190" ElementStyle="{StaticResource CellKey}"/>
                     <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding BoqDescription}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="40" ElementStyle="{StaticResource CellText}"/>
-                    <DataGridTextColumn Header="RATE" Binding="{Binding BoqRate, StringFormat=N2}" Width="70" ElementStyle="{StaticResource CellNum}"/>
-                    <DataGridTextColumn Header="DELIVERED" Binding="{Binding DeliveredQty, StringFormat=N2}" Width="80" ElementStyle="{StaticResource CellNum}"/>
-                    <DataGridTextColumn Header="INSTALLED" Binding="{Binding InstalledQty, StringFormat=N2}" Width="80" ElementStyle="{StaticResource CellNum}"/>
-                    <DataGridTextColumn Header="ON SITE" Binding="{Binding OnSiteQty, StringFormat=N2}" Width="80" ElementStyle="{StaticResource CellNumStrong}"/>
-                    <DataGridTextColumn Header="CUM SAR" Binding="{Binding CumAmount, StringFormat=N2}" Width="96" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="CONTRACT QTY" Binding="{Binding ContractQty, StringFormat=N2}" Width="80" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="BOQ RATE" Binding="{Binding BoqRate, StringFormat=N2}" Width="76" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="PREV DLV" Binding="{Binding PrevDeliveredQty, StringFormat=N2}" Width="76" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="THIS MONTH" Binding="{Binding ThisMonthQty, StringFormat=N2, Mode=OneWay}" Width="78" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="TO DATE" Binding="{Binding DeliveredQty, StringFormat=N2}" Width="76" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="USED" Binding="{Binding InstalledQty, StringFormat=N2}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="BALANCE" Binding="{Binding OnSiteQty, StringFormat=N2, Mode=OneWay}" Width="76" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="PO RATE" Binding="{Binding MarketRate, StringFormat=N2}" Width="76" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="75% RATE" Binding="{Binding MosRate, StringFormat=N2, Mode=OneWay}" Width="76" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="CUM SAR" Binding="{Binding CumAmount, StringFormat=N2, Mode=OneWay}" Width="96" ElementStyle="{StaticResource CellNumStrong}"/>
                     <DataGridTextColumn Header="PREV" Binding="{Binding PrevAmount, StringFormat=N2}" Width="90" ElementStyle="{StaticResource CellNum}"/>
-                    <DataGridTextColumn Header="CURR" Binding="{Binding CurrAmount, StringFormat=N2}" Width="90" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="CURR" Binding="{Binding CurrAmount, StringFormat=N2, Mode=OneWay}" Width="90" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="MIR" Binding="{Binding MirRefs}" Width="110" ElementStyle="{StaticResource CellText}"/>
                 </DataGrid.Columns>
                 <DataGrid.RowDetailsTemplate>
                     <DataTemplate><TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="12,2,8,6"><Run Text="{Binding Sources, Mode=OneWay}"/><Run Text="  |  "/><Run Text="{Binding CodeSource, Mode=OneWay}"/></TextBlock></DataTemplate>

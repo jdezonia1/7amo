@@ -33,7 +33,7 @@ public sealed partial class OwnerMosViewModel : PageViewModel
 
     public override string Key => "OwnerMos";
     public override string Title => "OWNER MOS";
-    public override string Subtitle => "Materials on site: delivered (DN + MIR) less installed, at owner BOQ rate x MOS %";
+    public override string Subtitle => "Materials on site (App F): delivered (DN + MIR) less used, 75% of the PO rate, capped at 75% of the BOQ value";
     public override bool ShowFilterBar => false;
     protected override bool UsesFilter => false;
 
@@ -120,7 +120,7 @@ public sealed partial class OwnerMosViewModel : PageViewModel
         Warnings.Clear();
         foreach (var w in b.Warnings) Warnings.Add(w);
         Heading = $"{b.Header.Title}  |  {b.Header.Status}  |  period to {b.Header.PeriodTo:dd-MMM-yyyy}  |  MOS {b.Header.MosPct:P0}";
-        Totals = $"ON SITE SAR {b.CumAmount:N2}   PREVIOUS {b.PrevAmount:N2}   THIS PERIOD {b.CurrAmount:N2}   RELEASED {b.Released:N2}   INCL. VAT {b.CurrAmount * 1.15:N2}";
+        Totals = $"ON SITE SAR {b.CumAmount:N2}   PREVIOUS {b.PrevAmount:N2}   THIS PERIOD {b.CurrAmount:N2}   RELEASED {b.Released:N2}   (carried to IPC line 1.6 - VAT is applied on the IPC)";
         AconexNo = b.Header.AconexNo;
         No = b.Header.No.ToString(CultureInfo.InvariantCulture);
     }
