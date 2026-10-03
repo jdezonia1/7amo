@@ -99,7 +99,7 @@
                     </WrapPanel>
                     <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
                         <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" PreviewMouseWheel="OnWheel">
-                            <Grid x:Name="Host" Width="{Binding ImageWidth}" Height="{Binding ImageHeight}" Background="White"
+                            <Grid x:Name="Host" Width="{Binding ImageWidth}" Height="{Binding ImageHeight}" Background="White" Visibility="{Binding SheetImage, Converter={StaticResource NullToVis}}"
                                   MouseLeftButtonDown="OnDown" MouseMove="OnMove" MouseLeftButtonUp="OnUp">
                                 <Grid.LayoutTransform><ScaleTransform x:Name="Zoom" ScaleX="0.3" ScaleY="0.3"/></Grid.LayoutTransform>
                                 <Image Source="{Binding SheetImage}" Stretch="Fill"/>
