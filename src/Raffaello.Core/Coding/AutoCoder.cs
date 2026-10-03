@@ -95,7 +95,7 @@ public sealed class AutoCoder
         foreach (var l in sources.CodedPoLines)
             Add(new(l.BoqCode, l.CostCode, l.BudgetResourceCode, l.ResourceCode, l.Description, l.Unit, "PO HISTORY", 0, $"PO line {l.LineNo} ({l.CodeStatus})"));
         foreach (var b in sources.BudgetList)
-            Add(new(b.ItemCode, b.CostCode, b.BudgetResourceCode, "", b.Description, b.Unit, "E-PROMISE", 0, $"budget list {b.ItemCode}"));
+            Add(new(b.ItemCode, b.CostCode, b.BudgetResourceCode, "", b.Description, b.Unit, "PROJECT CODES", 0, $"project code {b.ItemCode}"));
         foreach (var b in sources.OwnerBoq)
             Add(new(b.BoqCode, "", "", "", b.Description, b.Unit, "OWNER BOQ", 0, $"owner BOQ {b.BoqCode}"));
     }

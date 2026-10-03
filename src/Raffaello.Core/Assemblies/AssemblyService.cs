@@ -42,7 +42,7 @@ public sealed class AssemblySource
     public ItemSourceKind ParseKind => Kind == SourceKinds.Contract ? ItemSourceKind.Contract : Kind == SourceKinds.Text ? ItemSourceKind.Text : ItemSourceKind.Boq;
     public string RateLabel => Kind == SourceKinds.Contract ? "CONTRACT" : Kind == SourceKinds.Text ? "ENTERED" : "BOQ";
     public string Title => (Code.Length > 0 ? Code + "  " : "") + (Description.Length > 90 ? Description[..90] + "..." : Description);
-    public string KindLabel => Kind switch { SourceKinds.Contract => $"CONTRACT {ContractNo}", SourceKinds.Boq => "E-PROMISE BOQ", SourceKinds.BoqLine => "OWNER BOQ", _ => "TEXT" };
+    public string KindLabel => Kind switch { SourceKinds.Contract => $"CONTRACT {ContractNo}", SourceKinds.Boq => "PROJECT CODES", SourceKinds.BoqLine => "OWNER BOQ", _ => "TEXT" };
 
     public static AssemblySource FromText(string description, string unit = "", double qty = 1, double rate = 0) => new()
     {

@@ -36,7 +36,7 @@
                                 ToolTip="Contract items (English / Arabic), attributes parsed from the text, LINK TABLE item -> BOQ codes"/>
                         <Button Style="{StaticResource BtnGhost}" Content="INVOICE TEMPLATE (INV SHEET)" Command="{Binding ImportTemplateCommand}" Margin="0,0,6,6"
                                 ToolTip="The subcontractor's invoice layout: item x BOQ rows, stage %, sections"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="E-PROMISE BOQ LIST" Command="{Binding ImportEPromiseCommand}" Margin="0,0,6,6"
+                        <Button Style="{StaticResource BtnGhost}" Content="PROJECT CODE LIST" Command="{Binding ImportEPromiseCommand}" Margin="0,0,6,6"
                                 ToolTip="BOQ codes with cost code / budget resource"/>
                         <Button Style="{StaticResource BtnYellow}" Content="IMPORT CONTRACT PDF" Command="{Binding ImportContractPdfCommand}" Margin="0,0,6,6"
                                 ToolTip="The signed contract (scan): header terms, clauses, rate schedule and rules read offline, cross-checked item by item with the Excel; you resolve each difference"/>

@@ -341,7 +341,7 @@ public sealed partial class VariationsViewModel : PageViewModel
         if (_current is null) return;
         var s = Project.Snapshot;
         var candidates = SuggestCandidate.From(s.BoqItems, s.ContractItems).ToList();
-        if (candidates.Count == 0) { Ctx.Toasts.Show("NO BOQ / CONTRACT ITEMS", "Import the E-Promise BOQ or a contract first (CONTRACTS & BOQ).", ToastKind.Warn); return; }
+        if (candidates.Count == 0) { Ctx.Toasts.Show("NO BOQ / CONTRACT ITEMS", "Import the project code list or a contract first (CONTRACTS & BOQ).", ToastKind.Warn); return; }
         var title = VTitle;
         var body = Description + "\n" + string.Join("\n", Docs.Select(d => d.ExtractedText));
         Suggesting = true;

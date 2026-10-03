@@ -52,7 +52,7 @@ public sealed class TrustEPromiseTests
         Assert.Equal(1980.0, r[EPromiseFields.Amount]);   // 40 x 55 x 0.9
         Assert.Equal("SUB-ELE-001-2026 INV-03 Rev 1", r[EPromiseFields.InvoiceRef]);
         Assert.Equal(1980 + 540 + 20, res.TotalAmount);
-        Assert.Contains(res.Issues, i => i.Contains("no BOQ code"));
+        Assert.Contains(res.Issues, i => i.Contains("no project code"));
     }
 
     [Fact]

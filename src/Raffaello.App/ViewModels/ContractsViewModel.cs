@@ -58,7 +58,7 @@ public sealed partial class ContractsViewModel : PageViewModel
 
     public override string Key => "Contracts";
     public override string Title => "CONTRACTS & BOQ";
-    public override string Subtitle => "Contract items with their rate-driving attributes and BOQ links; E-Promise BOQ codes; rates and PROJECT QTY";
+    public override string Subtitle => "Contract items with their rate-driving attributes and BOQ links; project codes; rates and PROJECT QTY";
     public override bool ShowFilterBar => false;
     protected override bool UsesFilter => true;   // [phase6] the building switcher drives it
 
@@ -221,14 +221,14 @@ public sealed partial class ContractsViewModel : PageViewModel
     [RelayCommand]
     private async Task ImportEPromise()
     {
-        var file = Ctx.Dialogs.OpenFile("Workbook with the 'E promise' budget sheet");
+        var file = Ctx.Dialogs.OpenFile("Project code list (workbook with the 'E promise - Resource' sheet)");
         if (file is null) return;
         try
         {
             var r = await Task.Run(() => Project.Workflow.PreviewEPromise(file));
-            if (!Ctx.Dialogs.Confirm("Import E-Promise", $"{r.Summary}\n\nAdd / update these BOQ codes?")) return;
+            if (!Ctx.Dialogs.Confirm("Import project code list", $"{r.Summary}\n\nAdd / update these project codes?")) return;
             var n = 0;
-            if (await Ctx.Data.WriteAsync(p => n = p.Workflow.CommitEPromise(r), Ctx.Toasts)) Ctx.Toasts.Show("BOQ CODES IMPORTED", $"{n:N0} added / updated", ToastKind.Good);
+            if (await Ctx.Data.WriteAsync(p => n = p.Workflow.CommitEPromise(r), Ctx.Toasts)) Ctx.Toasts.Show("PROJECT CODES IMPORTED", $"{n:N0} added / updated", ToastKind.Good);
         }
         catch (Exception ex) { Ctx.Toasts.Show("CANNOT READ WORKBOOK", ex.Message, ToastKind.Error); }
     }

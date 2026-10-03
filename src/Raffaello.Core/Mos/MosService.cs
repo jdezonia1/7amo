@@ -83,7 +83,7 @@ public static class MosService
         var b = m.BoqLines.FirstOrDefault(x => x.BoqCode.Equals(code, StringComparison.OrdinalIgnoreCase) && x.Rate > 0);
         if (b != null) return (b.Rate, b.Description, b.Unit, "OWNER BOQ");
         var e = p.BoqItems.FirstOrDefault(x => x.ItemCode.Equals(code, StringComparison.OrdinalIgnoreCase));
-        return e is null ? (0, "", "", "") : (e.Rate, e.Description, e.Unit, e.Rate > 0 ? "E-PROMISE" : "");
+        return e is null ? (0, "", "", "") : (e.Rate, e.Description, e.Unit, e.Rate > 0 ? "PROJECT CODES" : "");
     }
 
     public static MosBuild Build(ProjectSnapshot p, MaterialsSnapshot m, MaterialsSettings settings, int no, int revision, DateTime periodTo, AutoCoder? coder = null)
@@ -102,7 +102,7 @@ public static class MosService
             var rows = ledger.Where(r => r.Counts && r.BoqCode.Equals(code, StringComparison.OrdinalIgnoreCase)).ToList();
             var (rate, desc, unit, rsrc) = RateOf(p, m, code);
             if (rate <= 0) b.Warnings.Add($"{code}: no owner BOQ rate - import the owner BOQ (BOQ screen) or enter the rate");
-            else if (rsrc == "E-PROMISE") b.Warnings.Add($"{code}: rate taken from the E-Promise list - check it against the owner BOQ");
+            else if (rsrc == "PROJECT CODES") b.Warnings.Add($"{code}: rate taken from the project code list - check it against the contract BOQ");
             var installed = m.MosInstalled.Where(x => x.BoqCode.Equals(code, StringComparison.OrdinalIgnoreCase) && x.AsOf.Date <= periodTo.Date).Sum(x => x.Qty);
             var delivered = rows.Sum(r => r.Qty);
             if (installed > delivered + 1e-6) b.Warnings.Add($"{code}: installed {Units.Fmt(installed)} is more than delivered {Units.Fmt(delivered)} - MOS is zero");

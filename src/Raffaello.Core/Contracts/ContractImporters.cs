@@ -198,7 +198,7 @@ public static class EPromiseImporter
                 else w.Insert(b);
                 n++;
             }
-        }, $"E-Promise budget list: {n} BOQ codes added / updated");
+        }, $"Project code list: {n} project codes added / updated");
         return n;
     }
 }

@@ -211,8 +211,8 @@ public static class EPromiseExporter
             if (cfg.QtyTimesStagePct) qty *= l.StagePct == 0 ? 1 : l.StagePct;
             var code = (l.BoqCode ?? "").Trim().ToUpperInvariant();
             boq.TryGetValue(code, out var b);
-            if (code.Length == 0) res.Issues.Add($"Row {l.RowOrder} item {l.ItemNo}: no BOQ code - E-Promise cannot book it.");
-            else if (b is null) res.Issues.Add($"Row {l.RowOrder}: BOQ code {code} is not in the E-Promise budget list (import the 'E promise - Resource' sheet).");
+            if (code.Length == 0) res.Issues.Add($"Row {l.RowOrder} item {l.ItemNo}: no project code - E-Promise cannot book it.");
+            else if (b is null) res.Issues.Add($"Row {l.RowOrder}: project code {code} is not in the project code list (CONTRACTS & BOQ > PROJECT CODE LIST, sheet 'E promise - Resource').");
             if (FirstNonEmpty(l.CostCode, b?.CostCode).Length == 0) res.Issues.Add($"Row {l.RowOrder} {code}: no cost code (Activity).");
             if (FirstNonEmpty(l.BudgetResourceCode, b?.BudgetResourceCode).Length == 0) res.Issues.Add($"Row {l.RowOrder} {code}: no budget resource code.");
             raw.Add((l, code, b, qty, amount, l.PrevQty, l.CumQty, l.CumAmount));
@@ -240,7 +240,7 @@ public static class EPromiseExporter
         }
         if (res.Rows.Count == 0) res.Issues.Add($"{inv.Title} has no line with a {(cum ? "cumulative" : "current")} quantity.");
         if (cfg.JobNo.Length == 0 && res.Rows.Any(r => string.IsNullOrEmpty(r[EPromiseFields.JobNo] as string)))
-            res.Issues.Add("No job number: set JobNo in epromise-export.json or import the E-Promise list (column Job).");
+            res.Issues.Add("No job number: set JobNo in epromise-export.json or import the project code list (column Job).");
         return res;
     }
 
