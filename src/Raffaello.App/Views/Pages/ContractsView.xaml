@@ -15,41 +15,41 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="1.3*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
             <Border Style="{StaticResource Card}" Padding="14">
                 <StackPanel>
-                    <TextBlock Text="IMPORT" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Import" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="120"/></Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Text="CONTRACT NO" Style="{StaticResource Label}"/>
+                            <TextBlock Text="Contract no" Style="{StaticResource Label}"/>
                             <TextBox Text="{Binding ImportContractNo, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="SUBCONTRACTOR" Style="{StaticResource Label}"/>
+                            <TextBlock Text="Subcontractor" Style="{StaticResource Label}"/>
                             <TextBox Text="{Binding ImportSub, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="4">
-                            <TextBlock Text="BUILDING" Style="{StaticResource Label}"/>
+                            <TextBlock Text="Building" Style="{StaticResource Label}"/>
                             <ComboBox ItemsSource="{Binding BuildingOptions}" SelectedItem="{Binding ImportBuilding, Mode=TwoWay}" ToolTip="Empty = take B5/B6 codes as BRANDED, others as they come"/>
                         </StackPanel>
                     </Grid>
                     <WrapPanel Margin="0,10,0,0">
-                        <Button Style="{StaticResource BtnPrimary}" Content="CONTRACT LINK WORKBOOK" Command="{Binding ImportLinkWorkbookCommand}" Margin="0,0,6,6"
+                        <Button Style="{StaticResource BtnPrimary}" Content="Contract link workbook" Command="{Binding ImportLinkWorkbookCommand}" Margin="0,0,6,6"
                                 ToolTip="Contract items (English / Arabic), attributes parsed from the text, LINK TABLE item -> BOQ codes"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="INVOICE TEMPLATE (INV SHEET)" Command="{Binding ImportTemplateCommand}" Margin="0,0,6,6"
+                        <Button Style="{StaticResource BtnGhost}" Content="Invoice template (inv sheet)" Command="{Binding ImportTemplateCommand}" Margin="0,0,6,6"
                                 ToolTip="The subcontractor's invoice layout: item x BOQ rows, stage %, sections"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="PROJECT CODE LIST" Command="{Binding ImportEPromiseCommand}" Margin="0,0,6,6"
+                        <Button Style="{StaticResource BtnGhost}" Content="Project code list" Command="{Binding ImportEPromiseCommand}" Margin="0,0,6,6"
                                 ToolTip="BOQ codes with cost code / budget resource"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="FIX GAS-METER LINKS" Command="{Binding FixGasMeterLinksCommand}" Margin="0,0,6,6"
+                        <Button Style="{StaticResource BtnGhost}" Content="Fix gas-meter links" Command="{Binding FixGasMeterLinksCommand}" Margin="0,0,6,6"
                                 ToolTip="Metering items linked to the BMS lump sum go to the gas-meter codes (B6 6-22-R-18, B5 5-22-P-10, B3 3-22-E-12) - gas meters are done by the electrical subcontractor"/>
-                        <Button Style="{StaticResource BtnYellow}" Content="IMPORT CONTRACT PDF" Command="{Binding ImportContractPdfCommand}" Margin="0,0,6,6"
+                        <Button Style="{StaticResource BtnYellow}" Content="Import contract PDF" Command="{Binding ImportContractPdfCommand}" Margin="0,0,6,6"
                                 ToolTip="The signed contract (scan): header terms, clauses, rate schedule and rules read offline, cross-checked item by item with the Excel; you resolve each difference"/>
                     </WrapPanel>
                     <TextBlock Text="{Binding ReadingBusy}" Style="{StaticResource BodyStrong}" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" FontSize="11"/>
                     <Grid Margin="0,6,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <TextBlock Style="{StaticResource Label}" VerticalAlignment="Center"><Run Text="CONTRACT DOCUMENTS  "/><Run Text="{Binding SelectedContractNo, Mode=OneWay}"/><Run Text="  (go into the invoice package)"/></TextBlock>
+                        <TextBlock Style="{StaticResource Label}" VerticalAlignment="Center"><Run Text="Contract documents  "/><Run Text="{Binding SelectedContractNo, Mode=OneWay}"/><Run Text="  (go into the invoice package)"/></TextBlock>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Style="{StaticResource BtnLink}" Content="ATTACH" Command="{Binding AttachContractDocCommand}" Margin="0,0,8,0"/>
-                            <Button Style="{StaticResource BtnLink}" Content="REMOVE" Command="{Binding RemoveContractDocCommand}"/>
+                            <Button Style="{StaticResource BtnLink}" Content="Attach" Command="{Binding AttachContractDocCommand}" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource BtnLink}" Content="Remove" Command="{Binding RemoveContractDocCommand}"/>
                         </StackPanel>
                     </Grid>
                     <ListBox ItemsSource="{Binding ContractDocs}" SelectedItem="{Binding SelectedDoc, Mode=TwoWay}" DisplayMemberPath="FileName" MaxHeight="70" Margin="0,4,0,0"/>
@@ -57,7 +57,7 @@
             </Border>
             <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="SUBCONTRACTS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Subcontracts" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
                     <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Contracts}">
                             <ItemsControl.ItemTemplate>
@@ -122,23 +122,23 @@
             <Border Grid.Column="2" Style="{StaticResource Card}" Padding="14">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Style="{StaticResource PanelTitle}"><Run Text="ITEM "/><Run Text="{Binding SelectedItem.Item.ItemNo, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Style="{StaticResource PanelTitle}"><Run Text="Item "/><Run Text="{Binding SelectedItem.Item.ItemNo, Mode=OneWay}"/></TextBlock>
                         <TextBlock Text="{Binding SelectedItem.Item.Description}" Style="{StaticResource Body}" TextWrapping="Wrap" Margin="0,6,0,6" MaxHeight="120"/>
                         <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap">
                             <Run Text="QTY"/> <Run Text="{Binding SelectedItem.Item.Qty, StringFormat=N2, Mode=OneWay}" FontWeight="Bold"/> <Run Text="{Binding SelectedItem.Item.Unit, Mode=OneWay}"/>
-                            <Run Text="  RATE"/> <Run Text="{Binding SelectedItem.Item.Rate, StringFormat=N2, Mode=OneWay}" FontWeight="Bold"/>
-                            <Run Text="  CATEGORY"/> <Run Text="{Binding SelectedItem.Item.Category, Mode=OneWay}" FontWeight="Bold"/>
+                            <Run Text="  Rate"/> <Run Text="{Binding SelectedItem.Item.Rate, StringFormat=N2, Mode=OneWay}" FontWeight="Bold"/>
+                            <Run Text="  Category"/> <Run Text="{Binding SelectedItem.Item.Category, Mode=OneWay}" FontWeight="Bold"/>
                         </TextBlock>
-                        <TextBlock Text="PARSER NOTES" Style="{StaticResource Label}" Margin="0,8,0,2"/>
+                        <TextBlock Text="Parser notes" Style="{StaticResource Label}" Margin="0,8,0,2"/>
                         <TextBlock Text="{Binding SelectedItem.Item.ParseNotes}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
                         <!-- [assemblies] begin -->
-                        <Button Style="{StaticResource BtnGhost}" Content="BREAKDOWN (MATERIALS + RATE)" Command="{Binding BreakdownItemCommand}" HorizontalAlignment="Stretch" Margin="0,10,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Breakdown (materials + rate)" Command="{Binding BreakdownItemCommand}" HorizontalAlignment="Stretch" Margin="0,10,0,0"/>
                         <!-- [assemblies] end -->
-                        <Button Style="{StaticResource BtnPrimary}" Content="SAVE + CONFIRM ATTRIBUTES" Command="{Binding ConfirmItemCommand}" HorizontalAlignment="Stretch" Margin="0,10,0,10"
+                        <Button Style="{StaticResource BtnPrimary}" Content="Save + confirm attributes" Command="{Binding ConfirmItemCommand}" HorizontalAlignment="Stretch" Margin="0,10,0,10"
                                 ToolTip="Edit STAGE / CONDUIT / MOUNT / HEIGHT / SYSTEMS / SIZE / STAGE % in the grid, then confirm. Confirmed attributes survive re-imports."/>
                         <TextBlock Text="{Binding ItemLinkCheck}" Style="{StaticResource Small}" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0,0,0,6"
                                    Visibility="{Binding ItemLinkCheck, Converter={StaticResource NullToVis}}"/>
-                        <TextBlock Text="BOQ CODES LINKED TO THIS ITEM" Style="{StaticResource Label}" Margin="0,0,0,4"/>
+                        <TextBlock Text="BOQ codes linked to this item" Style="{StaticResource Label}" Margin="0,0,0,4"/>
                     </StackPanel>
                     <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding ItemLinks}">
                         <DataGrid.Columns>
@@ -156,12 +156,12 @@
             <DockPanel>
                 <Grid DockPanel.Dock="Top" Margin="2,0,0,8">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="220"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock Text="BOQ  |  RATES AND PROJECT QTY" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="BOQ  |  Rates and project QTY" Style="{StaticResource PanelTitle}"/>
                     <TextBlock Grid.Column="1" Text="{Binding Coverage}" Style="{StaticResource Label}" Margin="12,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                     <TextBox Grid.Column="2" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=300}" ToolTip="BOQ code, description, cost code"/>
                     <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="8,0,0,0">
-                        <Button Style="{StaticResource BtnGhost}" Content="FILL EMPTY LINES FROM BOQ" Command="{Binding ApplyToLinesCommand}" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource BtnPrimary}" Content="SAVE CHANGES" Command="{Binding SaveCommand}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Fill empty lines from BOQ" Command="{Binding ApplyToLinesCommand}" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Save changes" Command="{Binding SaveCommand}"/>
                     </StackPanel>
                 </Grid>
                 <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Boq}" IsReadOnly="False" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
@@ -199,11 +199,11 @@
                     <TextBlock Grid.Row="1" Text="{Binding TermsText}" Style="{StaticResource Body}" TextWrapping="Wrap" Margin="0,8,0,8"/>
                     <DockPanel Grid.Row="2">
                         <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
-                            <TextBlock Text="CONTRACT RULES - WARNINGS ONLY, NEVER BLOCKING (EDIT, THEN SAVE RULE)" Style="{StaticResource PanelTitle}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Contract rules - Warnings only, never blocking (edit, then save rule)" Style="{StaticResource PanelTitle}" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button Style="{StaticResource BtnGhost}" Content="ADD" Command="{Binding AddRuleCommand}"/>
-                                <Button Style="{StaticResource BtnGhost}" Content="DELETE" Command="{Binding DeleteRuleCommand}" Margin="6,0,0,0"/>
-                                <Button Style="{StaticResource BtnPrimary}" Content="SAVE RULE" Command="{Binding SaveRuleCommand}" Margin="6,0,0,0"/>
+                                <Button Style="{StaticResource BtnGhost}" Content="Add" Command="{Binding AddRuleCommand}"/>
+                                <Button Style="{StaticResource BtnGhost}" Content="Delete" Command="{Binding DeleteRuleCommand}" Margin="6,0,0,0"/>
+                                <Button Style="{StaticResource BtnPrimary}" Content="Save rule" Command="{Binding SaveRuleCommand}" Margin="6,0,0,0"/>
                             </StackPanel>
                         </Grid>
                         <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding RuleRows}" SelectedItem="{Binding SelectedRule, Mode=TwoWay}" IsReadOnly="False">
@@ -219,7 +219,7 @@
                             </DataGrid.Columns>
                         </DataGrid>
                     </DockPanel>
-                    <TextBlock Grid.Row="3" Text="CLAUSES (AS READ FROM THE SIGNED CONTRACT)" Style="{StaticResource PanelTitle}" Margin="0,10,0,6"/>
+                    <TextBlock Grid.Row="3" Text="Clauses (as read from the signed contract)" Style="{StaticResource PanelTitle}" Margin="0,10,0,6"/>
                     <DataGrid Grid.Row="4" Style="{StaticResource CardGrid}" ItemsSource="{Binding ClauseRows}" IsReadOnly="True">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="CLAUSE" Binding="{Binding ClauseNo}" Width="56"/>
@@ -235,12 +235,12 @@
             <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <TextBlock Text="OBLIGATIONS CALENDAR (ALL CONTRACTS)" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="Obligations calendar (all contracts)" Style="{StaticResource PanelTitle}"/>
                     <Grid Grid.Row="1" Margin="0,6,0,6">
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <StackPanel><TextBlock Text="COMPLETION DATE" Style="{StaticResource Label}"/><DatePicker SelectedDate="{Binding CompletionDate, Mode=TwoWay}"/></StackPanel>
-                        <StackPanel Grid.Column="2"><TextBlock Text="HANDOVER DATE" Style="{StaticResource Label}"/><DatePicker SelectedDate="{Binding HandoverDate, Mode=TwoWay}"/></StackPanel>
-                        <Button Grid.Column="3" Style="{StaticResource BtnGhost}" Content="SAVE DATES" Command="{Binding SaveDatesCommand}" VerticalAlignment="Bottom" Margin="8,0,0,0"/>
+                        <StackPanel><TextBlock Text="Completion date" Style="{StaticResource Label}"/><DatePicker SelectedDate="{Binding CompletionDate, Mode=TwoWay}"/></StackPanel>
+                        <StackPanel Grid.Column="2"><TextBlock Text="Handover date" Style="{StaticResource Label}"/><DatePicker SelectedDate="{Binding HandoverDate, Mode=TwoWay}"/></StackPanel>
+                        <Button Grid.Column="3" Style="{StaticResource BtnGhost}" Content="Save dates" Command="{Binding SaveDatesCommand}" VerticalAlignment="Bottom" Margin="8,0,0,0"/>
                     </Grid>
                     <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding ObligationRows}" IsReadOnly="True">
                         <DataGrid.Columns>
@@ -249,7 +249,7 @@
                             <DataGridTextColumn Header="DETAIL" Binding="{Binding Text}" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <TextBlock Grid.Row="3" Text="BYPASSES (WHO / WHEN / WHY)" Style="{StaticResource PanelTitle}" Margin="0,10,0,6"/>
+                    <TextBlock Grid.Row="3" Text="Bypasses (who / When / Why)" Style="{StaticResource PanelTitle}" Margin="0,10,0,6"/>
                     <DataGrid Grid.Row="4" Style="{StaticResource CardGrid}" ItemsSource="{Binding BypassRows}" IsReadOnly="True">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="WHEN" Binding="{Binding BypassedAt, StringFormat=dd-MMM HH:mm}" Width="84"/>
@@ -268,13 +268,13 @@
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
             <Border Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="TERMS SIDE BY SIDE" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Terms side by side" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
                     <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding CompareTerms}" AutoGenerateColumns="True" IsReadOnly="True" MaxHeight="260"/>
                 </DockPanel>
             </Border>
             <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="RATES FOR THE SAME KIND OF ITEM (MATCHED BY STAGE, CONDUIT, MOUNT, HEIGHT, CATEGORY, SYSTEMS, SIZE, UNIT)" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Rates for the same kind of item (matched by stage, conduit, mount, height, category, systems, size, unit)" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
                     <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding CompareRates}" AutoGenerateColumns="True" IsReadOnly="True"/>
                 </DockPanel>
             </Border>

@@ -23,8 +23,8 @@
                 <TextBlock Grid.Column="2" Text="{Binding Counts}" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis"/>
                 <TextBox Grid.Column="3" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=250}"/>
                 <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="8,0,0,0">
-                    <Button Style="{StaticResource BtnGhost}" Content="REJECT" Command="{Binding RejectCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource BtnPrimary}" Content="APPROVE" Command="{Binding ApproveCommand}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Reject" Command="{Binding RejectCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Approve" Command="{Binding ApproveCommand}"/>
                 </StackPanel>
             </Grid>
             <Grid Grid.Row="1">
@@ -67,13 +67,13 @@
                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.6*"/></Grid.ColumnDefinitions>
                 <Border Style="{StaticResource Card}" Padding="12">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="AGEING  |  OPEN" Style="{StaticResource Label}"/>
+                        <TextBlock DockPanel.Dock="Top" Text="Ageing  |  Open" Style="{StaticResource Label}"/>
                         <lvc:CartesianChart Series="{Binding Ageing}" XAxes="{Binding AgeingX}" YAxes="{Binding AgeingY}" LegendPosition="Hidden" TooltipPosition="Top"/>
                     </DockPanel>
                 </Border>
                 <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="SUBMITTED vs APPROVED  |  WEEKLY" Style="{StaticResource Label}"/>
+                        <TextBlock DockPanel.Dock="Top" Text="Submitted vs approved  |  Weekly" Style="{StaticResource Label}"/>
                         <lvc:CartesianChart Series="{Binding Weekly}" XAxes="{Binding WeeklyX}" YAxes="{Binding WeeklyY}" LegendPosition="Top" TooltipPosition="Top"/>
                     </DockPanel>
                 </Border>

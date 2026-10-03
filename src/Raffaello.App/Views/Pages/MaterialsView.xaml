@@ -13,7 +13,7 @@
             <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="12"/><RowDefinition Height="*"/></Grid.RowDefinitions>
             <Border Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PURCHASE ORDERS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Purchase orders" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
                     <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Pos}" SelectedItem="{Binding SelectedPo, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
@@ -32,7 +32,7 @@
             </Border>
             <Border Grid.Row="2" Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="ALARMS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Alarms" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Alarms}">
                             <ItemsControl.ItemTemplate>
@@ -76,19 +76,19 @@
                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
                 <Border Style="{StaticResource Card}" Padding="12">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="DELIVERED vs PO  |  PER LINE" Style="{StaticResource Label}"/>
+                        <TextBlock DockPanel.Dock="Top" Text="Delivered vs PO  |  Per line" Style="{StaticResource Label}"/>
                         <lvc:CartesianChart Series="{Binding LineSeries}" XAxes="{Binding LineX}" YAxes="{Binding LineY}" LegendPosition="Hidden" TooltipPosition="Top"/>
                     </DockPanel>
                 </Border>
                 <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="CUMULATIVE DELIVERIES  |  % OF PO VALUE" Style="{StaticResource Label}"/>
+                        <TextBlock DockPanel.Dock="Top" Text="Cumulative deliveries  |  % of PO value" Style="{StaticResource Label}"/>
                         <lvc:CartesianChart Series="{Binding CumSeries}" XAxes="{Binding CumX}" YAxes="{Binding CumY}" LegendPosition="Hidden" TooltipPosition="Top"/>
                     </DockPanel>
                 </Border>
                 <Border Grid.Column="4" Style="{StaticResource Card}" Padding="12">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="DN TIMELINE  |  BUBBLE = VALUE" Style="{StaticResource Label}"/>
+                        <TextBlock DockPanel.Dock="Top" Text="DN timeline  |  Bubble = value" Style="{StaticResource Label}"/>
                         <lvc:CartesianChart Series="{Binding Timeline}" XAxes="{Binding TimelineX}" YAxes="{Binding TimelineY}" LegendPosition="Hidden" TooltipPosition="Top"/>
                     </DockPanel>
                 </Border>

@@ -18,26 +18,26 @@
                     <StackPanel>
                         <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="SHEETS" Style="{StaticResource PanelTitle}"/>
+                                <TextBlock Text="Sheets" Style="{StaticResource PanelTitle}"/>
                                 <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Sheets}" SelectedItem="{Binding SelectedSheet, Mode=TwoWay}" DisplayMemberPath="Label" Height="150" Margin="0,6,0,6"/>
                                 <UniformGrid Columns="2">
-                                    <StackPanel Margin="0,0,4,0"><TextBlock Text="LEVEL" Style="{StaticResource Label}"/><TextBox Text="{Binding NewLevel}"/></StackPanel>
-                                    <StackPanel Margin="4,0,0,0"><TextBlock Text="SHEET NO" Style="{StaticResource Label}"/><TextBox Text="{Binding NewSheetNo}"/></StackPanel>
-                                    <StackPanel Margin="0,4,4,0"><TextBlock Text="REVISION" Style="{StaticResource Label}"/><TextBox Text="{Binding NewRevision}"/></StackPanel>
-                                    <StackPanel Margin="4,4,0,0"><TextBlock Text="PDF PAGE" Style="{StaticResource Label}"/><TextBox Text="{Binding NewPage}"/></StackPanel>
+                                    <StackPanel Margin="0,0,4,0"><TextBlock Text="Level" Style="{StaticResource Label}"/><TextBox Text="{Binding NewLevel}"/></StackPanel>
+                                    <StackPanel Margin="4,0,0,0"><TextBlock Text="Sheet no" Style="{StaticResource Label}"/><TextBox Text="{Binding NewSheetNo}"/></StackPanel>
+                                    <StackPanel Margin="0,4,4,0"><TextBlock Text="Revision" Style="{StaticResource Label}"/><TextBox Text="{Binding NewRevision}"/></StackPanel>
+                                    <StackPanel Margin="4,4,0,0"><TextBlock Text="PDF page" Style="{StaticResource Label}"/><TextBox Text="{Binding NewPage}"/></StackPanel>
                                 </UniformGrid>
                                 <TextBlock Text="UNIT / ROOM TYPE (title)" Style="{StaticResource Label}" Margin="0,4,0,0"/>
                                 <TextBox Text="{Binding NewTitle}"/>
                                 <UniformGrid Columns="2" Margin="0,8,0,0">
-                                    <Button Style="{StaticResource BtnPrimary}" Content="IMPORT" Command="{Binding ImportSheetCommand}" Margin="0,0,4,0"/>
-                                    <Button Style="{StaticResource BtnGhost}" Content="DELETE" Command="{Binding DeleteSheetCommand}" Margin="4,0,0,0"/>
+                                    <Button Style="{StaticResource BtnPrimary}" Content="Import" Command="{Binding ImportSheetCommand}" Margin="0,0,4,0"/>
+                                    <Button Style="{StaticResource BtnGhost}" Content="Delete" Command="{Binding DeleteSheetCommand}" Margin="4,0,0,0"/>
                                 </UniformGrid>
                                 <TextBlock Text="{Binding ScaleCaption}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,6,0,0"/>
                             </StackPanel>
                         </Border>
                         <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
                             <StackPanel>
-                                <TextBlock Text="SYMBOL LIBRARY" Style="{StaticResource PanelTitle}"/>
+                                <TextBlock Text="Symbol library" Style="{StaticResource PanelTitle}"/>
                                 <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Symbols}" SelectedItem="{Binding SelectedSymbol, Mode=TwoWay}" Height="160" Margin="0,6,0,6">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
@@ -51,26 +51,26 @@
                                     </ListBox.ItemTemplate>
                                 </ListBox>
                                 <TextBlock Text="NEW SYMBOL: name, system, wall / ceiling, then mode DEFINE SYMBOL and drag a box around one example" Style="{StaticResource Small}" TextWrapping="Wrap"/>
-                                <TextBox Text="{Binding SymbolName}" Margin="0,4,0,0" ToolTip="SOCKET, TWIN SOCKET, DOWNLIGHT, DATA, CP-4 ..."/>
+                                <TextBox Text="{Binding SymbolName}" Margin="0,4,0,0" ToolTip="Socket, twin socket, downlight, data, cp-4 ..."/>
                                 <UniformGrid Columns="2" Margin="0,4,0,0">
                                     <ComboBox ItemsSource="{Binding SystemOptions}" SelectedItem="{Binding SymbolSystem}" Margin="0,0,4,0"/>
                                     <ComboBox ItemsSource="{Binding MountOptions}" SelectedItem="{Binding SymbolMount}" Margin="4,0,0,0" ToolTip="W = wall item (1st fix), C = ceiling item (flexible)"/>
                                 </UniformGrid>
-                                <TextBlock Text="ITEM / TAG" Style="{StaticResource Label}" Margin="0,4,0,0"/>
+                                <TextBlock Text="Item / Tag" Style="{StaticResource Label}" Margin="0,4,0,0"/>
                                 <TextBox Text="{Binding SymbolTag}"/>
                                 <WrapPanel Margin="0,4,0,0">
-                                    <CheckBox Content="LIGHT FITTING (DALI)" IsChecked="{Binding SymbolIsLight}" Margin="0,0,10,0"/>
-                                    <CheckBox Content="EXCLUDED" IsChecked="{Binding SymbolExcluded}"/>
+                                    <CheckBox Content="Light fitting (DALI)" IsChecked="{Binding SymbolIsLight}" Margin="0,0,10,0"/>
+                                    <CheckBox Content="Excluded" IsChecked="{Binding SymbolExcluded}"/>
                                 </WrapPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0"><TextBlock Text="2ND FIX QTY PER HIT " Style="{StaticResource Label}" VerticalAlignment="Center"/><TextBox Text="{Binding SymbolSecondFix}" Width="50"/></StackPanel>
-                                <Button Style="{StaticResource BtnGhost}" Content="REMOVE SELECTED SYMBOL" Command="{Binding DeleteSymbolCommand}" Margin="0,8,0,0"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0"><TextBlock Text="2nd fix QTY per hit " Style="{StaticResource Label}" VerticalAlignment="Center"/><TextBox Text="{Binding SymbolSecondFix}" Width="50"/></StackPanel>
+                                <Button Style="{StaticResource BtnGhost}" Content="Remove selected symbol" Command="{Binding DeleteSymbolCommand}" Margin="0,8,0,0"/>
                             </StackPanel>
                         </Border>
                         <Border Style="{StaticResource Card}" Padding="12">
                             <StackPanel>
-                                <TextBlock Text="LINEAR (TRAY / CONDUIT / CABLE)" Style="{StaticResource PanelTitle}"/>
+                                <TextBlock Text="Linear (tray / Conduit / Cable)" Style="{StaticResource PanelTitle}"/>
                                 <TextBlock Text="Name + size + targets, then mode PICK LINE STYLE and click a line of that kind" Style="{StaticResource Small}" TextWrapping="Wrap"/>
-                                <TextBox Text="{Binding ClassName}" Margin="0,4,0,0" ToolTip="TRAY 300"/>
+                                <TextBox Text="{Binding ClassName}" Margin="0,4,0,0" ToolTip="Tray 300"/>
                                 <TextBox Text="{Binding ClassSize}" Margin="0,4,0,0" ToolTip="300"/>
                                 <TextBox Text="{Binding ClassTargets}" Margin="0,4,0,0" ToolTip="STAGE|ITEM|factor per metre"/>
                                 <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding LinearClasses}" DisplayMemberPath="Name" Height="70" Margin="0,6,0,0"/>
@@ -85,17 +85,17 @@
                 <Grid Grid.Column="2">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                     <WrapPanel Margin="0,0,0,8">
-                        <StackPanel Margin="0,0,8,0"><TextBlock Text="MODE" Style="{StaticResource Label}"/><ComboBox ItemsSource="{Binding ModeOptions}" SelectedItem="{Binding Mode}" Width="160"/></StackPanel>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="Mode" Style="{StaticResource Label}"/><ComboBox ItemsSource="{Binding ModeOptions}" SelectedItem="{Binding Mode}" Width="160"/></StackPanel>
                         <StackPanel Margin="0,0,8,0" Width="170">
                             <TextBlock Text="{Binding ConfidenceMin, StringFormat='CONFIDENCE >= {0:0.00}'}" Style="{StaticResource Label}"/>
                             <Slider Minimum="0.5" Maximum="0.99" Value="{Binding ConfidenceMin}" SmallChange="0.01" LargeChange="0.05"/>
                         </StackPanel>
-                        <CheckBox Content="CLAUDE CHECK" IsChecked="{Binding UseVision}" VerticalAlignment="Bottom" Margin="0,0,8,6" ToolTip="Low-confidence hits checked by Claude vision (needs cloud reading on + API key)"/>
-                        <Button Style="{StaticResource BtnPrimary}" Content="RUN TAKEOFF" Command="{Binding RunTakeoffCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="SAVE REVIEW" Command="{Binding SaveReviewCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="IMPORT ROOMS" Command="{Binding ImportRoomsCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource BtnYellow}" Content="TAKEOFF PDF + EXCEL" Command="{Binding WriteTakeoffPdfCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="FIT" Click="OnFit" VerticalAlignment="Bottom"/>
+                        <CheckBox Content="Claude check" IsChecked="{Binding UseVision}" VerticalAlignment="Bottom" Margin="0,0,8,6" ToolTip="Low-confidence hits checked by Claude vision (needs cloud reading on + API key)"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Run takeoff" Command="{Binding RunTakeoffCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Save review" Command="{Binding SaveReviewCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Import rooms" Command="{Binding ImportRoomsCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="Takeoff PDF + excel" Command="{Binding WriteTakeoffPdfCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Fit" Click="OnFit" VerticalAlignment="Bottom"/>
                     </WrapPanel>
                     <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
                         <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" PreviewMouseWheel="OnWheel">
@@ -148,9 +148,9 @@
                         </DataGrid.Columns>
                     </DataGrid>
                     <WrapPanel Grid.Row="2">
-                        <Button Style="{StaticResource BtnGhost}" Content="PROPOSE PROJECT QTY" Command="{Binding ProposeQtyCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="TICK ALL" Command="{Binding TickAllCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource BtnPrimary}" Content="APPLY TICKED" Command="{Binding ApplyQtyCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Propose project QTY" Command="{Binding ProposeQtyCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Tick all" Command="{Binding TickAllCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Apply ticked" Command="{Binding ApplyQtyCommand}" Margin="0,0,6,6"/>
                     </WrapPanel>
                     <DataGrid Grid.Row="3" Style="{StaticResource CardGrid}" IsReadOnly="False" ItemsSource="{Binding Proposals}">
                         <DataGrid.Columns>
@@ -178,14 +178,14 @@
             <Grid Margin="0,10,0,0">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                 <WrapPanel>
-                    <StackPanel Margin="0,0,8,0"><TextBlock Text="MARKED-UP STATEMENT" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementFile}" Width="320"/></StackPanel>
-                    <Button Style="{StaticResource BtnGhost}" Content="BROWSE" Command="{Binding BrowseStatementCommand}" VerticalAlignment="Bottom" Margin="0,0,8,0"/>
-                    <StackPanel Margin="0,0,8,0"><TextBlock Text="PAGES (5-8,12)" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementPages}" Width="90"/></StackPanel>
-                    <StackPanel Margin="0,0,8,0"><TextBlock Text="SUBCONTRACTOR" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementSub}" Width="130"/></StackPanel>
-                    <StackPanel Margin="0,0,8,0"><TextBlock Text="INVOICE NO" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementInvoice}" Width="60"/></StackPanel>
-                    <StackPanel Margin="0,0,8,0"><TextBlock Text="STAGE" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementStage}" Width="110"/></StackPanel>
-                    <StackPanel Margin="0,0,8,0"><TextBlock Text="TYPICAL UNIT ROOMS (P2-106, P3-103)" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementRooms}" Width="200"/></StackPanel>
-                    <Button Style="{StaticResource BtnPrimary}" Content="VERIFY" Command="{Binding VerifyStatementCommand}" VerticalAlignment="Bottom"/>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Marked-up statement" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementFile}" Width="320"/></StackPanel>
+                    <Button Style="{StaticResource BtnGhost}" Content="Browse" Command="{Binding BrowseStatementCommand}" VerticalAlignment="Bottom" Margin="0,0,8,0"/>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Pages (5-8,12)" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementPages}" Width="90"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Subcontractor" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementSub}" Width="130"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Invoice no" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementInvoice}" Width="60"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Stage" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementStage}" Width="110"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Typical unit rooms (p2-106, p3-103)" Style="{StaticResource Label}"/><TextBox Text="{Binding StatementRooms}" Width="200"/></StackPanel>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Verify" Command="{Binding VerifyStatementCommand}" VerticalAlignment="Bottom"/>
                 </WrapPanel>
                 <TextBlock Grid.Row="1" Text="{Binding StatementSummary}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,8,0,8"
                            ToolTip="The clean drawing is the sheet selected in TAKEOFF (its latest takeoff and rooms are used); without it the library is matched on the scan."/>
@@ -210,11 +210,11 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="420"/></Grid.ColumnDefinitions>
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                 <WrapPanel Grid.ColumnSpan="3" Margin="0,0,0,8">
-                    <StackPanel Margin="0,0,8,0"><TextBlock Text="OLD REVISION" Style="{StaticResource Label}"/><ComboBox ItemsSource="{Binding Sheets}" SelectedItem="{Binding OldSheet}" DisplayMemberPath="Label" Width="240"/></StackPanel>
-                    <StackPanel Margin="0,0,8,0"><TextBlock Text="NEW REVISION" Style="{StaticResource Label}"/><ComboBox ItemsSource="{Binding Sheets}" SelectedItem="{Binding NewSheet}" DisplayMemberPath="Label" Width="240"/></StackPanel>
-                    <Button Style="{StaticResource BtnPrimary}" Content="COMPARE" Command="{Binding CompareRevisionsCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="UPDATE PROJECT QTY (DIFF)" Command="{Binding CompareToProposalsCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource BtnYellow}" Content="CREATE VARIATION DRAFT" Command="{Binding CreateVariationCommand}" VerticalAlignment="Bottom"/>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="Old revision" Style="{StaticResource Label}"/><ComboBox ItemsSource="{Binding Sheets}" SelectedItem="{Binding OldSheet}" DisplayMemberPath="Label" Width="240"/></StackPanel>
+                    <StackPanel Margin="0,0,8,0"><TextBlock Text="New revision" Style="{StaticResource Label}"/><ComboBox ItemsSource="{Binding Sheets}" SelectedItem="{Binding NewSheet}" DisplayMemberPath="Label" Width="240"/></StackPanel>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Compare" Command="{Binding CompareRevisionsCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Update project QTY (diff)" Command="{Binding CompareToProposalsCommand}" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="Create variation draft" Command="{Binding CreateVariationCommand}" VerticalAlignment="Bottom"/>
                 </WrapPanel>
                 <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">

@@ -19,11 +19,11 @@
                 <TextBox Grid.Column="3" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=250}" ToolTip="Search document number or title"/>
             </Grid>
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-                <Button Style="{StaticResource BtnPrimary}" Content="QUEUE MISSING" Command="{Binding QueueMissingCommand}" Margin="0,0,6,0"/>
-                <Button Style="{StaticResource BtnGhost}" Content="CLEAR QUEUE" Command="{Binding ClearQueueCommand}" Margin="0,0,6,0"/>
-                <Button Style="{StaticResource BtnYellow}" Content="SAVE QUEUE AS INPUT EXCEL" Command="{Binding ExportQueueCommand}" Margin="0,0,6,0"/>
-                <Button Style="{StaticResource BtnGhost}" Content="SCAN DOWNLOAD FOLDER" Command="{Binding ScanFolderCommand}" Margin="0,0,6,0"/>
-                <Button Style="{StaticResource BtnGhost}" Content="OPEN FILE" Command="{Binding OpenDocCommand}"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="Queue missing" Command="{Binding QueueMissingCommand}" Margin="0,0,6,0"/>
+                <Button Style="{StaticResource BtnGhost}" Content="Clear queue" Command="{Binding ClearQueueCommand}" Margin="0,0,6,0"/>
+                <Button Style="{StaticResource BtnYellow}" Content="Save queue as input excel" Command="{Binding ExportQueueCommand}" Margin="0,0,6,0"/>
+                <Button Style="{StaticResource BtnGhost}" Content="Scan download folder" Command="{Binding ScanFolderCommand}" Margin="0,0,6,0"/>
+                <Button Style="{StaticResource BtnGhost}" Content="Open file" Command="{Binding OpenDocCommand}"/>
             </StackPanel>
             <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding Docs}" SelectedItem="{Binding Selected, Mode=TwoWay}">
                 <DataGrid.Columns>
@@ -44,9 +44,9 @@
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/></Grid.RowDefinitions>
             <Border Style="{StaticResource Card}">
                 <StackPanel>
-                    <TextBlock Text="DOWNLOADER" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="Downloader" Style="{StaticResource PanelTitle}"/>
                     <TextBlock Text="Runs your aconex_downloader.py with Python; the log streams below. Login and filters are handled by the script." Style="{StaticResource Small}" Margin="0,2,0,10"/>
-                    <TextBlock Text="PYTHON" Style="{StaticResource Label}" FontSize="10"/>
+                    <TextBlock Text="Python" Style="{StaticResource Label}" FontSize="10"/>
                     <Grid Margin="0,2,0,6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <TextBox Text="{Binding PythonPath, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11"/>
                         <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Command="{Binding BrowsePythonCommand}"><c:IconView Data="{StaticResource IconFolder}"/></Button></Grid>
@@ -54,29 +54,29 @@
                     <Grid Margin="0,2,0,6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <TextBox Text="{Binding ScriptPath, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11"/>
                         <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Command="{Binding BrowseScriptCommand}"><c:IconView Data="{StaticResource IconFolder}"/></Button></Grid>
-                    <TextBlock Text="INPUT EXCEL (DOCUMENT NUMBERS)" Style="{StaticResource Label}" FontSize="10"/>
+                    <TextBlock Text="Input excel (document numbers)" Style="{StaticResource Label}" FontSize="10"/>
                     <Grid Margin="0,2,0,6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <TextBox Text="{Binding InputExcel, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11"/>
                         <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Command="{Binding BrowseInputCommand}"><c:IconView Data="{StaticResource IconFolder}"/></Button></Grid>
-                    <TextBlock Text="DOWNLOAD FOLDER" Style="{StaticResource Label}" FontSize="10"/>
+                    <TextBlock Text="Download folder" Style="{StaticResource Label}" FontSize="10"/>
                     <Grid Margin="0,2,0,10"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <TextBox Text="{Binding DownloadFolder, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11"/>
                         <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Command="{Binding BrowseFolderCommand}"><c:IconView Data="{StaticResource IconFolder}"/></Button></Grid>
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
                         <Button Style="{StaticResource BtnPrimary}" Command="{Binding RunCommand}" IsEnabled="{Binding IsRunning, Converter={x:Static c:NotConverter.Instance}}">
-                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconPlay}" Width="14" Height="14" Foreground="{DynamicResource OnAccentBrush}"/><TextBlock Text="RUN" Margin="6,0,0,0"/></StackPanel>
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconPlay}" Width="14" Height="14" Foreground="{DynamicResource OnAccentBrush}"/><TextBlock Text="Run" Margin="6,0,0,0"/></StackPanel>
                         </Button>
                         <Button Grid.Column="2" Style="{StaticResource BtnGhost}" Command="{Binding StopCommand}" IsEnabled="{Binding IsRunning}">
-                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconStop}" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}"/><TextBlock Text="STOP" Margin="6,0,0,0"/></StackPanel>
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconStop}" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}"/><TextBlock Text="Stop" Margin="6,0,0,0"/></StackPanel>
                         </Button>
                     </Grid>
                 </StackPanel>
             </Border>
             <Border Grid.Row="2" Background="{StaticResource SidebarBrush}" CornerRadius="{StaticResource RadiusCard}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="LOG" Foreground="{StaticResource BrandGoldBrush}" FontFamily="{StaticResource FontSansSemi}" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                    <ListBox x:Name="LogList" ItemsSource="{Binding Log}" Background="Transparent" BorderThickness="0" Foreground="#C9C1C0" FontFamily="{StaticResource FontMono}" FontSize="11"
+                    <TextBlock DockPanel.Dock="Top" Text="Log" Foreground="{StaticResource BrandGoldBrush}" FontFamily="{StaticResource FontSansSemi}" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <ListBox x:Name="LogList" ItemsSource="{Binding Log}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource MutedBrush}" FontFamily="{StaticResource FontMono}" FontSize="11"
                              VirtualizingPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
                 </DockPanel>
             </Border>

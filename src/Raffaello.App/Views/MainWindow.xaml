@@ -9,6 +9,7 @@
         xmlns:views="clr-namespace:Raffaello.App.Views"
         xmlns:res="clr-namespace:Raffaello.App.Resources"
         xmlns:trust="clr-namespace:Raffaello.App.Views.Trust"
+        xmlns:conv="clr-namespace:Raffaello.App.Converters"
         Title="Raffaello" Width="1366" Height="768" MinWidth="1080" MinHeight="620"
         WindowStartupLocation="CenterScreen" Icon="pack://application:,,,/Assets/raffaello.ico"
         Background="{DynamicResource BgBrush}" Foreground="{DynamicResource InkBrush}"
@@ -17,6 +18,8 @@
 
     <Window.Resources>
         <DataTemplate DataType="{x:Type vm:WelcomeViewModel}"><pages:WelcomeView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HomeViewModel}"><pages:HomeView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TrackingViewModel}"><pages:TrackingView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}"><pages:DashboardView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:QuantitiesViewModel}"><pages:QuantitiesView/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:StatementsViewModel}"><pages:StatementsView/></DataTemplate>
@@ -90,58 +93,83 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- ============================================================ SIDEBAR -->
-        <Border Background="{StaticResource SidebarBrush}">
+        <!-- [home] contextual: on HOME only Home (+ settings / ask / user); inside an area only that area's items (no page twice in the navigation). Collapsible to icons. -->
+        <Border Background="{DynamicResource SidebarBgBrush}" BorderBrush="{StaticResource SidebarBorderBrush}" BorderThickness="0,0,1,0">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Width" Value="210"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SidebarCollapsed}" Value="True"><Setter Property="Width" Value="60"/></DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
             <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Margin="0,14,0,6">
-                    <Button Command="{Binding GoWelcomeCommand}" Cursor="Hand" Margin="12,0,12,0" ToolTip="Welcome (Ctrl+H)" Background="Transparent" BorderThickness="0" Focusable="False">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button"><ContentPresenter/></ControlTemplate>
-                        </Button.Template>
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                            <c:LogoMark Width="40" Height="40" ShowTile="False"/>
-                            <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="RAFFAELLO" Style="{StaticResource Wordmark}"/>
-                                <TextBlock Text="Every quantity. One chain." FontSize="10" Foreground="{StaticResource BrandGoldBrush}" FontFamily="{StaticResource FontSans}"/>
-                            </StackPanel>
-                        </Grid>
+                <Border DockPanel.Dock="Top" Background="{DynamicResource SidebarBgBrush}" BorderBrush="{StaticResource BrandBandBrush}" BorderThickness="0,0,0,3" Padding="0,12,0,10" Margin="0,0,0,6">
+                <StackPanel>
+                    <Grid Margin="10,0,8,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Button Command="{Binding GoWelcomeCommand}" Cursor="Hand" ToolTip="Home (Ctrl+H)" Background="Transparent" BorderThickness="0" Focusable="False">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button"><ContentPresenter/></ControlTemplate>
+                            </Button.Template>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                <c:LogoMark Width="34" Height="34" ShowTile="False"/>
+                                <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVis}}">
+                                    <TextBlock Text="RAFFAELLO" Style="{StaticResource Wordmark}" FontSize="16"/>
+                                    <TextBlock Text="Every quantity. One chain." FontSize="10" Foreground="{StaticResource SidebarMutedBrush}" FontFamily="{StaticResource FontSans}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Button>
+                        <Button Grid.Column="1" Command="{Binding ToggleSidebarCommand}" ToolTip="Collapse / expand the side bar" Cursor="Hand" Background="Transparent" BorderThickness="0" Focusable="False"
+                                VerticalAlignment="Center" Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVis}}">
+                            <Button.Template><ControlTemplate TargetType="Button"><Border Background="Transparent" Padding="4"><ContentPresenter/></Border></ControlTemplate></Button.Template>
+                            <c:IconView Data="{StaticResource IconArrowRight}" Width="14" Height="14" Foreground="{StaticResource SidebarInkBrush}" RenderTransformOrigin="0.5,0.5">
+                                <c:IconView.RenderTransform><ScaleTransform ScaleX="-1"/></c:IconView.RenderTransform>
+                            </c:IconView>
+                        </Button>
+                    </Grid>
+                    <Button Command="{Binding ToggleSidebarCommand}" ToolTip="Expand the side bar" Cursor="Hand" Background="Transparent" BorderThickness="0" Focusable="False" Margin="0,8,0,0"
+                            HorizontalAlignment="Center" Visibility="{Binding SidebarCollapsed, Converter={StaticResource BoolToVis}}">
+                        <Button.Template><ControlTemplate TargetType="Button"><Border Background="Transparent" Padding="4"><ContentPresenter/></Border></ControlTemplate></Button.Template>
+                        <c:IconView Data="{StaticResource IconArrowRight}" Width="14" Height="14" Foreground="{StaticResource SidebarInkBrush}"/>
                     </Button>
-                    <ComboBox ItemsSource="{Binding Projects}" SelectedIndex="0" Margin="12,14,12,4" Height="34"
-                              Background="#221D1D" BorderBrush="#2A2424" Foreground="{StaticResource SidebarInkBrush}" FontSize="11"
-                              ToolTip="Project">
+                    <ComboBox ItemsSource="{Binding Projects}" SelectedIndex="0" Margin="10,12,10,0" Height="30"
+                              Background="{StaticResource SidebarInputBrush}" BorderBrush="{StaticResource SidebarBorderBrush}" Foreground="{StaticResource SidebarInkBrush}" FontSize="11"
+                              ToolTip="Project" Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVis}}">
                         <ComboBox.ItemTemplate>
-                            <DataTemplate><TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" FontFamily="{StaticResource FontDisplay}" FontSize="12"/></DataTemplate>
+                            <DataTemplate><TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" FontSize="12"/></DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
+                </Border>
 
                 <StackPanel DockPanel.Dock="Bottom" Margin="0,4,0,12">
-                    <RadioButton Style="{StaticResource NavItem}" GroupName="nav" DataContext="{Binding SettingsItem}" IsChecked="{Binding IsActive, Mode=TwoWay}">
+                    <RadioButton Style="{StaticResource NavItem}" GroupName="nav" DataContext="{Binding SettingsItem}" IsChecked="{Binding IsActive, Mode=TwoWay}" ToolTip="Settings">
                         <StackPanel Orientation="Horizontal">
-                            <c:IconView Data="{StaticResource IconSettings}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
-                            <TextBlock Text="SETTINGS" Margin="10,0,0,0" FontFamily="{StaticResource FontDisplay}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+                            <c:IconView Data="{StaticResource IconSettings}" Width="16" Height="16" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                            <TextBlock Text="Settings" Margin="10,0,0,0" FontSize="13" VerticalAlignment="Center"
+                                       Visibility="{Binding DataContext.SidebarCollapsed, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBoolToVis}}"/>
                         </StackPanel>
                     </RadioButton>
-                    <Button Style="{StaticResource BtnYellow}" Command="{Binding ToggleAskCommand}" Margin="12,10,12,0" HorizontalContentAlignment="Left" ToolTip="Ctrl+Shift+A">
+                    <Button Style="{StaticResource BtnBase}" Background="{DynamicResource SidebarBgBrush}" BorderBrush="{StaticResource BrandBandBrush}" Foreground="{StaticResource SidebarInkBrush}" Command="{Binding ToggleAskCommand}" Margin="10,8,10,0" HorizontalContentAlignment="Left" ToolTip="Ask Raffaello (Ctrl+Shift+A)">
                         <StackPanel Orientation="Horizontal">
-                            <c:IconView Data="{StaticResource IconSparkles}" Foreground="{DynamicResource OnYellowBrush}"/>
-                            <StackPanel Margin="8,0,0,0">
-                                <TextBlock Text="ASK RAFFAELLO" FontSize="14"/>
-                                <TextBlock Text="CTRL+SHIFT+A" FontSize="9" Opacity="0.7" FontFamily="{StaticResource FontSans}"/>
-                            </StackPanel>
+                            <c:IconView Data="{StaticResource IconSparkles}" Width="16" Height="16" Foreground="{StaticResource BrandGoldBrush}"/>
+                            <TextBlock Text="Ask Raffaello" Margin="8,0,0,0" VerticalAlignment="Center"
+                                       Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVis}}"/>
                         </StackPanel>
                     </Button>
-                    <Grid Margin="14,14,12,0">
+                    <Grid Margin="14,12,10,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                        <Border Width="30" Height="30" CornerRadius="15" Background="{DynamicResource AccentBrush}">
-                            <TextBlock Text="{Binding UserInitials}" Foreground="White" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentBrush}">
+                            <TextBlock Text="{Binding UserInitials}" Foreground="White" FontWeight="SemiBold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                        <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVis}}">
                             <TextBlock Text="{Binding UserName}" Foreground="{StaticResource SidebarInkBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Text="{Binding Presence.OthersOnline}" Foreground="{StaticResource SidebarMutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" ToolTip="{Binding Presence.OthersOnline}"/>
                             <!-- [phase5] begin: data source / sync status -->
@@ -153,37 +181,41 @@
                 </StackPanel>
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Groups}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Margin="0,8,0,0">
-                                    <!-- [assistant] translated group --><TextBlock Margin="22,4,0,4" FontSize="10" FontWeight="Bold" Foreground="{StaticResource SidebarMutedBrush}" FontFamily="{StaticResource FontSansSemi}"><TextBlock.Text><MultiBinding Converter="{x:Static res:TrConverter.Instance}"><Binding Path="Title"/><Binding Source="{x:Static res:LocService.Instance}" Path="Version"/></MultiBinding></TextBlock.Text></TextBlock>
-                                    <ItemsControl ItemsSource="{Binding Items}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <RadioButton Style="{StaticResource NavItem}" GroupName="nav" IsChecked="{Binding IsActive, Mode=TwoWay}" ToolTip="{Binding Shortcut}">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                        <c:IconView Data="{Binding Icon, Converter={x:Static c:ResourceKeyConverter.Instance}}"
-                                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
-                                                        <!-- [assistant] translated label --><TextBlock Grid.Column="1" Margin="10,0,0,0" FontFamily="{StaticResource FontDisplay}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"><TextBlock.Text><MultiBinding Converter="{x:Static res:TrConverter.Instance}"><Binding Path="Label"/><Binding Source="{x:Static res:LocService.Instance}" Path="Version"/></MultiBinding></TextBlock.Text></TextBlock>
-                                                        <Border Grid.Column="2" Background="{StaticResource BrandGoldBrush}" CornerRadius="6" Padding="5,0" MinWidth="18"
-                                                                Visibility="{Binding Badge, Converter={StaticResource BoolToVis}}" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding Badge}" FontSize="10" FontWeight="Bold" Foreground="#231A00" HorizontalAlignment="Center" FontFamily="{StaticResource FontMonoBold}"/>
-                                                        </Border>
-                                                    </Grid>
-                                                </RadioButton>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <StackPanel Margin="0,8,0,0">
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" DataContext="{Binding HomeItem}" IsChecked="{Binding IsActive, Mode=TwoWay}" ToolTip="Home (Ctrl+H)">
+                            <StackPanel Orientation="Horizontal">
+                                <c:IconView Data="{StaticResource IconHome}" Width="16" Height="16" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                <TextBlock Text="Home" Margin="10,0,0,0" FontSize="13" VerticalAlignment="Center"
+                                           Visibility="{Binding DataContext.SidebarCollapsed, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBoolToVis}}"/>
+                            </StackPanel>
+                        </RadioButton>
+                        <StackPanel Visibility="{Binding HasCrumbArea, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal" Margin="16,14,0,6">
+                                <Image Source="{Binding CrumbArea.AppIcon, Converter={x:Static c:ResourceKeyConverter.Instance}}" Width="22" Height="22"/>
+                                <TextBlock Text="{Binding CrumbArea.Title}" Margin="8,0,0,0" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SidebarInkBrush}" VerticalAlignment="Center"
+                                           Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVis}}"/>
+                            </StackPanel>
+                            <Border Height="1" Background="{StaticResource SidebarBorderBrush}" Margin="12,10,12,6" Visibility="{Binding SidebarCollapsed, Converter={StaticResource BoolToVis}}"/>
+                            <ItemsControl ItemsSource="{Binding CrumbArea.Links}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" IsChecked="{Binding IsCurrent, Mode=TwoWay}" ToolTip="{Binding Description}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                                <c:IconView Data="{Binding Icon, Converter={x:Static c:ResourceKeyConverter.Instance}}" Width="16" Height="16"
+                                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Title}" Margin="10,0,0,0" FontSize="13" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                                           Visibility="{Binding DataContext.SidebarCollapsed, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBoolToVis}}"/>
+                                            </Grid>
+                                        </RadioButton>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </StackPanel>
                 </ScrollViewer>
             </DockPanel>
         </Border>
-
         <!-- ============================================================ MAIN -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
@@ -193,18 +225,38 @@
             </Grid.RowDefinitions>
 
             <!-- header -->
-            <Grid Margin="24,16,24,8" Visibility="{Binding IsWelcome, Converter={StaticResource InverseBoolToVis}}">
+            <Grid Margin="24,12,24,8">
                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center">
+                    <!-- [home] BACK + breadcrumb: HOME > AREA > PAGE -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                        <Button Style="{StaticResource BtnLink}" Command="{Binding BackCommand}" ToolTip="Back one level" Padding="0" Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal">
+                                <c:IconView Data="{StaticResource IconArrowRight}" Width="12" Height="12" Foreground="{DynamicResource AccentBrush}" RenderTransformOrigin="0.5,0.5">
+                                    <c:IconView.RenderTransform><ScaleTransform ScaleX="-1"/></c:IconView.RenderTransform>
+                                </c:IconView>
+                                <TextBlock Text="Back" Margin="4,0,0,0" FontSize="11" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource BtnLink}" Command="{Binding CrumbHomeCommand}" Content="Home" FontSize="11" Padding="0"/>
+                        <TextBlock Text="  &gt;  " Style="{StaticResource Small}" FontSize="11" VerticalAlignment="Center" Visibility="{Binding HasCrumbArea, Converter={StaticResource BoolToVis}}"/>
+                        <Button Style="{StaticResource BtnLink}" Command="{Binding CrumbToAreaCommand}" Content="{Binding CrumbArea.Title}" FontSize="11" Padding="0"
+                                Visibility="{Binding HasCrumbArea, Converter={StaticResource BoolToVis}}"/>
+                        <TextBlock Text="  &gt;  " Style="{StaticResource Small}" FontSize="11" VerticalAlignment="Center" Visibility="{Binding HasCrumbPage, Converter={StaticResource BoolToVis}}"/>
+                        <TextBlock Text="{Binding CrumbPage, Converter={x:Static conv:TrSentenceConverter.Instance}}" Style="{StaticResource Small}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Visibility="{Binding HasCrumbPage, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
                     <!-- [assistant] begin: translated page title / subtitle -->
-                    <TextBlock Style="{StaticResource PageTitle}"><TextBlock.Text><MultiBinding Converter="{x:Static res:TrConverter.Instance}"><Binding Path="Current.Title"/><Binding Source="{x:Static res:LocService.Instance}" Path="Version"/></MultiBinding></TextBlock.Text></TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="4" Margin="0,4,10,4" Background="{DynamicResource AccentBrush}" CornerRadius="2"/>
+                        <TextBlock Style="{StaticResource PageTitle}"><TextBlock.Text><MultiBinding Converter="{x:Static conv:TrSentenceConverter.Instance}"><Binding Path="Current.Title"/><Binding Source="{x:Static res:LocService.Instance}" Path="Version"/></MultiBinding></TextBlock.Text></TextBlock>
+                    </StackPanel>
                     <TextBlock Style="{StaticResource Small}" Margin="0,1,0,0"><TextBlock.Text><MultiBinding Converter="{x:Static res:TrConverter.Instance}"><Binding Path="Current.Subtitle"/><Binding Source="{x:Static res:LocService.Instance}" Path="Version"/></MultiBinding></TextBlock.Text></TextBlock>
                     <!-- [assistant] end -->
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <!-- [phase6] building switcher: drives every module (ledger, plans, checks, statements, contracts, invoices, reports) -->
                     <StackPanel Margin="0,0,10,0" VerticalAlignment="Center" ToolTip="Building shown in every module">
-                        <TextBlock Text="BUILDING" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
+                        <TextBlock Text="Building" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
                         <ComboBox Style="{StaticResource FilterCombo}" MinWidth="110" ItemsSource="{Binding Filter.Buildings}" SelectedItem="{Binding Filter.Building, Mode=TwoWay}"/>
                     </StackPanel>
                     <Button Command="{Binding OpenPaletteCommand}" Style="{StaticResource BtnGhost}" Width="250" HorizontalContentAlignment="Stretch" Margin="0,0,10,0" ToolTip="Ctrl+K">
@@ -214,15 +266,15 @@
                                 <TextBlock Text="Search or jump to..." Margin="8,0,0,0" FontFamily="{StaticResource FontSans}" FontWeight="Normal" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
                             </StackPanel>
                             <Border HorizontalAlignment="Right" Background="{DynamicResource Surface2Brush}" CornerRadius="5" Padding="5,0">
-                                <TextBlock Text="CTRL K" FontSize="10" FontFamily="{StaticResource FontMono}" Foreground="{DynamicResource MutedBrush}"/>
+                                <TextBlock Text="Ctrl+K" FontSize="10" FontFamily="{StaticResource FontMono}" Foreground="{DynamicResource MutedBrush}"/>
                             </Border>
                         </Grid>
                     </Button>
                     <Button Style="{StaticResource BtnYellow}" Command="{Binding ImportFileCommand}" Margin="0,0,8,0" ToolTip="Import Excel / CSV (Ctrl+I)">
-                        <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconImport}" Width="15" Height="15" Foreground="{DynamicResource OnYellowBrush}"/><TextBlock Text="IMPORT" Margin="6,0,0,0"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconImport}" Width="15" Height="15" Foreground="{DynamicResource InkBrush}"/><TextBlock Text="Import" Margin="6,0,0,0"/></StackPanel>
                     </Button>
                     <Button Style="{StaticResource BtnYellow}" Command="{Binding ExportViewCommand}" Margin="0,0,8,0" ToolTip="Export current view to Excel (Ctrl+E)">
-                        <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconExport}" Width="15" Height="15" Foreground="{DynamicResource OnYellowBrush}"/><TextBlock Text="EXPORT" Margin="6,0,0,0"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconExport}" Width="15" Height="15" Foreground="{DynamicResource InkBrush}"/><TextBlock Text="Export" Margin="6,0,0,0"/></StackPanel>
                     </Button>
                     <Button Style="{StaticResource BtnIcon}" Command="{Binding ReloadCommand}" ToolTip="Reload shared data (F5)">
                         <c:IconView Data="{StaticResource IconRefresh}" Foreground="{DynamicResource Ink2Brush}"/>
@@ -240,22 +292,22 @@
                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
                         <c:IconView Data="{StaticResource IconFilter}" Width="15" Height="15" Foreground="{DynamicResource MutedBrush}"/>
-                        <TextBlock Text="FILTER" Style="{StaticResource Label}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Filter" Style="{StaticResource Label}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
                     <WrapPanel Grid.Column="1" VerticalAlignment="Center">
-                        <StackPanel Margin="0,0,0,0"><TextBlock Text="BUILDING" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
+                        <StackPanel Margin="0,0,0,0"><TextBlock Text="Building" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
                             <ComboBox Style="{StaticResource FilterCombo}" ItemsSource="{Binding Filter.Buildings}" SelectedItem="{Binding Filter.Building, Mode=TwoWay}"/></StackPanel>
-                        <StackPanel><TextBlock Text="LEVEL" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
+                        <StackPanel><TextBlock Text="Level" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
                             <ComboBox Style="{StaticResource FilterCombo}" MinWidth="80" ItemsSource="{Binding Filter.Levels}" SelectedItem="{Binding Filter.Level, Mode=TwoWay}"/></StackPanel>
-                        <StackPanel><TextBlock Text="ROOM" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
+                        <StackPanel><TextBlock Text="Room" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
                             <ComboBox Style="{StaticResource FilterCombo}" MinWidth="120" ItemsSource="{Binding Filter.Rooms}" SelectedItem="{Binding Filter.Room, Mode=TwoWay}" IsTextSearchEnabled="True"/></StackPanel>
-                        <StackPanel><TextBlock Text="SYSTEM" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
+                        <StackPanel><TextBlock Text="System" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
                             <ComboBox Style="{StaticResource FilterCombo}" MinWidth="130" ItemsSource="{Binding Filter.Systems}" SelectedItem="{Binding Filter.System, Mode=TwoWay}"/></StackPanel>
-                        <StackPanel><TextBlock Text="STAGE" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
+                        <StackPanel><TextBlock Text="Stage" Style="{StaticResource Label}" FontSize="9" Margin="2,0,0,2"/>
                             <ComboBox Style="{StaticResource FilterCombo}" ItemsSource="{Binding Filter.Stages}" SelectedItem="{Binding Filter.Stage, Mode=TwoWay}"/></StackPanel>
                     </WrapPanel>
                     <Button Grid.Column="2" Style="{StaticResource BtnGhost}" Command="{Binding ClearFilterCommand}" VerticalAlignment="Bottom"
-                            Visibility="{Binding Filter.IsFiltered, Converter={StaticResource BoolToVis}}" Content="CLEAR"/>
+                            Visibility="{Binding Filter.IsFiltered, Converter={StaticResource BoolToVis}}" Content="Clear"/>
                 </Grid>
             </Border>
 

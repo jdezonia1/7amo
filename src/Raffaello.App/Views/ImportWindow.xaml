@@ -12,23 +12,23 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel>
-            <TextBlock Text="IMPORT" Style="{StaticResource PageTitle}"/>
+            <TextBlock Text="Import" Style="{StaticResource PageTitle}"/>
             <TextBlock Text="Excel is import / export only. Nothing is written until you commit; errors are skipped, warnings are imported and flagged." Style="{StaticResource Small}"/>
         </StackPanel>
         <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,14,0,12">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Text="WHAT ARE YOU IMPORTING" Style="{StaticResource Label}" Margin="0,0,0,4"/>
+                    <TextBlock Text="What are you importing" Style="{StaticResource Label}" Margin="0,0,0,4"/>
                     <ComboBox ItemsSource="{Binding Importers}" SelectedItem="{Binding Importer, Mode=TwoWay}" DisplayMemberPath="Title"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="16,0">
-                    <TextBlock Text="FILE" Style="{StaticResource Label}" Margin="0,0,0,4"/>
+                    <TextBlock Text="File" Style="{StaticResource Label}" Margin="0,0,0,4"/>
                     <TextBlock Text="{Binding FilePath}" Style="{StaticResource BodyStrong}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
                     <TextBlock Text="{Binding Importer.Help}" Style="{StaticResource Small}" Margin="0,4,0,0"/>
                 </StackPanel>
                 <Button Grid.Column="2" Style="{StaticResource BtnYellow}" Command="{Binding BrowseCommand}" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconFolder}" Width="15" Height="15" Foreground="{DynamicResource OnYellowBrush}"/><TextBlock Text="CHOOSE FILE" Margin="6,0,0,0"/></StackPanel>
+                    <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconFolder}" Width="15" Height="15" Foreground="{DynamicResource InkBrush}"/><TextBlock Text="Choose file" Margin="6,0,0,0"/></StackPanel>
                 </Button>
             </Grid>
         </Border>
@@ -36,13 +36,13 @@
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="340"/></Grid.ColumnDefinitions>
             <Border Style="{StaticResource Card}" Margin="0,0,12,0">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PREVIEW" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Preview" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                     <DataGrid Style="{StaticResource CardGrid}" AutoGenerateColumns="True" ItemsSource="{Binding Preview}"/>
                 </DockPanel>
             </Border>
             <Border Grid.Column="1" Style="{StaticResource Card}">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="VALIDATION" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Validation" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                     <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Issues}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
@@ -62,8 +62,8 @@
         <Grid Grid.Row="3" Margin="0,14,0,0">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <TextBlock Text="{Binding Summary}" Style="{StaticResource Body}" VerticalAlignment="Center"/>
-            <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="CANCEL" Command="{Binding CancelCommand}" Margin="0,0,8,0"/>
-            <Button Grid.Column="2" Style="{StaticResource BtnPrimary}" Content="COMMIT IMPORT" Command="{Binding CommitCommand}" IsEnabled="{Binding CanCommit}"/>
+            <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="Cancel" Command="{Binding CancelCommand}" Margin="0,0,8,0"/>
+            <Button Grid.Column="2" Style="{StaticResource BtnPrimary}" Content="Commit import" Command="{Binding CommitCommand}" IsEnabled="{Binding CanCommit}"/>
         </Grid>
     </Grid>
 </Window>

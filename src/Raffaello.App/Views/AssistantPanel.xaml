@@ -180,7 +180,7 @@
                                             </ItemsControl>
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock x:Name="OfflineMark" Text="OFFLINE" Style="{StaticResource Label}" FontSize="9" Margin="4,2,0,0" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="OfflineMark" Text="Offline" Style="{StaticResource Label}" FontSize="9" Margin="4,2,0,0" Visibility="Collapsed"/>
                                 </StackPanel>
                                 <DataTemplate.Triggers>
                                     <DataTrigger Binding="{Binding IsUser}" Value="False">

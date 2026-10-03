@@ -8,6 +8,7 @@
                 <ResourceDictionary Source="pack://application:,,,/Themes/Tokens.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/Themes/Light.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/Themes/Icons.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Themes/AreaIcons.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/Assets/LogoDrawing.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/Themes/Controls.xaml"/>
             </ResourceDictionary.MergedDictionaries>

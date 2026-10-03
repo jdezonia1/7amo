@@ -8,7 +8,7 @@
                 <Grid>
                     <StackPanel Orientation="Horizontal">
                         <c:IconView Data="{StaticResource IconLink}" Width="15" Height="15" Foreground="{DynamicResource AccentBrush}"/>
-                        <TextBlock Text="THE CHAIN" Style="{StaticResource Label}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="The chain" Style="{StaticResource Label}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
                     <ContentControl Style="{StaticResource Tag}" Content="{Binding Verdict}" HorizontalAlignment="Right" Visibility="{Binding HasRow, Converter={StaticResource BoolToVis}}"/>
                 </Grid>
@@ -44,10 +44,10 @@
 
                 <ContentControl Style="{StaticResource HeroCard}" Margin="0,4,0,10" Visibility="{Binding HasRow, Converter={StaticResource BoolToVis}}">
                     <StackPanel>
-                        <TextBlock Text="CERTIFIABLE NOW" FontFamily="{StaticResource FontSansSemi}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource YellowBrush}"/>
+                        <TextBlock Text="Certifiable now" FontFamily="{StaticResource FontSansSemi}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource YellowBrush}"/>
                         <TextBlock Text="{Binding Certifiable}" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" FontSize="26" Foreground="{DynamicResource HeroInkBrush}"/>
                         <TextBlock Text="{Binding CertifiableValue}" FontFamily="{StaticResource FontMono}" FontSize="12" Foreground="{DynamicResource HeroInkBrush}" Opacity="0.75"/>
-                        <TextBlock Text="min(CLAIMED, DONE by WIR, PROJECT QTY)" FontSize="10" Foreground="{DynamicResource HeroInkBrush}" Opacity="0.55" Margin="0,4,0,0"/>
+                        <TextBlock Text="Min(claimed, done by WIR, project QTY)" FontSize="10" Foreground="{DynamicResource HeroInkBrush}" Opacity="0.55" Margin="0,4,0,0"/>
                     </StackPanel>
                 </ContentControl>
 
@@ -64,19 +64,19 @@
                 <Grid Margin="0,10,0,0" Visibility="{Binding HasRow, Converter={StaticResource BoolToVis}}">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
                     <StackPanel>
-                        <TextBlock Text="PROJECT QTY" Style="{StaticResource Label}" FontSize="10" Margin="0,0,0,3"/>
+                        <TextBlock Text="Project QTY" Style="{StaticResource Label}" FontSize="10" Margin="0,0,0,3"/>
                         <TextBox Text="{Binding ProjectQtyText, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2">
-                        <TextBlock Text="SITE %" Style="{StaticResource Label}" FontSize="10" Margin="0,0,0,3"/>
+                        <TextBlock Text="Site %" Style="{StaticResource Label}" FontSize="10" Margin="0,0,0,3"/>
                         <TextBox Text="{Binding SitePctText, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}"/>
                     </StackPanel>
                 </Grid>
                 <Grid Margin="0,8,0,0" Visibility="{Binding HasRow, Converter={StaticResource BoolToVis}}">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                    <Button Style="{StaticResource BtnGhost}" Content="SAVE LINE" Command="{Binding SaveEditsCommand}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Save line" Command="{Binding SaveEditsCommand}"/>
                     <Button Grid.Column="2" Style="{StaticResource BtnPrimary}" Command="{Binding AskCommand}">
-                        <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSparkles}" Width="15" Height="15" Foreground="{DynamicResource OnAccentBrush}"/><TextBlock Text="ASK" Margin="6,0,0,0"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSparkles}" Width="15" Height="15" Foreground="{DynamicResource OnAccentBrush}"/><TextBlock Text="Ask" Margin="6,0,0,0"/></StackPanel>
                     </Button>
                 </Grid>
             </StackPanel>

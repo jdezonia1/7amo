@@ -10,7 +10,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Margin="0,0,0,14">
-            <TextBlock Text="INVOICE APPROVALS" Style="{StaticResource PageTitle}"/>
+            <TextBlock Text="Invoice approvals" Style="{StaticResource PageTitle}"/>
             <TextBlock Text="DRAFT -> CHECKED (QS / reviewer) -> APPROVED (reviewer) -> SUBMITTED. Every stamp records who and when; editing the invoice afterwards makes the stamps stale." Style="{StaticResource Small}" TextWrapping="Wrap"/>
         </StackPanel>
         <Grid Grid.Row="1">
@@ -27,9 +27,9 @@
             </Border>
             <Border Grid.Column="2" Style="{StaticResource Card}">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="STAMPS" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Stamps" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                     <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
-                        <TextBlock Text="NOTE (OPTIONAL)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Note (optional)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}" Margin="0,3,0,0"/>
                     </StackPanel>
                     <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Stamps}" AutoGenerateColumns="False" IsReadOnly="True">
@@ -46,9 +46,9 @@
         </Grid>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
             <TextBlock Text="{Binding Message}" Style="{StaticResource Small}" VerticalAlignment="Center" Margin="0,0,14,0" MaxWidth="520" TextWrapping="Wrap"/>
-            <Button Style="{StaticResource BtnGhost}" Content="CHECKED" Click="OnChecked" Margin="0,0,8,0"/>
-            <Button Style="{StaticResource BtnPrimary}" Content="APPROVED" Click="OnApproved" Margin="0,0,8,0"/>
-            <Button Style="{StaticResource BtnGhost}" Content="CLOSE" Click="OnClose"/>
+            <Button Style="{StaticResource BtnGhost}" Content="Checked" Click="OnChecked" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource BtnPrimary}" Content="Approved" Click="OnApproved" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource BtnGhost}" Content="Close" Click="OnClose"/>
         </StackPanel>
     </Grid>
 </Window>

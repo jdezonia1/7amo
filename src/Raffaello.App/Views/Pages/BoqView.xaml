@@ -7,9 +7,9 @@
         <Border Style="{StaticResource Card}" Padding="12">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top">
-                    <TextBlock Text="BOQ FILE" Style="{StaticResource Label}"/>
+                    <TextBlock Text="BOQ file" Style="{StaticResource Label}"/>
                     <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding Source, Mode=TwoWay}" Margin="0,0,0,10"/>
-                    <TextBlock Text="BY SYSTEM" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <TextBlock Text="By system" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
                 </StackPanel>
                 <ItemsControl ItemsSource="{Binding Systems}">
                     <ItemsControl.ItemTemplate>
@@ -31,19 +31,19 @@
             <Grid Margin="0,0,0,8">
                 <StackPanel Orientation="Horizontal">
                     <StackPanel>
-                        <TextBlock Text="SYSTEM" Style="{StaticResource Label}"/>
+                        <TextBlock Text="System" Style="{StaticResource Label}"/>
                         <ComboBox ItemsSource="{Binding SystemFilters}" SelectedItem="{Binding SystemFilter, Mode=TwoWay}" Width="200"/>
                     </StackPanel>
                     <StackPanel Margin="10,0,0,0">
-                        <TextBlock Text="SEARCH" Style="{StaticResource Label}"/>
+                        <TextBlock Text="Search" Style="{StaticResource Label}"/>
                         <TextBox Style="{StaticResource Input}" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Width="220"/>
                     </StackPanel>
-                    <CheckBox Content="ONLY ROWS TO CHECK" IsChecked="{Binding OnlyUnsure}" VerticalAlignment="Bottom" Margin="10,0,0,6"/>
+                    <CheckBox Content="Only rows to check" IsChecked="{Binding OnlyUnsure}" VerticalAlignment="Bottom" Margin="10,0,0,6"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                    <Button Style="{StaticResource BtnYellow}" Content="IMPORT BOQ" Command="{Binding ImportCommand}"/>
-                    <Button Style="{StaticResource BtnPrimary}" Content="SAVE IMPORT" Command="{Binding SaveImportCommand}" Margin="6,0,0,0" Visibility="{Binding IsPreview, Converter={StaticResource BoolToVis}}"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="DISCARD" Command="{Binding DiscardImportCommand}" Margin="6,0,0,0" Visibility="{Binding IsPreview, Converter={StaticResource BoolToVis}}"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="Import BOQ" Command="{Binding ImportCommand}"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Save import" Command="{Binding SaveImportCommand}" Margin="6,0,0,0" Visibility="{Binding IsPreview, Converter={StaticResource BoolToVis}}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Discard" Command="{Binding DiscardImportCommand}" Margin="6,0,0,0" Visibility="{Binding IsPreview, Converter={StaticResource BoolToVis}}"/>
                 </StackPanel>
             </Grid>
             <TextBlock Grid.Row="1" Text="{Binding Summary}" Style="{StaticResource Label}" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,6"/>
@@ -68,23 +68,23 @@
         <StackPanel Grid.Column="4">
             <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
                 <StackPanel>
-                    <TextBlock Text="CORRECT THE ROW" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="Correct the row" Style="{StaticResource PanelTitle}"/>
                     <TextBlock Text="{Binding Selected.Description}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap" Margin="0,4,0,8"/>
-                    <TextBlock Text="SYSTEM" Style="{StaticResource Label}"/>
+                    <TextBlock Text="System" Style="{StaticResource Label}"/>
                     <ComboBox ItemsSource="{Binding SystemChoices}" SelectedItem="{Binding EditSystem, Mode=TwoWay}"/>
-                    <TextBlock Text="CATEGORY" Style="{StaticResource Label}" Margin="0,6,0,0"/>
+                    <TextBlock Text="Category" Style="{StaticResource Label}" Margin="0,6,0,0"/>
                     <ComboBox ItemsSource="{Binding CategoryChoices}" SelectedItem="{Binding EditCategory, Mode=TwoWay}"/>
-                    <Button Style="{StaticResource BtnPrimary}" Content="APPLY AND LEARN" Command="{Binding ApplyAndLearnCommand}" Margin="0,10,0,0"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Apply and learn" Command="{Binding ApplyAndLearnCommand}" Margin="0,10,0,0"/>
                     <!-- [assemblies] begin -->
-                    <Button Style="{StaticResource BtnGhost}" Content="BREAKDOWN (MATERIALS + RATE)" Command="{Binding BreakdownLineCommand}" Margin="0,6,0,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Breakdown (materials + rate)" Command="{Binding BreakdownLineCommand}" Margin="0,6,0,0"/>
                     <!-- [assemblies] end -->
                     <TextBlock Text="The same description gets this system / category automatically from now on." Style="{StaticResource Small}" TextWrapping="Wrap" FontSize="10" Margin="0,6,0,0"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="ASK CLAUDE FOR UNCATEGORISED ROWS" Command="{Binding AskClaudeCommand}" Margin="0,14,0,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Ask claude for uncategorised rows" Command="{Binding AskClaudeCommand}" Margin="0,14,0,0"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource Card}" Padding="12">
                 <StackPanel>
-                    <TextBlock Text="IMPORT CHECKS" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="Import checks" Style="{StaticResource PanelTitle}"/>
                     <ItemsControl ItemsSource="{Binding Issues}">
                         <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,3"/></DataTemplate></ItemsControl.ItemTemplate>
                     </ItemsControl>

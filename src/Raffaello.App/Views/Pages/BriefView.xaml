@@ -13,19 +13,19 @@
                     <StackPanel>
                         <TextBlock Text="{res:L Brief_Title}" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" FontSize="26" Foreground="White"/>
                         <TextBlock Text="{Binding Header}" Foreground="White" FontSize="13" Margin="0,2,0,0"/>
-                        <TextBlock Text="{Binding Since}" Foreground="#E8C9C9" FontSize="11" Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding Since}" Foreground="{DynamicResource AccentSoftBrush}" FontSize="11" Margin="0,2,0,0"/>
                     </StackPanel>
                     <WrapPanel Grid.Column="1" VerticalAlignment="Center">
                         <Button Style="{StaticResource BtnYellow}" Command="{Binding SummariseCommand}" Margin="0,0,8,6">
-                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSparkles}" Width="15" Height="15" Foreground="{DynamicResource OnYellowBrush}"/>
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSparkles}" Width="15" Height="15" Foreground="{DynamicResource InkBrush}"/>
                                 <TextBlock Text="{res:L Brief_Summarise}" Margin="6,0,0,0"/></StackPanel>
                         </Button>
                         <Button Style="{StaticResource BtnYellow}" Command="{Binding ExportPdfCommand}" Margin="0,0,8,6">
-                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconExport}" Width="15" Height="15" Foreground="{DynamicResource OnYellowBrush}"/>
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconExport}" Width="15" Height="15" Foreground="{DynamicResource InkBrush}"/>
                                 <TextBlock Text="{res:L Btn_ExportPdf}" Margin="6,0,0,0"/></StackPanel>
                         </Button>
                         <Button Style="{StaticResource BtnYellow}" Command="{Binding SendNowCommand}" Margin="0,0,8,6">
-                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSend}" Width="15" Height="15" Foreground="{DynamicResource OnYellowBrush}"/>
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSend}" Width="15" Height="15" Foreground="{DynamicResource InkBrush}"/>
                                 <TextBlock Text="{res:L Brief_SendNow}" Margin="6,0,0,0"/></StackPanel>
                         </Button>
                         <Button Style="{StaticResource BtnIcon}" Command="{Binding RefreshBriefCommand}" ToolTip="{res:L Btn_Refresh}" Margin="0,0,0,6">

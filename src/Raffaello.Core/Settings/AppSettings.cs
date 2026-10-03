@@ -10,6 +10,8 @@ public sealed class AppSettings
     public string DataFilePath { get; set; } = DefaultDataPath();
     public string Theme { get; set; } = "Light";
     public string Accent { get; set; } = "Red";
+    /// <summary>Dark theme depth: Soft / Near-black (default) / True black.</summary>
+    public string DarkDepth { get; set; } = "Near-black";
     public bool SeedDemoData { get; set; } = true;
     public string Project { get; set; } = "RAFFLES HOTEL & BRANDED RESIDENCES";
 
@@ -88,8 +90,10 @@ public sealed class AppSettings
 
     [JsonIgnore] public string EffectiveUserName => string.IsNullOrWhiteSpace(UserName) ? Environment.UserName : UserName;
 
+    /// <summary>%APPDATA%\Raffaello; RAFFAELLO_SETTINGS_DIR (testing a copy of the data without touching the real settings) wins when set.</summary>
     public static string SettingsFolder =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Raffaello");
+        Environment.GetEnvironmentVariable("RAFFAELLO_SETTINGS_DIR") is { Length: > 0 } dir ? dir
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Raffaello");
 
     public static string SettingsPath => Path.Combine(SettingsFolder, "settings.json");
 

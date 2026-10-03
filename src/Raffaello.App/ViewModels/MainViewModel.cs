@@ -38,6 +38,8 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         _pages = pages.ToDictionary(p => p.Key);
         Groups = new[]
         {
+            // [home] level 1 = HOME tiles; the full list of screens stays here
+            new NavGroup("START", new[] { Item("Home", "HOME", "IconHome", "Ctrl+H"), Item("Tracking", "TRACKING", "IconLedger", "") }),
             new NavGroup("TRACK", new[] { Item("Dashboard", "DASHBOARD", "IconDashboard", "Ctrl+1"), Item("Ledger", "ROOMS & LEDGER", "IconLedger", "Ctrl+2"), Item("Quantities", "QUANTITIES", "IconQuantities", "Ctrl+4"), Item("Plan", "PLAN VIEW", "IconPlan", ""),
                 Item("Checks", "CHECKS", "IconChecks", "Ctrl+3"), Item("Statements", "STATEMENTS", "IconStatements", "Ctrl+5"), Item("Materials", "MATERIALS", "IconMaterials", "Ctrl+6"),
                 // [cables] begin
@@ -76,10 +78,91 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
             // [assistant] end
         };
         SettingsItem = Item("Settings", "SETTINGS", "IconSettings", "");
+        HomeItem = Item("Home", "HOME", "IconHome", "Ctrl+H");
         palette.SetNavigator(this);
         palette.Configure(this, PaletteActions);
         ctx.Data.DataChanged += UpdateBadges;
         ctx.Filter.Changed += () => OnPropertyChanged(nameof(FilterText));
+        // [home] HOME > AREA > PAGE
+        if (_pages.GetValueOrDefault("Home") is HomeViewModel home)
+        {
+            Home = home;
+            home.LinkOpened += (area, link) => OpenLink(area, link);
+            foreach (var a in home.AllAreas)
+                foreach (var l in a.Links)
+                {
+                    var area = a;
+                    l.OnSelected = link => { if (!_navigating) OpenLink(area, link); };
+                }
+            home.AreaChanged += area => { if (Current == home) { CrumbArea = area; CrumbPage = ""; } };
+            if (_pages.GetValueOrDefault("Tracking") is TrackingViewModel tracking)
+                tracking.TabSwitched += tab =>
+                {
+                    if (Current != tracking || _fromLink) return;
+                    if (home.Find("Tracking", tab) is { } hit && hit.Link.Tab == tab) { CrumbArea = hit.Area; CrumbPage = hit.Link.Title; }
+                };
+        }
+    }
+
+    // ------------------------------------------------------------------ [home] levels + breadcrumb
+    public HomeViewModel? Home { get; }
+    /// <summary>Side bar HOME entry (the side bar only lists the current area's items - never the HOME categories again).</summary>
+    public NavItem HomeItem { get; }
+    [ObservableProperty] private bool _sidebarCollapsed;
+    [RelayCommand] private void ToggleSidebar() => SidebarCollapsed = !SidebarCollapsed;
+
+    /// <summary>Highlights the current page in the area list of the side bar (without re-opening it).</summary>
+    private void MarkCurrentLink()
+    {
+        var was = _navigating;
+        _navigating = true;
+        try
+        {
+            if (Home is null) return;
+            foreach (var a in Home.AllAreas)
+                foreach (var l in a.Links)
+                    l.IsCurrent = a == CrumbArea && Current is not HomeViewModel && l.Title == CrumbPage;
+        }
+        finally { _navigating = was; }
+    }
+    [ObservableProperty] private AreaTile? _crumbArea;
+    [ObservableProperty] private string _crumbPage = "";
+    private bool _fromLink;
+
+    public bool HasCrumbArea => CrumbArea != null;
+    public bool HasCrumbPage => CrumbPage.Length > 0;
+    partial void OnCrumbAreaChanged(AreaTile? value) { OnPropertyChanged(nameof(HasCrumbArea)); MarkCurrentLink(); }
+    partial void OnCrumbPageChanged(string value) { OnPropertyChanged(nameof(HasCrumbPage)); MarkCurrentLink(); }
+
+    /// <summary>Opens an item of an area (level 3), on its tab when it names one.</summary>
+    public void OpenLink(AreaTile area, AreaLink link)
+    {
+        _fromLink = true;
+        try
+        {
+            Go(link.PageKey);
+            if (link.Tab != null && Current is ITabbedPage t && Current.Key == link.PageKey) t.Tab = link.Tab;
+            CrumbArea = area;
+            CrumbPage = link.Title;
+        }
+        finally { _fromLink = false; }
+    }
+
+    [RelayCommand]
+    private void CrumbHome() => Go("Home", new NavTarget("Home"));
+
+    [RelayCommand]
+    private void CrumbToArea()
+    {
+        if (CrumbArea is { } a) Go("Home", new NavTarget("Home", Key: a.Key));
+    }
+
+    /// <summary>BACK: page -> its area list -> HOME (MORE areas go back to MORE).</summary>
+    [RelayCommand]
+    private void Back()
+    {
+        if (Current is HomeViewModel h) { if (h.Area != null) h.Back(); return; }
+        if (CrumbArea != null) CrumbToArea(); else CrumbHome();
     }
 
     public PageContext Ctx { get; }
@@ -105,7 +188,7 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
     private NavItem Item(string key, string label, string icon, string shortcut) =>
         new() { Key = key, Label = label, Icon = icon, Shortcut = shortcut, OnSelected = i => { if (!_navigating) Go(i.Key); } };
 
-    private IEnumerable<NavItem> AllItems => Groups.SelectMany(g => g.Items).Append(SettingsItem);
+    private IEnumerable<NavItem> AllItems => Groups.SelectMany(g => g.Items).Append(SettingsItem).Append(HomeItem);
 
     public void Go(string key, NavTarget? target = null)
     {
@@ -120,8 +203,16 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
                 Current = page;
             }
             IsWelcome = key == "Welcome";
+            if (key == "Home") { if (target is null && Home != null) Home.Area = null; CrumbArea = Home?.Area; CrumbPage = ""; }
+            else if (!_fromLink)
+            {
+                var tab = page is ITabbedPage tp ? tp.Tab : null;
+                var hit = Home?.Find(key, tab) ?? Home?.Find(key);
+                CrumbArea = hit?.Area;
+                CrumbPage = hit?.Link.Title ?? page.Title;
+            }
             Ctx.Selection.Screen = page.Title;
-            if (key != "Welcome" && key != "Settings") Ctx.Project.Settings.LastModule = key;
+            if (key != "Welcome" && key != "Settings" && key != "Home") Ctx.Project.Settings.LastModule = key;
             page.Activate(target);
         }
         finally { _navigating = false; }
@@ -203,7 +294,7 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         "Ctrl+8             Invoices\n" +
         "Ctrl+9             Site statements\n" +
         "Ctrl+0             Reports\n" +
-        "Ctrl+H             Welcome screen\n" +
+        "Ctrl+H             HOME (big tiles; the Welcome screen is SUMMARY > TODAY)\n" +
         "Ctrl+I             Import a file\n" +
         "Ctrl+E             Export the current screen to Excel\n" +
         "Ctrl+Shift+A       Ask Raffaello\n" +
@@ -212,7 +303,7 @@ public sealed partial class MainViewModel : ObservableObject, INavigator
         "Esc                Close panels\n\n" +
         "Plan view: mouse wheel = zoom, drag = pan, click a room = details.\n" +
         "BUILDING at the top switches every module between BRANDED, HOTEL and ALL.";
-    [RelayCommand] private void GoWelcome() => Go("Welcome");
+    [RelayCommand] private void GoWelcome() => Go("Home", new NavTarget("Home"));   // [home] Ctrl+H = HOME tiles (TODAY is in SUMMARY)
     [RelayCommand] private void OpenPalette() => Palette.Open();
     [RelayCommand] private void ToggleAsk() { if (Ask.IsOpen) Ask.IsOpen = false; else OpenAsk(); }
     [RelayCommand] private void ImportFile() => OpenImport();

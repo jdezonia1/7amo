@@ -1,0 +1,703 @@
+<UserControl x:Class="Raffaello.App.Views.Pages.TrackingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:trk="clr-namespace:Raffaello.Core.Tracker;assembly=Raffaello.Core"
+             xmlns:conv="clr-namespace:Raffaello.App.Converters">
+    <UserControl.Resources>
+        <conv:QtyFormatConverter x:Key="QtyFmt"/>
+        <Style x:Key="CompactRow" TargetType="DataGridRow" BasedOn="{StaticResource CardGridRow}">
+            <Setter Property="MinHeight" Value="26"/>
+        </Style>
+        <DataTemplate x:Key="RateCellTpl">
+            <Border CornerRadius="3" Padding="5,1" HorizontalAlignment="Right" ToolTip="{Binding RateTip}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RateText}" Value="NO RATE"><Setter Property="Background" Value="{DynamicResource WarningBrush}"/></DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding RateText}" FontSize="12">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RateText}" Value="NO RATE"><Setter Property="Foreground" Value="{DynamicResource WarningInkBrush}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="FontSize" Value="10"/></DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Border>
+        </DataTemplate>
+        <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource Label}">
+            <Setter Property="FontSize" Value="9"/>
+            <Setter Property="Margin" Value="2,0,0,2"/>
+        </Style>
+        <Style x:Key="Field" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0,0,8,4"/>
+        </Style>
+        <Style x:Key="AutoGrid" TargetType="DataGrid" BasedOn="{StaticResource CardGrid}">
+            <Setter Property="AutoGenerateColumns" Value="True"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="24,0,24,14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding Tab, Mode=TwoWay}" HorizontalAlignment="Left">
+            <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ListBox.ItemsPanel>
+        </ListBox>
+        <TextBlock Grid.Row="1" Text="{Binding Banner}" Style="{StaticResource Small}" FontSize="11" Margin="2,4,0,8" TextTrimming="CharacterEllipsis"/>
+
+        <!-- ============================================================ DASHBOARD -->
+        <Grid Grid.Row="2" Visibility="{Binding IsDashboard, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <UniformGrid Columns="4" Margin="0,0,0,10">
+                <Border Style="{StaticResource Card}" Padding="12,8" Margin="0,0,8,0"><StackPanel><TextBlock Text="Project quantity" Style="{StaticResource Label}"/><TextBlock Text="{Binding KpiProject}" Style="{StaticResource KpiValue}" FontSize="24"/></StackPanel></Border>
+                <Border Style="{StaticResource Card}" Padding="12,8" Margin="0,0,8,0"><StackPanel><TextBlock Text="All subcontractors" Style="{StaticResource Label}"/><TextBlock Text="{Binding KpiClaimed}" Style="{StaticResource KpiValue}" FontSize="24"/></StackPanel></Border>
+                <Border Style="{StaticResource Card}" Padding="12,8" Margin="0,0,8,0"><StackPanel><TextBlock Text="Remaining" Style="{StaticResource Label}"/><TextBlock Text="{Binding KpiRemaining}" Style="{StaticResource KpiValue}" FontSize="24"/></StackPanel></Border>
+                <Border Style="{StaticResource Card}" Padding="12,8"><StackPanel><TextBlock Text="% complete" Style="{StaticResource Label}"/><TextBlock Text="{Binding KpiPct}" Style="{StaticResource KpiValue}" FontSize="24"/></StackPanel></Border>
+            </UniformGrid>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Padding="10">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Margin="2,0,0,6">
+                            <TextBlock Text="Stage summary" Style="{StaticResource PanelTitle}"/>
+                            <TextBlock Text="{Binding KpiLines}" Style="{StaticResource Small}" FontSize="11"/>
+                        </StackPanel>
+                        <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding StageRows}" FontSize="12">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="110" ElementStyle="{StaticResource CellKey}"/>
+                                <DataGridTextColumn Header="PROJECT QTY" Binding="{Binding ProjectQty, Converter={StaticResource QtyFmt}}" Width="Auto" MinWidth="84" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="SUBS QTY" Binding="{Binding SubsQty, Converter={StaticResource QtyFmt}}" Width="Auto" MinWidth="76" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="REMAINING" Binding="{Binding Remaining, Converter={StaticResource QtyFmt}}" Width="Auto" MinWidth="84" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="%" Binding="{Binding UsedPct, StringFormat=P0}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="DONE" Binding="{Binding Complete}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="ON" Binding="{Binding InProgress}" Width="46" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="NOT ST." Binding="{Binding NotStarted}" Width="56" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="OVER" Binding="{Binding ItemsOver}" Width="48" ElementStyle="{StaticResource CellNum}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}" Padding="10">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="By system" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
+                        <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding SystemRows}" FontSize="12">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ITEM" Binding="{Binding Stage}" Width="*" ElementStyle="{StaticResource CellKey}"/>
+                                <DataGridTextColumn Header="PROJECT" Binding="{Binding ProjectQty, StringFormat=N0}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="SUBS" Binding="{Binding SubsQty, Converter={StaticResource QtyFmt}}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="REMAINING" Binding="{Binding Remaining, Converter={StaticResource QtyFmt}}" Width="76" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="%" Binding="{Binding UsedPct, StringFormat=P0}" Width="46" ElementStyle="{StaticResource CellNum}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+            </Grid>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Padding="10">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Margin="2,0,0,6">
+                            <TextBlock Text="Subcontractor performance (qty per stage, amount)" Style="{StaticResource PanelTitle}"/>
+                            <TextBlock Text="{Binding KpiAmount}" Style="{StaticResource Small}" FontSize="11"/>
+                        </StackPanel>
+                        <DataGrid Style="{StaticResource AutoGrid}" ItemsSource="{Binding SubPerfView}" AutoGeneratingColumn="AutoCol"/>
+                    </DockPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}" Padding="10">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="By part / plot (subcontractors qty, % complete)" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
+                        <DataGrid Style="{StaticResource AutoGrid}" ItemsSource="{Binding PartView}" AutoGeneratingColumn="AutoCol"/>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+        <!-- ============================================================ ENTRY (smart statement entry) -->
+        <Grid Grid.Row="2" Visibility="{Binding IsEntry, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="3*" MinHeight="200"/><RowDefinition Height="6"/><RowDefinition Height="Auto"/><RowDefinition Height="*" MinHeight="90"/></Grid.RowDefinitions>
+            <Border Style="{StaticResource Card}" Padding="10,6" Margin="0,0,0,8">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource Field}"><TextBlock Text="Subcontractor" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox Width="170" IsEditable="True" ItemsSource="{Binding Subcontractors}" Text="{Binding EntrySub, UpdateSourceTrigger=LostFocus}"/></StackPanel>
+                    <StackPanel Style="{StaticResource Field}"><TextBlock Text="Invoice no." Style="{StaticResource FieldLabel}"/><TextBox Width="56" Text="{Binding EntryInvoice, UpdateSourceTrigger=LostFocus}"/></StackPanel>
+                    <StackPanel Style="{StaticResource Field}"><TextBlock Text="Statement no." Style="{StaticResource FieldLabel}"/><TextBox Width="104" Text="{Binding EntryStatementNo, UpdateSourceTrigger=LostFocus}"/></StackPanel>
+                    <StackPanel Style="{StaticResource Field}"><TextBlock Text="Date" Style="{StaticResource FieldLabel}"/><DatePicker Width="118" SelectedDate="{Binding EntryDate}"/></StackPanel>
+                    <StackPanel Style="{StaticResource Field}"><TextBlock Text="Site %" Style="{StaticResource FieldLabel}"/><TextBox Width="64" Text="{Binding EntrySitePct, UpdateSourceTrigger=LostFocus}"/></StackPanel>
+                    <StackPanel Style="{StaticResource Field}"><TextBlock Text="WIR %" Style="{StaticResource FieldLabel}"/><TextBox Width="64" Text="{Binding EntryWirPct, UpdateSourceTrigger=LostFocus}"/></StackPanel>
+                    <StackPanel Style="{StaticResource Field}"><TextBlock Text="Building" Style="{StaticResource FieldLabel}"/><TextBlock Text="{Binding BuildingText}" Style="{StaticResource BodyStrong}" Margin="2,6,0,0"/></StackPanel>
+                    <Button Style="{StaticResource BtnGhost}" Content="New" Command="{Binding NewStatementCommand}" VerticalAlignment="Bottom" Margin="4,0,6,4"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Save draft" Command="{Binding SaveDraftCommand}" VerticalAlignment="Bottom" Margin="0,0,6,4"/>
+                    <StackPanel Style="{StaticResource Field}"><TextBlock Text="Drafts" Style="{StaticResource FieldLabel}"/><ComboBox Width="120" ItemsSource="{Binding Drafts}" SelectedItem="{Binding SelectedDraft, Mode=TwoWay}"/></StackPanel>
+                    <Button Style="{StaticResource BtnGhost}" Content="Open" Command="{Binding OpenDraftCommand}" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+                </WrapPanel>
+            </Border>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="230"/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Padding="10">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Location" Style="{StaticResource PanelTitle}" Margin="2,0,0,4"/>
+                        <TextBox DockPanel.Dock="Top" Text="{Binding LocationSearch, UpdateSourceTrigger=PropertyChanged}" ToolTip="Type part of the location, floor or type: 156, L1 PUBLIC, P2-101 ..."/>
+                        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding RecentLocations}" Margin="0,4,0,4">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource BtnLink}" Content="{Binding}" FontSize="11" Margin="0,0,8,0" Padding="0"
+                                            Command="{Binding DataContext.PickRecentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ListBox ItemsSource="{Binding LocationResults}" SelectedItem="{Binding SelectedLocation, Mode=TwoWay}" Style="{StaticResource CardList}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Code}" Style="{StaticResource BodyStrong}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Caption}" Style="{StaticResource Small}" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}" Padding="10">
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Balance before entry" Style="{StaticResource PanelTitle}"/>
+                                <TextBlock Text="{Binding EntryLocationInfo}" Style="{StaticResource Small}" FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding EntryLocationInfo}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <ComboBox Width="100" ItemsSource="{Binding EntryStageOptions}" SelectedItem="{Binding EntryStageFilter, Mode=TwoWay}" ToolTip="Show one stage" Margin="0,0,6,0"/>
+                                <ComboBox Width="90" IsEditable="True" ItemsSource="{Binding StageOptions}" Text="{Binding AddStage}" ToolTip="Stage of a line that is not in the list" Margin="0,0,4,0"/>
+                                <ComboBox Width="90" IsEditable="True" ItemsSource="{Binding ItemOptions}" Text="{Binding AddItem}" ToolTip="Item of a line that is not in the list" Margin="0,0,4,0"/>
+                                <Button Style="{StaticResource BtnGhost}" Content="+ line" Command="{Binding AddKeyRowCommand}" Margin="0,0,6,0"/>
+                                <Button Style="{StaticResource BtnYellow}" Content="Add to statement" Command="{Binding AddToStatementCommand}"/>
+                            </StackPanel>
+                        </Grid>
+                        <DataGrid x:Name="EntryGrid" Style="{StaticResource CardGrid}" RowStyle="{StaticResource CompactRow}" ItemsSource="{Binding EntryRows}" FontSize="13">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="80" ElementStyle="{StaticResource CellKey}"/>
+                                <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="110" ElementStyle="{StaticResource CellKey}"/>
+                                <DataGridTextColumn Header="TOTAL" Binding="{Binding TotalText}" Width="60" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="CLAIMED" Binding="{Binding ClaimedText}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTemplateColumn Header="BY WHOM" Width="150">
+                                    <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding ByWhom}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Ink2Brush}" ToolTip="{Binding ByWhom}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="REMAINING" Binding="{Binding RemainingText}" Width="84" ElementStyle="{StaticResource CellNumStrong}"/>
+                                <DataGridTextColumn Header="CHECKS" Binding="{Binding Pending}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTemplateColumn Header="CLAIMED NOW" Width="104">
+                                    <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBox Text="{Binding ClaimedNow, UpdateSourceTrigger=PropertyChanged}" Padding="6,1" MinHeight="24" FontSize="14" FontWeight="SemiBold"
+                                        HorizontalContentAlignment="Right" BorderBrush="{DynamicResource GraphiteBrush}" PreviewKeyDown="ClaimedNow_PreviewKeyDown" ToolTip="Whole numbers. Enter = next line"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="AFTER" Binding="{Binding After}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="RESULT" Binding="{Binding Result}" Width="*" MinWidth="130" ElementStyle="{StaticResource CellKey}"/>
+                                <DataGridTemplateColumn Header="RATE" Width="76" CellTemplate="{StaticResource RateCellTpl}"/>
+                                <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+            </Grid>
+            <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="5" Background="{DynamicResource LineBrush}" ResizeDirection="Rows" ToolTip="Drag to give more room to one table"/>
+            <Grid Grid.Row="3" Margin="0,6,0,6">
+                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Statement  -  Subcontractor claimed vs my certified" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="{Binding StatementSummary}" Style="{StaticResource Small}" FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding StatementSummary}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Style="{StaticResource BtnGhost}" Content="Remove line" Command="{Binding RemoveStatementLineCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Post as set per line" Command="{Binding PostAsSetCommand}" Margin="0,0,6,0" ToolTip="Each line by its OPTION: within remaining / full with reason / 15 m check / skip"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Post all within remaining" Command="{Binding PostWithinRemainingCommand}" ToolTip="Each line: min(claimed, remaining) is posted, the rest stays on hold with the reason"/>
+                </StackPanel>
+            </Grid>
+            <DataGrid Grid.Row="4" Style="{StaticResource CardGrid}" RowStyle="{StaticResource CompactRow}" ItemsSource="{Binding StatementRows}" SelectedItem="{Binding SelectedStatementRow, Mode=TwoWay}" FontSize="12">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="120" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="CLAIMED" Binding="{Binding Claimed}" Width="62" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="REMAINING" Binding="{Binding RemainingBefore, Converter={StaticResource QtyFmt}}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="CERTIFIED" Binding="{Binding Certified}" Width="84" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="DIFF" Binding="{Binding Difference}" Width="44" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="STATUS" Binding="{Binding State}" Width="92" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTemplateColumn Header="OPTION" Width="140">
+                        <DataGridTemplateColumn.CellTemplate><DataTemplate><ComboBox ItemsSource="{x:Static trk:PostOptions.All}" SelectedItem="{Binding Option, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="11"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="REASON (FOR FULL)" Width="120">
+                        <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBox Text="{Binding Reason, UpdateSourceTrigger=LostFocus}" Padding="4,2" FontSize="11"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="WHY" Binding="{Binding Why}" Width="*" MinWidth="120" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTemplateColumn Header="RATE" Width="76" CellTemplate="{StaticResource RateCellTpl}"/>
+                    <DataGridTextColumn Header="CLAIMED SAR" Binding="{Binding ClaimedAmount, Converter={StaticResource QtyFmt}}" Width="100" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="CERTIFIED SAR" Binding="{Binding CertifiedAmount, Converter={StaticResource QtyFmt}}" Width="108" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DIFF SAR" Binding="{Binding DiffAmount, Converter={StaticResource QtyFmt}}" Width="76" ElementStyle="{StaticResource CellNumStrong}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        <!-- ============================================================ PLANS (plan per building x level, revisions, coloured shapes) -->
+        <Grid Grid.Row="2" Visibility="{Binding IsPlans, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="10">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Plan" Style="{StaticResource PanelTitle}"/>
+                        <ComboBox ItemsSource="{Binding PlanLevels}" SelectedItem="{Binding SelectedPlanLevel, Mode=TwoWay}" Margin="0,4,0,6" ToolTip="Building and level"/>
+                        <TextBlock Text="Revision" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding PlanRevisions}" SelectedItem="{Binding SelectedRevision, Mode=TwoWay}" DisplayMemberPath="Plan" Margin="0,0,0,8"/>
+                        <TextBlock Text="Colour by" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding ColourModes}" SelectedItem="{Binding ColourMode, Mode=TwoWay}" Margin="0,0,0,6"/>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Stage" Style="{StaticResource FieldLabel}"/><ComboBox ItemsSource="{Binding PlanStageOptions}" SelectedItem="{Binding PlanStage, Mode=TwoWay}" MinWidth="0"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="Item" Style="{StaticResource FieldLabel}"/><ComboBox ItemsSource="{Binding PlanItemOptions}" SelectedItem="{Binding PlanItem, Mode=TwoWay}" MinWidth="0"/></StackPanel>
+                        </Grid>
+                        <TextBlock Text="Invoice" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding PlanInvoiceOptions}" SelectedItem="{Binding PlanInvoice, Mode=TwoWay}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Legend" Style="{StaticResource FieldLabel}"/>
+                        <ItemsControl ItemsSource="{Binding PlanLegend}" Margin="0,2,0,10">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,1">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <Button Width="18" Height="14" Background="{Binding Swatch}" BorderThickness="0" Cursor="Hand" ToolTip="Change colour (by subcontractor)"
+                                                Command="{Binding DataContext.CycleColourCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                            <Button.Template><ControlTemplate TargetType="Button"><Border Background="{TemplateBinding Background}" CornerRadius="3"/></ControlTemplate></Button.Template>
+                                        </Button>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding Visible}" Margin="6,0,0,0" Visibility="{Binding IsSub, Converter={StaticResource BoolToVis}}" ToolTip="Show / hide"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Name}" FontSize="11" Margin="6,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding Count}" FontSize="11" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Import plan package" Command="{Binding ImportPlanPackageCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,6" ToolTip="RECON_TOOLS\PLANS: manifest.json + background.png + shapes.json per level"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Replace plan (new revision)" Command="{Binding ReplacePlanCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+                        <Expander Header="Align shapes" Foreground="{DynamicResource InkBrush}">
+                            <StackPanel Margin="0,6,0,0">
+                                <TextBlock Text="Scale and offset in fractions of the picture (e.g. 1.02 / 0.01). Applies to this revision." Style="{StaticResource Small}" FontSize="10" TextWrapping="Wrap"/>
+                                <Grid Margin="0,4,0,4">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="Scale X" Style="{StaticResource FieldLabel}"/><TextBox Text="{Binding AlignScaleX}"/></StackPanel>
+                                    <StackPanel Grid.Column="2"><TextBlock Text="Scale Y" Style="{StaticResource FieldLabel}"/><TextBox Text="{Binding AlignScaleY}"/></StackPanel>
+                                </Grid>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="Offset X" Style="{StaticResource FieldLabel}"/><TextBox Text="{Binding AlignOffsetX}"/></StackPanel>
+                                    <StackPanel Grid.Column="2"><TextBlock Text="Offset Y" Style="{StaticResource FieldLabel}"/><TextBox Text="{Binding AlignOffsetY}"/></StackPanel>
+                                </Grid>
+                                <Button Style="{StaticResource BtnGhost}" Content="Apply" Command="{Binding AlignShapesCommand}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                        </Expander>
+                        <TextBlock Text="Progress per plan" Style="{StaticResource FieldLabel}" Margin="0,12,0,2"/>
+                        <ItemsControl ItemsSource="{Binding PlanRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontSize="10" Foreground="{DynamicResource Ink2Brush}" TextTrimming="CharacterEllipsis"><Run Text="{Binding Plan, Mode=OneWay}"/><Run Text="  "/><Run Text="{Binding UsedPct, Mode=OneWay, StringFormat=P0}"/><Run Text="  over "/><Run Text="{Binding OverRooms, Mode=OneWay}"/></TextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="8">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="2,0,0,6">
+                        <TextBlock Text="{Binding PlanInfo}" Style="{StaticResource Small}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,200,0"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource BtnGhost}" Content="-" Command="{Binding ZoomOutCommand}" Width="32" Margin="0,0,4,0"/>
+                            <Slider Minimum="0.03" Maximum="4" Value="{Binding PlanZoom, Mode=TwoWay}" Width="110" VerticalAlignment="Center"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="+" Command="{Binding ZoomInCommand}" Width="32" Margin="4,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                    <ScrollViewer x:Name="PlanScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" PreviewMouseWheel="PlanScroll_PreviewMouseWheel" Background="{DynamicResource Surface2Brush}">
+                        <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <Grid.LayoutTransform><ScaleTransform ScaleX="{Binding PlanZoom}" ScaleY="{Binding PlanZoom}"/></Grid.LayoutTransform>
+                            <Image Source="{Binding PlanBitmap}" Width="{Binding PlanWidthPx}" Height="{Binding PlanHeightPx}" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <ItemsControl ItemsSource="{Binding PlanShapes}" Width="{Binding PlanWidthPx}" Height="{Binding PlanHeightPx}">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Polygon Points="{Binding Points}" Fill="{Binding Fill}" Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}" ToolTip="{Binding Tip}" Cursor="Hand"
+                                                 MouseLeftButtonUp="PlanShape_Click"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================ ROOM -->
+        <Grid Grid.Row="2" Visibility="{Binding IsRoom, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="10"/><RowDefinition Height="1.2*"/></Grid.RowDefinitions>
+            <Border Style="{StaticResource Card}" Padding="10,6" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Selected room" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox Width="200" IsEditable="True" IsTextSearchEnabled="True" ItemsSource="{Binding LocationCodes}" Text="{Binding RoomLocation, UpdateSourceTrigger=LostFocus}"/>
+                        <ContentControl Style="{StaticResource Tag}" Content="{Binding RoomState}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding RoomHeader}" Style="{StaticResource Small}" FontSize="11" VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding RoomHeader}"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Style="{StaticResource BtnGhost}" Content="Open on plan" Command="{Binding RoomOnPlanCommand}" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="Enter a statement here" Command="{Binding RoomEnterCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Padding="10">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="A . Stage progress vs project QTY" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
+                        <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding RoomStages}" FontSize="12">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="100" ElementStyle="{StaticResource CellKey}"/>
+                                <DataGridTextColumn Header="PROJECT" Binding="{Binding ProjectQty, Converter={StaticResource QtyFmt}}" Width="*" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="SUBS" Binding="{Binding SubsQty, Converter={StaticResource QtyFmt}}" Width="*" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="REMAINING" Binding="{Binding Remaining, Converter={StaticResource QtyFmt}}" Width="*" ElementStyle="{StaticResource CellNumStrong}"/>
+                                <DataGridTextColumn Header="%" Binding="{Binding UsedPct, StringFormat=P0}" Width="44" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="STATUS" Binding="{Binding State}" Width="96" ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTextColumn Header="OVER" Binding="{Binding ItemsOver}" Width="44" ElementStyle="{StaticResource CellNum}"/>
+                                <DataGridTextColumn Header="NO CAP" Binding="{Binding ItemsNoCap}" Width="52" ElementStyle="{StaticResource CellNum}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}" Padding="10">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="B . Subcontractors QTY, by stage" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
+                        <DataGrid Style="{StaticResource AutoGrid}" ItemsSource="{Binding RoomSubsView}" AutoGeneratingColumn="AutoCol"/>
+                    </DockPanel>
+                </Border>
+            </Grid>
+            <Border Grid.Row="3" Style="{StaticResource Card}" Padding="10">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="C . Every stage + item line" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
+                    <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding RoomKeys}" FontSize="12">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" Binding="{Binding No}" Width="34" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="100" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="120" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="PROJECT QTY" Binding="{Binding ProjectQty, Converter={StaticResource QtyFmt}}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="SUBS QTY" Binding="{Binding SubsQty, Converter={StaticResource QtyFmt}}" Width="76" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="REMAINING" Binding="{Binding Remaining, Converter={StaticResource QtyFmt}}" Width="80" ElementStyle="{StaticResource CellNumStrong}"/>
+                            <DataGridTextColumn Header="%" Binding="{Binding UsedPct, StringFormat=P0}" Width="46" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding State}" Width="100" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="TOP SUBCONTRACTOR" Binding="{Binding TopSub}" Width="130" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="BY SUBCONTRACTOR" Binding="{Binding BySubs}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount, Converter={StaticResource QtyFmt}}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================ CONTROL -->
+        <Grid Grid.Row="2" Visibility="{Binding IsControl, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="330"/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="10">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Where IT stands" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
+                    <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding ControlChecks}" SelectedItem="{Binding SelectedCheck, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Check}" Style="{StaticResource BodyStrong}" FontSize="11" TextWrapping="Wrap"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat=N0}" FontFamily="{StaticResource FontMonoBold}" FontSize="14" Foreground="{DynamicResource AccentBrush}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="10">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="2,0,0,6">
+                        <TextBlock Text="{Binding SelectedCheck.Check}" Style="{StaticResource PanelTitle}" TextTrimming="CharacterEllipsis"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Open room" HorizontalAlignment="Right" Command="{Binding OpenRoomCommand}" CommandParameter="{Binding SelectedItem, ElementName=ControlGrid}"/>
+                    </Grid>
+                    <DataGrid x:Name="ControlGrid" Style="{StaticResource CardGrid}" ItemsSource="{Binding ControlRows}" FontSize="12">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="130" ElementStyle="{StaticResource CellKey}"/>
+                            <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="100" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="PROJECT" Binding="{Binding ProjectQty, Converter={StaticResource QtyFmt}}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="SUBS QTY" Binding="{Binding SubsQty, Converter={StaticResource QtyFmt}}" Width="70" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="REMAINING" Binding="{Binding Remaining, Converter={StaticResource QtyFmt}}" Width="76" ElementStyle="{StaticResource CellNumStrong}"/>
+                            <DataGridTextColumn Header="SUBCONTRACTOR" Binding="{Binding Sub}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="INV" Binding="{Binding Invoice}" Width="40" ElementStyle="{StaticResource CellNum}"/>
+                            <DataGridTextColumn Header="NOTE" Binding="{Binding Note}" Width="*" MinWidth="140" ElementStyle="{StaticResource CellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================ PROJECT QTY -->
+        <DockPanel Grid.Row="2" Visibility="{Binding IsProject, Converter={StaticResource BoolToVis}}">
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Location" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox Width="220" Text="{Binding ProjectQtySearch, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="{Binding ProjectQtyInfo}" Style="{StaticResource Small}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                </StackPanel>
+            </Grid>
+            <DataGrid Style="{StaticResource AutoGrid}" ItemsSource="{Binding ProjectQtyView}" AutoGeneratingColumn="AutoCol" FrozenColumnCount="5"/>
+        </DockPanel>
+        <!-- ============================================================ LEDGER -->
+        <Grid Grid.Row="2" Visibility="{Binding IsLedger, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="8"/><RowDefinition Height="170"/></Grid.RowDefinitions>
+            <Border Style="{StaticResource Card}" Padding="10,6" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource Field}"><TextBlock Text="Subcontractor" Style="{StaticResource FieldLabel}"/><ComboBox Width="170" ItemsSource="{Binding LedgerSubOptions}" SelectedItem="{Binding LedgerSub, Mode=TwoWay}"/></StackPanel>
+                        <StackPanel Style="{StaticResource Field}"><TextBlock Text="Invoice" Style="{StaticResource FieldLabel}"/><ComboBox Width="70" ItemsSource="{Binding LedgerInvoiceOptions}" SelectedItem="{Binding LedgerInvoice, Mode=TwoWay}"/></StackPanel>
+                        <StackPanel Style="{StaticResource Field}"><TextBlock Text="Search (location, stage, item, floor)" Style="{StaticResource FieldLabel}"/><TextBox Width="200" Text="{Binding LedgerSearch, UpdateSourceTrigger=PropertyChanged}"/></StackPanel>
+                        <StackPanel Style="{StaticResource Field}"><TextBlock Text="Totals by" Style="{StaticResource FieldLabel}"/><ComboBox Width="130" ItemsSource="{Binding GroupByOptions}" SelectedItem="{Binding LedgerGroupBy, Mode=TwoWay}"/></StackPanel>
+                        <CheckBox Content="Rate missing only" IsChecked="{Binding LedgerMissingOnly}" VerticalAlignment="Bottom" Margin="4,0,0,8"/>
+                    </WrapPanel>
+                    <Button Grid.Column="1" Style="{StaticResource BtnYellow}" Content="Set rate for this line" Command="{Binding RateForLineCommand}" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+                </Grid>
+            </Border>
+            <DockPanel Grid.Row="1">
+                <TextBlock DockPanel.Dock="Top" Text="{Binding LedgerSummary}" Style="{StaticResource Small}" FontSize="11" Margin="2,0,0,4"/>
+                <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding LedgerRows}" SelectedItem="{Binding SelectedLedgerRow, Mode=TwoWay}" FontSize="12" FrozenColumnCount="2">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="SUBCONTRACTOR" Binding="{Binding Sub}" Width="120" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="INV" Binding="{Binding Invoice}" Width="38" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="FLOOR" Binding="{Binding Floor}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="120" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="36" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="QTY" Binding="{Binding Qty, Converter={StaticResource QtyFmt}}" Width="56" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTextColumn Header="SITE %" Binding="{Binding SitePct, StringFormat=P0}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="AFTER SITE" Binding="{Binding QtyAfterSite, Converter={StaticResource QtyFmt}}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="WIR %" Binding="{Binding WirPct, StringFormat=P0}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="AFTER WIR" Binding="{Binding QtyAfterWir, Converter={StaticResource QtyFmt}}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTemplateColumn Header="RATE" Width="76" CellTemplate="{StaticResource RateCellTpl}"/>
+                        <DataGridTextColumn Header="INVOICE AMOUNT" Binding="{Binding AmountShown, Converter={StaticResource QtyFmt}}" Width="96" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTextColumn Header="STAGE %" Binding="{Binding StagePct, StringFormat=P0}" Width="56" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="PAYABLE" Binding="{Binding PayableShown, Converter={StaticResource QtyFmt}}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="RATE SOURCE" Binding="{Binding RateSource}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="ENTRY CHECK" Binding="{Binding EntryCheck}" Width="90" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="PROJECT QTY" Binding="{Binding ProjectQty, Converter={StaticResource QtyFmt}}" Width="74" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="ALL SUBS" Binding="{Binding AllSubs, Converter={StaticResource QtyFmt}}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="REMAINING" Binding="{Binding Remaining, Converter={StaticResource QtyFmt}}" Width="70" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTextColumn Header="CHECKS" Binding="{Binding Checks}" Width="100" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="REWORK?" Binding="{Binding Rework}" Width="56" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="WORK TYPE" Binding="{Binding WorkType}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="NOTES" Binding="{Binding Notes}" Width="240" ElementStyle="{StaticResource CellText}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+            <DataGrid Grid.Row="3" Style="{StaticResource CardGrid}" ItemsSource="{Binding LedgerTotals}" FontSize="12">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="TOTALS" Binding="{Binding Group}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="LINES" Binding="{Binding Lines, StringFormat=N0}" Width="60" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="QTY" Binding="{Binding Qty, Converter={StaticResource QtyFmt}}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="AFTER WIR" Binding="{Binding QtyAfterWir, Converter={StaticResource QtyFmt}}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="QTY x RATE" Binding="{Binding Amount, Converter={StaticResource QtyFmt}}" Width="110" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="AFTER SITE x WIR" Binding="{Binding AfterWir, Converter={StaticResource QtyFmt}}" Width="120" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="PAYABLE (x STAGE %)" Binding="{Binding Payable, Converter={StaticResource QtyFmt}}" Width="130" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="MISSING RATE" Binding="{Binding MissingRate}" Width="96" ElementStyle="{StaticResource CellNum}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!-- ============================================================ ROOMS -->
+        <DockPanel Grid.Row="2" Visibility="{Binding IsRooms, Converter={StaticResource BoolToVis}}">
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Search" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox Width="200" Text="{Binding RoomsSearch, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="Status" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,8,0"/>
+                    <ComboBox Width="150" ItemsSource="{Binding StateOptions}" SelectedItem="{Binding RoomsState, Mode=TwoWay}"/>
+                </StackPanel>
+                <Button Style="{StaticResource BtnYellow}" Content="Open room" HorizontalAlignment="Right" Command="{Binding OpenRoomCommand}" CommandParameter="{Binding SelectedRoomRow}"/>
+            </Grid>
+            <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding RoomRows}" SelectedItem="{Binding SelectedRoomRow, Mode=TwoWay}" FontSize="12" FrozenColumnCount="1">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="150" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="PART" Binding="{Binding Part}" Width="56" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="FLOOR" Binding="{Binding Floor}" Width="46" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="LEVEL" Binding="{Binding Level}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="UNIT" Binding="{Binding Unit}" Width="56" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="UNIT TYPE" Binding="{Binding UnitType}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="PLAN" Binding="{Binding Plan}" Width="50" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="PROJECT QTY" Binding="{Binding ProjectQty, StringFormat=N0}" Width="80" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="ALL SUBS" Binding="{Binding AllSubs, Converter={StaticResource QtyFmt}}" Width="72" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="REMAINING" Binding="{Binding Remaining, Converter={StaticResource QtyFmt}}" Width="76" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="% USED" Binding="{Binding UsedPct, StringFormat=P0}" Width="56" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="STATUS" Binding="{Binding State}" Width="100" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="SUBCONTRACTORS" Binding="{Binding Subs}" Width="180" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="STAGES ACTIVE" Binding="{Binding StagesActive}" Width="150" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="OVER CAP" Binding="{Binding OverCap}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="NO CAP" Binding="{Binding NoCap}" Width="56" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount, Converter={StaticResource QtyFmt}}" Width="90" ElementStyle="{StaticResource CellNum}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <!-- ============================================================ SUMMARY -->
+        <DockPanel Grid.Row="2" Visibility="{Binding IsSummary, Converter={StaticResource BoolToVis}}">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="Key" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBox Width="200" Text="{Binding SummarySearch, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Text="Status" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,8,0"/>
+                <ComboBox Width="150" ItemsSource="{Binding StateOptions}" SelectedItem="{Binding SummaryState, Mode=TwoWay}"/>
+                <TextBlock Text="Subcontractor" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,8,0"/>
+                <ComboBox Width="170" ItemsSource="{Binding SummarySubOptions}" SelectedItem="{Binding SummarySub, Mode=TwoWay}"/>
+                <TextBlock Text="{Binding SummaryInfo}" Style="{StaticResource Small}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            </StackPanel>
+            <DataGrid Style="{StaticResource AutoGrid}" ItemsSource="{Binding SummaryView}" AutoGeneratingColumn="AutoCol" FrozenColumnCount="2"/>
+        </DockPanel>
+
+        <!-- ============================================================ CAP -->
+        <DockPanel Grid.Row="2" Visibility="{Binding IsCap, Converter={StaticResource BoolToVis}}">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="Key" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBox Width="240" Text="{Binding CapSearch, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding CapRows}" FontSize="12">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="KEY" Binding="{Binding Key}" Width="2*" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="100" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="PROJECT QTY" Binding="{Binding ProjectQty, Converter={StaticResource QtyFmt}}" Width="90" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <!-- ============================================================ CABLES -->
+        <DockPanel Grid.Row="2" Visibility="{Binding IsCables, Converter={StaticResource BoolToVis}}">
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                <TextBlock Text="{Binding CablesInfo}" Style="{StaticResource Small}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,160,0"/>
+                <Button Style="{StaticResource BtnYellow}" Content="Open cables page" HorizontalAlignment="Right" Command="{Binding OpenCablesPageCommand}"/>
+            </Grid>
+            <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding CableRows}" FontSize="12">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="100" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="SUBCONTRACTOR" Binding="{Binding Sub}" Width="130" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="INV" Binding="{Binding Invoice}" Width="40" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="130" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="LEVEL" Binding="{Binding Floor}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="SIZE / ITEM" Binding="{Binding Item}" Width="90" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="QTY" Binding="{Binding Qty, Converter={StaticResource QtyFmt}}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="SITE %" Binding="{Binding SitePct, StringFormat=P0}" Width="52" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="WIR %" Binding="{Binding WirPct, StringFormat=P0}" Width="52" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="FINAL QTY" Binding="{Binding QtyAfterWir, Converter={StaticResource QtyFmt}}" Width="70" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTemplateColumn Header="RATE" Width="76" CellTemplate="{StaticResource RateCellTpl}"/>
+                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount, Converter={StaticResource QtyFmt}}" Width="84" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="NOTES" Binding="{Binding Notes}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+        <!-- ============================================================ RATES -->
+        <Grid Grid.Row="2" Visibility="{Binding IsRates, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition Width="270"/></Grid.ColumnDefinitions>
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <TextBlock Text="{Binding RatesInfo}" Style="{StaticResource Small}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,150,0"/>
+                    <CheckBox Content="Missing only" IsChecked="{Binding RatesMissingOnly}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+                <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding RateRows}" SelectedItem="{Binding SelectedRateRow, Mode=TwoWay}" FontSize="12">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="SUBCONTRACTOR" Binding="{Binding Sub}" Width="130" ElementStyle="{StaticResource CellKey}"/>
+                        <DataGridTextColumn Header="STAGE" Binding="{Binding Stage}" Width="84" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="ITEM" Binding="{Binding Item}" Width="96" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="INV" Binding="{Binding Invoices}" Width="50" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="LINES" Binding="{Binding Lines}" Width="46" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="QTY" Binding="{Binding Qty, Converter={StaticResource QtyFmt}}" Width="64" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTemplateColumn Header="RATE" Width="76" CellTemplate="{StaticResource RateCellTpl}"/>
+                        <DataGridTextColumn Header="STAGE %" Binding="{Binding StagePct, StringFormat=P0}" Width="54" ElementStyle="{StaticResource CellNum}"/>
+                        <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount, Converter={StaticResource QtyFmt}}" Width="90" ElementStyle="{StaticResource CellNumStrong}"/>
+                        <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="110" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="REASON" Binding="{Binding Reason}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellText}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Set a rate" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Pick a row or type. Blank subcontractor = every subcontractor. Invoice from / to = an invoice period (old invoices at old rates)." Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,8"/>
+                        <TextBlock Text="Subcontractor" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox IsEditable="True" ItemsSource="{Binding Subcontractors}" Text="{Binding RateSub}" Margin="0,0,0,6"/>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Stage" Style="{StaticResource FieldLabel}"/><ComboBox IsEditable="True" ItemsSource="{Binding StageOptions}" Text="{Binding RateStage}"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="Item" Style="{StaticResource FieldLabel}"/><ComboBox IsEditable="True" ItemsSource="{Binding ItemOptions}" Text="{Binding RateItem}"/></StackPanel>
+                        </Grid>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Rate (SAR)" Style="{StaticResource FieldLabel}"/><TextBox Text="{Binding RateValue}"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="Stage pay %" Style="{StaticResource FieldLabel}"/><TextBox Text="{Binding RateStagePct}"/></StackPanel>
+                        </Grid>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="6"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Invoice from" Style="{StaticResource FieldLabel}"/><TextBox Text="{Binding RateInvFrom}"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="Invoice to" Style="{StaticResource FieldLabel}"/><TextBox Text="{Binding RateInvTo}"/></StackPanel>
+                        </Grid>
+                        <TextBlock Text="Note (why / Source)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding RateNote}" Margin="0,0,0,10"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Set rate" Command="{Binding SetRateCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,6"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Remove manual rate" Command="{Binding ClearRateCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,14"/>
+                        <TextBlock Text="Default rates from a mapping sheet" Style="{StaticResource PanelTitle}" FontSize="12"/>
+                        <TextBlock Text="{Binding MappingFiles}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,6"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="Import mapping" Command="{Binding ImportMappingCommand}" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================ INVOICES (drawing status per subcontractor x invoice) -->
+        <DockPanel Grid.Row="2" Visibility="{Binding IsInvoices, Converter={StaticResource BoolToVis}}">
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Status" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox Width="190" ItemsSource="{Binding InvoiceStatusFilters}" SelectedItem="{Binding InvoiceFilter, Mode=TwoWay}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource BtnGhost}" Content="Mark pending" Command="{Binding MarkPendingCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Mark done" Command="{Binding MarkDoneCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Automatic" Command="{Binding MarkAutoCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Open lines" Command="{Binding OpenInvoiceLinesCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="Import reference" Command="{Binding ImportReferenceCommand}"/>
+                </StackPanel>
+            </Grid>
+            <TextBlock DockPanel.Dock="Top" Text="{Binding InvoicesInfo}" Style="{StaticResource Small}" FontSize="11" Margin="2,0,0,6" TextTrimming="CharacterEllipsis"/>
+            <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding InvoiceRows}" SelectedItem="{Binding SelectedInvoiceRow, Mode=TwoWay}" FontSize="12">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="BUILDING" Binding="{Binding Building}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="SUBCONTRACTOR" Binding="{Binding Subcontractor}" Width="170" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="INV" Binding="{Binding InvoiceNo}" Width="40" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="150" ElementStyle="{StaticResource CellKey}"/>
+                    <DataGridTextColumn Header="SET BY HAND" Binding="{Binding Manual}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="LINES" Binding="{Binding Lines}" Width="50" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DRAWN QTY" Binding="{Binding DrawnQty, Converter={StaticResource QtyFmt}}" Width="80" ElementStyle="{StaticResource CellNumStrong}"/>
+                    <DataGridTextColumn Header="INVOICED" Binding="{Binding Invoiced, Converter={StaticResource QtyFmt}}" Width="76" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="CERTIFIED" Binding="{Binding Certified, Converter={StaticResource QtyFmt}}" Width="76" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="DIFF" Binding="{Binding Diff, Converter={StaticResource QtyFmt}}" Width="66" ElementStyle="{StaticResource CellNum}"/>
+                    <DataGridTextColumn Header="REFERENCE STATUS" Binding="{Binding RefStatus}" Width="130" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="NOTE" Binding="{Binding Note}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+    </Grid>
+</UserControl>

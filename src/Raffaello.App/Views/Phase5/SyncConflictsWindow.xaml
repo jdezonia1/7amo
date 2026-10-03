@@ -10,7 +10,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Margin="0,0,0,14">
-            <TextBlock Text="SYNC CONFLICTS" Style="{StaticResource PageTitle}"/>
+            <TextBlock Text="Sync conflicts" Style="{StaticResource PageTitle}"/>
             <TextBlock Text="Changes you made offline that the server could not apply as they were. KEEP MINE writes your version, KEEP THEIRS drops your change, MERGE keeps their row with the fields you tick." Style="{StaticResource Small}" TextWrapping="Wrap"/>
         </StackPanel>
         <Grid Grid.Row="1">
@@ -35,7 +35,7 @@
                         <TextBlock Text="{Binding Selected.Message}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0" Visibility="{Binding ShowReason, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="REASON TO POST IT OVER THE REMAINING QTY (KEEP MINE)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Reason to post IT over the remaining QTY (keep mine)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding OverReason, UpdateSourceTrigger=PropertyChanged}" Margin="0,3,0,0"/>
                     </StackPanel>
                     <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Fields}" AutoGenerateColumns="False" CanUserAddRows="False">
@@ -53,10 +53,10 @@
         </Grid>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
             <TextBlock Text="{Binding Message}" Style="{StaticResource Small}" VerticalAlignment="Center" Margin="0,0,14,0" MaxWidth="460" TextWrapping="Wrap"/>
-            <Button Style="{StaticResource BtnGhost}" Content="KEEP THEIRS" Click="OnKeepTheirs" Margin="0,0,8,0"/>
-            <Button Style="{StaticResource BtnGhost}" Content="MERGE" Click="OnMerge" Margin="0,0,8,0"/>
-            <Button Style="{StaticResource BtnPrimary}" Content="KEEP MINE" Click="OnKeepMine" Margin="0,0,8,0"/>
-            <Button Style="{StaticResource BtnGhost}" Content="CLOSE" Click="OnClose"/>
+            <Button Style="{StaticResource BtnGhost}" Content="Keep theirs" Click="OnKeepTheirs" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource BtnGhost}" Content="Merge" Click="OnMerge" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource BtnPrimary}" Content="Keep mine" Click="OnKeepMine" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource BtnGhost}" Content="Close" Click="OnClose"/>
         </StackPanel>
     </Grid>
 </Window>

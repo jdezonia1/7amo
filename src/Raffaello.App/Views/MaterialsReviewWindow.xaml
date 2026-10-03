@@ -70,9 +70,9 @@
                 <Grid Grid.Row="1" Margin="0,8,0,6">
                     <TextBlock Text="{Binding Summary}" Style="{StaticResource BodyStrong}" VerticalAlignment="Center" FontSize="12"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Style="{StaticResource BtnGhost}" Content="ADD ROW" Command="{Binding AddRowCommand}"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="REMOVE ROW" Command="{Binding RemoveRowCommand}" Margin="6,0,0,0"/>
-                        <Button Style="{StaticResource BtnYellow}" Content="RE-CHECK" Command="{Binding RecheckCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Add row" Command="{Binding AddRowCommand}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Remove row" Command="{Binding RemoveRowCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="Re-check" Command="{Binding RecheckCommand}" Margin="6,0,0,0"/>
                     </StackPanel>
                 </Grid>
 
@@ -127,7 +127,7 @@
 
                 <Border Grid.Row="3" Style="{StaticResource Card}" Padding="10" Margin="0,8,0,0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="CHECKS" Style="{StaticResource PanelTitle}" Margin="0,0,0,4"/>
+                        <TextBlock DockPanel.Dock="Top" Text="Checks" Style="{StaticResource PanelTitle}" Margin="0,0,0,4"/>
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding Issues}">
                                 <ItemsControl.ItemTemplate>
@@ -148,8 +148,8 @@
         <Grid Grid.Row="2">
             <TextBlock Text="Errors do not block saving, but every saved line keeps its source (TEXT / OCR / VISION / MANUAL)." Style="{StaticResource Small}" VerticalAlignment="Center"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Style="{StaticResource BtnGhost}" Content="CANCEL" Command="{Binding CancelCommand}"/>
-                <Button Style="{StaticResource BtnPrimary}" Content="ACCEPT AND SAVE" Command="{Binding AcceptCommand}" Margin="8,0,0,0"/>
+                <Button Style="{StaticResource BtnGhost}" Content="Cancel" Command="{Binding CancelCommand}"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="Accept and save" Command="{Binding AcceptCommand}" Margin="8,0,0,0"/>
             </StackPanel>
         </Grid>
     </Grid>

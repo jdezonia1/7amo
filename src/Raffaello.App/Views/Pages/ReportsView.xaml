@@ -7,7 +7,7 @@
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="16"/><ColumnDefinition Width="420"/></Grid.ColumnDefinitions>
             <StackPanel>
                 <TextBlock Text="{Binding ScopeText}" Style="{StaticResource Label}" Margin="0,0,0,10"/>
-                <TextBlock Text="PROJECT REPORTS (ROOM LEDGER, INVOICES, MATERIALS, VARIATIONS, ACONEX)" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                <TextBlock Text="Project reports (room ledger, invoices, materials, variations, ACONEX)" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                 <ItemsControl ItemsSource="{Binding ProjectCards}" Margin="0,0,0,10">
                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -15,7 +15,7 @@
                             <Border Style="{StaticResource Card}" Margin="0,0,12,12">
                                 <DockPanel>
                                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,12,0,0">
-                                        <Button Style="{StaticResource BtnYellow}" Content="EXCEL" Margin="0,0,6,0"
+                                        <Button Style="{StaticResource BtnYellow}" Content="Excel" Margin="0,0,6,0"
                                                 Command="{Binding DataContext.ProjectReportCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding XlsxParam}"/>
                                         <Button Style="{StaticResource BtnGhost}" Content="PDF"
                                                 Command="{Binding DataContext.ProjectReportCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding PdfParam}"/>
@@ -30,14 +30,14 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <!-- [insights] begin -->
-                <TextBlock Text="INSIGHTS (WARNINGS, RECONCILIATION, BENCHMARK, FORECASTS)" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                <TextBlock Text="Insights (warnings, reconciliation, benchmark, forecasts)" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                 <ItemsControl DataContext="{Binding InsightsReports}" ItemsSource="{Binding Cards}" Margin="0,0,0,10">
                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,12">
                                 <DockPanel>
-                                    <Button DockPanel.Dock="Bottom" Style="{StaticResource BtnYellow}" HorizontalAlignment="Left" Margin="0,12,0,0" Content="EXCEL"
+                                    <Button DockPanel.Dock="Bottom" Style="{StaticResource BtnYellow}" HorizontalAlignment="Left" Margin="0,12,0,0" Content="Excel"
                                             Command="{Binding DataContext.RunCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding Key}"/>
                                     <StackPanel>
                                         <TextBlock Text="{Binding Name}" Style="{StaticResource PanelTitle}"/>
@@ -49,7 +49,7 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <!-- [insights] end -->
-                <TextBlock Text="DEMO CHAIN REPORTS" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                <TextBlock Text="Demo chain reports" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                 <ItemsControl ItemsSource="{Binding Cards}">
                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -58,7 +58,7 @@
                                 <DockPanel>
                                     <Button DockPanel.Dock="Bottom" Style="{StaticResource BtnYellow}" HorizontalAlignment="Left" Margin="0,12,0,0"
                                             Command="{Binding DataContext.RunCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Kind}">
-                                        <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconExport}" Width="14" Height="14" Foreground="{DynamicResource OnYellowBrush}"/><TextBlock Text="RUN" Margin="6,0,0,0"/></StackPanel>
+                                        <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconExport}" Width="14" Height="14" Foreground="{DynamicResource InkBrush}"/><TextBlock Text="Run" Margin="6,0,0,0"/></StackPanel>
                                     </Button>
                                     <StackPanel>
                                         <TextBlock Text="{Binding Name}" Style="{StaticResource PanelTitle}"/>
@@ -73,7 +73,7 @@
             <StackPanel Grid.Column="2">
                 <Border Style="{StaticResource Card}">
                     <StackPanel>
-                        <TextBlock Text="THIS WEEK AT A GLANCE" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                        <TextBlock Text="This week at a glance" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                         <ItemsControl ItemsSource="{Binding Summary}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -92,7 +92,7 @@
                 </Border>
                 <Border Style="{StaticResource Card}" Margin="0,16,0,0">
                     <StackPanel>
-                        <TextBlock Text="BY STAGE  |  NEVER SUMMED" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                        <TextBlock Text="By stage  |  Never summed" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                         <ItemsControl ItemsSource="{Binding Stages}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -105,9 +105,9 @@
                                             <ProgressBar Style="{StaticResource SlimProgress}" Value="{Binding DonePct, Mode=OneWay}" Margin="0,4,0,4"/>
                                             <TextBlock Style="{StaticResource Num}" TextAlignment="Left" FontSize="11" Foreground="{DynamicResource Ink2Brush}">
                                                 <Run Text="QS"/> <Run Text="{Binding Qs, StringFormat=N0, Mode=OneWay}"/>
-                                                <Run Text="  GIVEN"/> <Run Text="{Binding Given, StringFormat=N0, Mode=OneWay}"/>
-                                                <Run Text="  DONE"/> <Run Text="{Binding Done, StringFormat=N0, Mode=OneWay}"/>
-                                                <Run Text="  CLAIMED"/> <Run Text="{Binding Claimed, StringFormat=N0, Mode=OneWay}"/>
+                                                <Run Text="  Given"/> <Run Text="{Binding Given, StringFormat=N0, Mode=OneWay}"/>
+                                                <Run Text="  Done"/> <Run Text="{Binding Done, StringFormat=N0, Mode=OneWay}"/>
+                                                <Run Text="  Claimed"/> <Run Text="{Binding Claimed, StringFormat=N0, Mode=OneWay}"/>
                                             </TextBlock>
                                         </StackPanel>
                                     </Border>

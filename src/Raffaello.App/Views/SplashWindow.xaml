@@ -9,10 +9,10 @@
             <Border Height="3" VerticalAlignment="Top" Background="{DynamicResource AccentBrush}" CornerRadius="18,18,0,0"/>
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <c:LogoMark Width="96" Height="96" ShowTile="False" HorizontalAlignment="Center"/>
-                <TextBlock Text="R A F F A E L L O" Style="{StaticResource Wordmark}" FontSize="34" HorizontalAlignment="Center" Margin="0,18,0,0"/>
+                <TextBlock Text="R a f f a e l l o" Style="{StaticResource Wordmark}" FontSize="34" HorizontalAlignment="Center" Margin="0,18,0,0"/>
                 <TextBlock Text="Every quantity. One chain." FontFamily="{StaticResource FontSans}" FontSize="14" Foreground="{StaticResource BrandGoldBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
                 <TextBlock x:Name="StatusText" Text="Starting..." FontFamily="{StaticResource FontMono}" FontSize="12" Foreground="{StaticResource SidebarMutedBrush}" HorizontalAlignment="Center" Margin="0,26,0,0"/>
-                <Border Width="220" Height="3" Background="#2A2424" CornerRadius="2" Margin="0,10,0,0" ClipToBounds="True">
+                <Border Width="220" Height="3" Background="{StaticResource SidebarBorderBrush}" CornerRadius="2" Margin="0,10,0,0" ClipToBounds="True">
                     <Border x:Name="Bar" Width="60" HorizontalAlignment="Left" Background="{DynamicResource AccentBrush}" CornerRadius="2">
                         <Border.RenderTransform><TranslateTransform x:Name="BarShift"/></Border.RenderTransform>
                         <Border.Triggers>
@@ -27,7 +27,7 @@
                     </Border>
                 </Border>
             </StackPanel>
-            <TextBlock Text="MOBCO  |  RAFFLES HOTEL &amp; BRANDED RESIDENCES  |  RIYADH" FontFamily="{StaticResource FontDisplay}" FontSize="12"
+            <TextBlock Text="MOBCO  |  RAFFLES HOTEL &amp; BRANDED residences  |  Riyadh" FontFamily="{StaticResource FontDisplay}" FontSize="12"
                        Foreground="{StaticResource SidebarMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,16"/>
         </Grid>
     </Border>

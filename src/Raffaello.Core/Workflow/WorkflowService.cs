@@ -99,6 +99,108 @@ public sealed class WorkflowService
         _p.Reload();
     }
 
+    // ------------------------------------------------------------------ [tracker] rates + statement entry
+
+    /// <summary>Rates and amounts of claim lines (manual / imported RATE rules first, then the subcontractor's contract).</summary>
+    public RateBook Rates() => RateBook.From(_p.Snapshot, MappingOptions());
+
+    /// <summary>Sets (or replaces) a manual rate for a subcontractor (blank = every subcontractor) x stage|item, optionally for an invoice period. Audited.</summary>
+    public void SetRate(string subcontractor, string stage, string item, double rate, double? stagePct, int? invoiceFrom, int? invoiceTo, string note)
+    {
+        var scope = RateRules.Scope(subcontractor);
+        var key = RateRules.Key(stage, item, invoiceFrom, invoiceTo);
+        var target = RateRules.Target(rate, stagePct);
+        var existing = _p.Snapshot.MappingRules.FirstOrDefault(r => r.Kind == RateRules.Kind && r.ContractNo == scope && string.Equals(r.MatchKey, key, StringComparison.OrdinalIgnoreCase));
+        var by = note.Trim().Length > 0 ? note.Trim() : "manual rate";
+        if (existing != null)
+        {
+            var old = existing.Target;
+            existing.Target = target; existing.Note = by; existing.UseCount++;
+            _p.Store.Update(existing, $"Rate {scope} {key}: {old} -> {target} ({by})");
+        }
+        else _p.Store.Insert(new MappingRule { Kind = RateRules.Kind, ContractNo = scope, MatchKey = key, Target = target, Note = by, UseCount = 1 }, $"Rate set {scope} {key} = {target} ({by})");
+        _p.Reload();
+    }
+
+    /// <summary>Removes a manual rate (the contract rate applies again). Audited.</summary>
+    public bool ClearRate(string subcontractor, string stage, string item, int? invoiceFrom = null, int? invoiceTo = null)
+    {
+        var scope = RateRules.Scope(subcontractor);
+        var key = RateRules.Key(stage, item, invoiceFrom, invoiceTo);
+        var existing = _p.Snapshot.MappingRules.FirstOrDefault(r => r.Kind == RateRules.Kind && r.ContractNo == scope && string.Equals(r.MatchKey, key, StringComparison.OrdinalIgnoreCase));
+        if (existing is null) return false;
+        _p.Store.Delete(existing, $"Rate removed {scope} {key} (was {existing.Target})");
+        _p.Reload();
+        return true;
+    }
+
+    /// <summary>Imports a MAPPING sheet as default rate rules; existing rules for the same scope + key are replaced. Returns (added, replaced).</summary>
+    public (int Added, int Replaced) ImportRateRules(IEnumerable<MappingRule> rules)
+    {
+        int added = 0, replaced = 0;
+        foreach (var r in rules)
+        {
+            var existing = _p.Snapshot.MappingRules.FirstOrDefault(x => x.Kind == RateRules.Kind && x.ContractNo == r.ContractNo && string.Equals(x.MatchKey, r.MatchKey, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+            {
+                if (existing.Target == r.Target) continue;
+                existing.Target = r.Target; existing.Note = r.Note; existing.UseCount++;
+                _p.Store.Update(existing, $"Rate imported {r.ContractNo} {r.MatchKey} = {r.Target}");
+                replaced++;
+            }
+            else { _p.Store.Insert(r, $"Rate imported {r.ContractNo} {r.MatchKey} = {r.Target}"); added++; }
+        }
+        _p.Reload();
+        return (added, replaced);
+    }
+
+    /// <summary>Sets an invoice's drawing status by hand (PENDING / DONE; blank = automatic). Audited.</summary>
+    public void SetInvoiceDrawingStatus(string subcontractor, string building, int invoiceNo, string status)
+    {
+        var scope = InvoiceStatusList.RuleScope(subcontractor, building);
+        var key = InvoiceStatusList.RuleKey(invoiceNo);
+        var existing = _p.Snapshot.MappingRules.FirstOrDefault(r => r.Kind == DrawingStatus.RuleKind && r.ContractNo == scope && r.MatchKey == key);
+        if (string.IsNullOrWhiteSpace(status))
+        {
+            if (existing != null) _p.Store.Delete(existing, $"Invoice status {subcontractor} INV {invoiceNo} ({building}): back to automatic");
+        }
+        else if (existing != null)
+        {
+            existing.Target = status.Trim().ToUpperInvariant();
+            _p.Store.Update(existing, $"Invoice status {subcontractor} INV {invoiceNo} ({building}): {existing.Target}");
+        }
+        else _p.Store.Insert(new MappingRule { Kind = DrawingStatus.RuleKind, ContractNo = scope, MatchKey = key, Target = status.Trim().ToUpperInvariant(), Note = "manual", UseCount = 1 },
+            $"Invoice status {subcontractor} INV {invoiceNo} ({building}): {status.Trim().ToUpperInvariant()}");
+        _p.Reload();
+    }
+    /// <summary>Plans a statement against the current balances (nothing is written).</summary>
+    public List<PlannedLine> PlanStatement(StatementDraft draft) => StatementPlanner.Plan(draft, Balance);
+
+    /// <summary>
+    /// Posts a statement: each planned line goes through the normal claim check (<see cref="AddClaim"/>, append-only); the statement is
+    /// recorded in the site statement history (direction IN). Returns the plan used and the messages of lines that could not be posted.
+    /// </summary>
+    public (List<PlannedLine> Plan, int Posted, List<string> Problems) PostStatement(StatementDraft draft)
+    {
+        var plan = PlanStatement(draft);
+        var problems = new List<string>();
+        var posted = 0;
+        foreach (var (p, claim, reason) in StatementPlanner.ToClaims(draft.Header, plan))
+        {
+            var check = AddClaim(claim, reason);
+            if (check.CanPost) posted++;
+            else problems.Add($"{claim.Room} {claim.Stage} {claim.Item} {claim.Qty:0}: {check.Message}");
+        }
+        _p.Store.Insert(new SiteStatement
+        {
+            Subcontractor = draft.Header.Subcontractor.Trim().ToUpperInvariant(), StatementNo = draft.Header.StatementNo, Direction = "IN",
+            FileName = "STATEMENT ENTRY", Lines = posted, At = DateTime.Now,
+            ContentHash = $"ENTRY|{draft.Header.Building}|INV{draft.Header.InvoiceNo}|{draft.Lines.Sum(l => l.Claimed)}",
+        }, $"Statement {draft.Header.StatementNo} {draft.Header.Subcontractor} INV {draft.Header.InvoiceNo}: {posted} lines posted, claimed {draft.Lines.Sum(l => l.Claimed)}, certified {plan.Sum(p => p.Post)}");
+        _p.Reload();
+        draft.Posted = true;
+        return (plan, posted, problems);
+    }
     public MappingResult Map(string contractNo, string subcontractor, int upToInvoice)
     {
         var s = _p.Snapshot;

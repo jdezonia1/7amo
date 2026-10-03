@@ -32,7 +32,7 @@
                 </Grid.ColumnDefinitions>
                 <ContentControl Style="{StaticResource HeroCard}" Margin="0,0,16,0">
                     <StackPanel>
-                        <TextBlock Text="CERTIFIED TO DATE" FontFamily="{StaticResource FontSansSemi}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource YellowBrush}"/>
+                        <TextBlock Text="Certified to date" FontFamily="{StaticResource FontSansSemi}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource YellowBrush}"/>
                         <TextBlock Text="{Binding HeroValue}" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" FontSize="32" Foreground="{DynamicResource HeroInkBrush}" Margin="0,4,0,0"/>
                         <TextBlock Text="{Binding HeroDetail}" FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{DynamicResource HeroInkBrush}" Opacity="0.7" TextWrapping="Wrap"/>
                     </StackPanel>
@@ -67,11 +67,11 @@
                 <DockPanel>
                     <Grid DockPanel.Dock="Top">
                         <StackPanel>
-                            <TextBlock Text="S-CURVE  |  PLANNED vs ACTUAL" Style="{StaticResource PanelTitle}"/>
+                            <TextBlock Text="S-curve  |  Planned vs actual" Style="{StaticResource PanelTitle}"/>
                             <TextBlock Text="Cumulative %, weekly, approved WIR (rework excluded), mean of stages" Style="{StaticResource Small}" FontSize="11"/>
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Right">
-                            <TextBlock Text="FORECAST COMPLETION" Style="{StaticResource Label}" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Forecast completion" Style="{StaticResource Label}" HorizontalAlignment="Right"/>
                             <TextBlock Text="{Binding ForecastText}" Style="{StaticResource KpiValue}" FontSize="22" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right"/>
                         </StackPanel>
                     </Grid>
@@ -84,7 +84,7 @@
             <Border Grid.Row="2" Grid.RowSpan="5" Grid.Column="4" Style="{StaticResource Card}">
                 <DockPanel>
                     <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
-                        <TextBlock Text="NEEDS YOU TODAY" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Needs you today" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="{Binding QueueCount}" Style="{StaticResource Label}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </Grid>
                     <ListBox x:Name="QueueList" Style="{StaticResource CardList}" ItemsSource="{Binding Queue}" SelectionChanged="Queue_SelectionChanged">
@@ -112,7 +112,7 @@
             <Border Grid.Row="4" Style="{StaticResource Card}">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="THE CHAIN  |  FUNNEL" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="The chain  |  Funnel" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="{Binding FunnelNote}" Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                     <lvc:CartesianChart Series="{Binding Funnel}" XAxes="{Binding FunnelX}" YAxes="{Binding FunnelY}" LegendPosition="Top" TooltipPosition="Top"/>
@@ -123,7 +123,7 @@
             <Border Grid.Row="4" Grid.Column="2" Style="{StaticResource Card}">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="POINTS BY SYSTEM" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Points by system" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="QS points of one stage (stages measure the same points)" Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                     <Grid>
@@ -139,7 +139,7 @@
             <Border Grid.Row="6" Style="{StaticResource Card}">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="HEATMAP  |  LEVEL x SYSTEM, % GIVEN" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Heatmap  |  Level x system, % given" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="Darker = more given to subcontractors" Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                     <lvc:CartesianChart Series="{Binding Heat}" XAxes="{Binding HeatX}" YAxes="{Binding HeatY}" LegendPosition="Hidden" TooltipPosition="Top"/>
@@ -150,7 +150,7 @@
             <Border Grid.Row="6" Grid.Column="2" Style="{StaticResource Card}">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="OPEN WIR AGEING" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Open WIR ageing" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="Days since submission, open WIRs in scope" Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                     <lvc:CartesianChart Series="{Binding Ageing}" XAxes="{Binding AgeingX}" YAxes="{Binding AgeingY}" LegendPosition="Hidden" TooltipPosition="Top"/>
@@ -161,7 +161,7 @@
             <Border Grid.Row="8" Style="{StaticResource Card}">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="CASH FLOW  |  CLAIMED vs CERTIFIED" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Cash flow  |  Claimed vs certified" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="Monthly increments of cumulative statements, SAR, with cumulative certified" Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                     <lvc:CartesianChart Series="{Binding Cash}" XAxes="{Binding CashX}" YAxes="{Binding CashY}" LegendPosition="Top" TooltipPosition="Top"/>
@@ -172,7 +172,7 @@
             <Border Grid.Row="8" Grid.Column="2" Style="{StaticResource Card}">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="DONE % BY SYSTEM AND STAGE" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Done % by system and stage" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="Approved WIR / QS - stages side by side" Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                     <lvc:CartesianChart Series="{Binding Systems}" XAxes="{Binding SystemsX}" YAxes="{Binding SystemsY}" LegendPosition="Top" TooltipPosition="Top"/>
@@ -182,7 +182,7 @@
             <!-- Activity -->
             <Border Grid.Row="8" Grid.Column="4" Style="{StaticResource Card}">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="ACTIVITY" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Activity" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Activity}">
                             <ItemsControl.ItemTemplate>

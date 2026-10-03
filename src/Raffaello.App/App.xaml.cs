@@ -111,6 +111,7 @@ public partial class App : Application
         Raffaello.App.Resources.LocService.Instance.Apply(uiLanguage);
         // [assistant] end
         var theme = new ThemeService();
+        theme.DarkDepth = settings.DarkDepth;
         theme.Apply(settings.Theme, settings.Accent);
         Step("language + theme applied");
 
@@ -163,6 +164,8 @@ public partial class App : Application
                     Theme = sp.GetRequiredService<ThemeService>(),
                 });
                 s.AddSingleton<PageViewModel, WelcomeViewModel>();
+                s.AddSingleton<PageViewModel, HomeViewModel>();       // [home] level 1 tiles / level 2 lists
+                s.AddSingleton<PageViewModel, TrackingViewModel>();   // [tracker] the MEP tracking sheet mirror
                 s.AddSingleton<PageViewModel, DashboardViewModel>();
                 s.AddSingleton<PageViewModel, LedgerViewModel>();
                 s.AddSingleton<PageViewModel, ChecksViewModel>();
@@ -306,7 +309,7 @@ public partial class App : Application
         window.Show();
         splash.Close();
         Step("main window shown");
-        main.Go("Welcome");
+        main.Go("Home");   // [home] start on the big tiles (TODAY = SUMMARY > TODAY)
         // [assistant] begin: the morning brief is the first screen of the day; notifications start
         {
             var assistant = sp.GetRequiredService<Services.Assistant.AssistantHost>();

@@ -6,7 +6,7 @@
 
         <Border Style="{StaticResource Card}" Padding="12">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="VALUATIONS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                <TextBlock DockPanel.Dock="Top" Text="Valuations" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
                 <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Valuations}" SelectedItem="{Binding Selected, Mode=TwoWay}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
@@ -29,17 +29,17 @@
             <Grid Margin="0,0,0,8">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Text="MOS NO" Style="{StaticResource Label}"/>
+                    <TextBlock Text="MOS no" Style="{StaticResource Label}"/>
                     <TextBox Text="{Binding No, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                    <TextBlock Text="PERIOD TO" Style="{StaticResource Label}"/>
+                    <TextBlock Text="Period to" Style="{StaticResource Label}"/>
                     <TextBox Text="{Binding PeriodTo, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                    <Button Style="{StaticResource BtnPrimary}" Content="BUILD" Command="{Binding BuildCommand}"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="SAVE DRAFT" Command="{Binding SaveCommand}" Margin="6,0,0,0"/>
-                    <Button Style="{StaticResource BtnYellow}" Content="EXPORT EXCEL + PDF" Command="{Binding ExportCommand}" Margin="6,0,0,0"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Build" Command="{Binding BuildCommand}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Save draft" Command="{Binding SaveCommand}" Margin="6,0,0,0"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="Export excel + PDF" Command="{Binding ExportCommand}" Margin="6,0,0,0"/>
                 </StackPanel>
             </Grid>
             <StackPanel Grid.Row="1" Margin="0,0,0,8">
@@ -93,10 +93,10 @@
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                 <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,8">
                     <StackPanel Orientation="Horizontal">
-                        <StackPanel><TextBlock Text="BOQ CODE" Style="{StaticResource Label}"/><TextBox Style="{StaticResource Input}" Text="{Binding NewInstalledCode, UpdateSourceTrigger=PropertyChanged}" Width="200"/></StackPanel>
-                        <StackPanel Margin="8,0,0,0"><TextBlock Text="INSTALLED QTY (CUMULATIVE ADDITION)" Style="{StaticResource Label}"/><TextBox Style="{StaticResource Input}" Text="{Binding NewInstalledQty, UpdateSourceTrigger=PropertyChanged}" Width="120"/></StackPanel>
-                        <StackPanel Margin="8,0,0,0"><TextBlock Text="NOTE" Style="{StaticResource Label}"/><TextBox Style="{StaticResource Input}" Text="{Binding NewInstalledNote, UpdateSourceTrigger=PropertyChanged}" Width="220"/></StackPanel>
-                        <Button Style="{StaticResource BtnPrimary}" Content="ADD (AS OF PERIOD TO)" Command="{Binding AddInstalledCommand}" VerticalAlignment="Bottom" Margin="8,0,0,0"/>
+                        <StackPanel><TextBlock Text="BOQ code" Style="{StaticResource Label}"/><TextBox Style="{StaticResource Input}" Text="{Binding NewInstalledCode, UpdateSourceTrigger=PropertyChanged}" Width="200"/></StackPanel>
+                        <StackPanel Margin="8,0,0,0"><TextBlock Text="Installed QTY (cumulative addition)" Style="{StaticResource Label}"/><TextBox Style="{StaticResource Input}" Text="{Binding NewInstalledQty, UpdateSourceTrigger=PropertyChanged}" Width="120"/></StackPanel>
+                        <StackPanel Margin="8,0,0,0"><TextBlock Text="Note" Style="{StaticResource Label}"/><TextBox Style="{StaticResource Input}" Text="{Binding NewInstalledNote, UpdateSourceTrigger=PropertyChanged}" Width="220"/></StackPanel>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Add (as of period to)" Command="{Binding AddInstalledCommand}" VerticalAlignment="Bottom" Margin="8,0,0,0"/>
                     </StackPanel>
                 </Border>
                 <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding Installed}">
@@ -129,22 +129,22 @@
         <StackPanel Grid.Column="4">
             <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
                 <StackPanel>
-                    <TextBlock Text="WORKFLOW" Style="{StaticResource PanelTitle}"/>
-                    <TextBlock Text="ACONEX WORKFLOW NO" Style="{StaticResource Label}" Margin="0,8,0,0"/>
+                    <TextBlock Text="Workflow" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="ACONEX workflow no" Style="{StaticResource Label}" Margin="0,8,0,0"/>
                     <TextBox Style="{StaticResource Input}" Text="{Binding AconexNo, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="SUBMIT" Command="{Binding SubmitCommand}" Margin="0,6,0,0"/>
-                    <TextBlock Text="REJECTION REASON" Style="{StaticResource Label}" Margin="0,10,0,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Submit" Command="{Binding SubmitCommand}" Margin="0,6,0,0"/>
+                    <TextBlock Text="Rejection reason" Style="{StaticResource Label}" Margin="0,10,0,0"/>
                     <TextBox Style="{StaticResource Input}" Text="{Binding RejectReason, UpdateSourceTrigger=PropertyChanged}"/>
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                        <Button Style="{StaticResource BtnGhost}" Content="REJECT" Command="{Binding RejectCommand}"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="NEW REVISION" Command="{Binding NewRevisionCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Reject" Command="{Binding RejectCommand}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="New revision" Command="{Binding NewRevisionCommand}" Margin="6,0,0,0"/>
                     </StackPanel>
-                    <Button Style="{StaticResource BtnPrimary}" Content="APPROVE AND LOCK" Command="{Binding ApproveCommand}" Margin="0,10,0,0"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Approve and lock" Command="{Binding ApproveCommand}" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource Card}" Padding="12" Visibility="{Binding IsLedger, Converter={StaticResource BoolToVis}}">
                 <StackPanel>
-                    <TextBlock Text="OWNER BOQ CODE FOR THE DN LINE" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="Owner BOQ code for the DN line" Style="{StaticResource PanelTitle}"/>
                     <TextBlock Text="{Binding SelectedLedger.Line.Description}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap" Margin="0,4,0,6"/>
                     <ListBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion, Mode=TwoWay}" Style="{StaticResource CardList}" MaxHeight="240">
                         <ListBox.ItemTemplate>
@@ -156,9 +156,9 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <TextBlock Text="OR TYPE THE CODE" Style="{StaticResource Label}" Margin="0,8,0,0"/>
+                    <TextBlock Text="Or type the code" Style="{StaticResource Label}" Margin="0,8,0,0"/>
                     <TextBox Style="{StaticResource Input}" Text="{Binding TypedCode, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Button Style="{StaticResource BtnPrimary}" Content="SET AND LEARN" Command="{Binding SetCodeCommand}" Margin="0,8,0,0"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Set and learn" Command="{Binding SetCodeCommand}" Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
         </StackPanel>

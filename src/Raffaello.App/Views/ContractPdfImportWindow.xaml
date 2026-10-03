@@ -22,7 +22,7 @@
                 <TextBlock Text="Every extracted field has a box on the page: green = sure, yellow = check, dark red = conflict / low / derived, blue = confirmed by you. Click a box or a row; F8 = next field that needs a look. Nothing is saved until SAVE." Style="{StaticResource Small}" TextWrapping="Wrap"/>
             </StackPanel>
             <StackPanel Grid.Column="1">
-                <TextBlock Text="CONTRACT NO" Style="{StaticResource Label}"/>
+                <TextBlock Text="Contract no" Style="{StaticResource Label}"/>
                 <TextBox Text="{Binding ContractNo, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
         </Grid>
@@ -60,11 +60,11 @@
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="BorderThickness" Value="3"/>
-                                                    <Setter Property="Background" Value="#10000000"/>
+                                                    <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                                             <Setter Property="BorderThickness" Value="7"/>
-                                                            <Setter Property="Background" Value="#40FFFF00"/>
+                                                            <Setter Property="Background" Value="{DynamicResource YellowSoftBrush}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -84,9 +84,9 @@
                 <Grid Grid.Row="1" Margin="0,8,0,8">
                     <TextBlock Text="{Binding Summary}" Style="{StaticResource BodyStrong}" FontSize="11" TextWrapping="Wrap" Margin="0,0,330,0"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                        <Button Style="{StaticResource BtnGhost}" Content="NEXT TO REVIEW (F8)" Command="{Binding NextLowCommand}"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="RE-CHECK" Command="{Binding RecheckCommand}" Margin="6,0,0,0"/>
-                        <Button Style="{StaticResource BtnYellow}" Content="ACCEPT SUGGESTIONS" Command="{Binding AcceptSuggestionsCommand}" Margin="6,0,0,0"
+                        <Button Style="{StaticResource BtnGhost}" Content="Next to review (f8)" Command="{Binding NextLowCommand}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Re-check" Command="{Binding RecheckCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="Accept suggestions" Command="{Binding AcceptSuggestionsCommand}" Margin="6,0,0,0"
                                 ToolTip="Signed PDF where it was read with confidence, else the Excel; you can still change each row"/>
                     </StackPanel>
                 </Grid>
@@ -155,9 +155,9 @@
         <Grid Grid.Row="2">
             <TextBlock Text="The signed PDF is kept as evidence (SHA-256) and every page goes into the search index. Contract rules only ever WARN." Style="{StaticResource Small}" VerticalAlignment="Center"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Style="{StaticResource BtnGhost}" Content="CANCEL" Command="{Binding CancelCommand}"/>
-                <Button Style="{StaticResource BtnGhost}" Content="SAVE CONTRACT" Command="{Binding SaveCommand}" Margin="8,0,0,0"/>
-                <Button Style="{StaticResource BtnPrimary}" Content="CONFIRM &amp; LEARN" Command="{Binding SaveAndLearnCommand}" Margin="8,0,0,0"
+                <Button Style="{StaticResource BtnGhost}" Content="Cancel" Command="{Binding CancelCommand}"/>
+                <Button Style="{StaticResource BtnGhost}" Content="Save contract" Command="{Binding SaveCommand}" Margin="8,0,0,0"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="Confirm &amp; learn" Command="{Binding SaveAndLearnCommand}" Margin="8,0,0,0"
                         ToolTip="Save, and remember this layout (columns, anchors) for the next contract of the same form"/>
             </StackPanel>
         </Grid>

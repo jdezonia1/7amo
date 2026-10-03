@@ -2,20 +2,20 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <!-- Families (bundled under Assets/Fonts, with system fallbacks) -->
-    <FontFamily x:Key="FontDisplay">pack://application:,,,/Assets/Fonts/#Barlow Condensed, Arial Narrow, Segoe UI</FontFamily>
-    <FontFamily x:Key="FontDisplaySemi">pack://application:,,,/Assets/Fonts/#Barlow Condensed SemiBold, pack://application:,,,/Assets/Fonts/#Barlow Condensed, Arial Narrow, Segoe UI</FontFamily>
-    <FontFamily x:Key="FontSans">pack://application:,,,/Assets/Fonts/#IBM Plex Sans, Segoe UI</FontFamily>
-    <FontFamily x:Key="FontSansSemi">pack://application:,,,/Assets/Fonts/#IBM Plex Sans SemiBold, pack://application:,,,/Assets/Fonts/#IBM Plex Sans, Segoe UI</FontFamily>
-    <FontFamily x:Key="FontMono">pack://application:,,,/Assets/Fonts/#IBM Plex Mono Medium, pack://application:,,,/Assets/Fonts/#IBM Plex Mono, Consolas</FontFamily>
-    <FontFamily x:Key="FontMonoBold">pack://application:,,,/Assets/Fonts/#IBM Plex Mono, Consolas</FontFamily>
+    <!-- Families: one calm UI font (Segoe UI; its digits are tabular, so numbers line up). FontBrand stays for the wordmark. -->
+    <FontFamily x:Key="FontDisplay">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontDisplaySemi">Segoe UI Variable Text Semibold, Segoe UI Semibold, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontSans">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontSansSemi">Segoe UI Variable Text Semibold, Segoe UI Semibold, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontMono">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontMonoBold">Segoe UI Variable Text Semibold, Segoe UI Semibold, Segoe UI</FontFamily>
     <FontFamily x:Key="FontBrand">pack://application:,,,/Assets/Fonts/#Cinzel ExtraBold, Times New Roman</FontFamily>
 
     <!-- Radii -->
-    <CornerRadius x:Key="RadiusTag">6</CornerRadius>
-    <CornerRadius x:Key="RadiusRow">10</CornerRadius>
-    <CornerRadius x:Key="RadiusBtn">12</CornerRadius>
-    <CornerRadius x:Key="RadiusCard">16</CornerRadius>
+    <CornerRadius x:Key="RadiusTag">3</CornerRadius>
+    <CornerRadius x:Key="RadiusRow">4</CornerRadius>
+    <CornerRadius x:Key="RadiusBtn">4</CornerRadius>
+    <CornerRadius x:Key="RadiusCard">6</CornerRadius>
 
     <!-- Spacing -->
     <Thickness x:Key="Space1">4</Thickness>
@@ -24,25 +24,30 @@
     <Thickness x:Key="Space4">16</Thickness>
     <Thickness x:Key="Space6">24</Thickness>
     <Thickness x:Key="PagePadding">24,16,24,24</Thickness>
-    <Thickness x:Key="CardPadding">16</Thickness>
+    <Thickness x:Key="CardPadding">12</Thickness>
 
     <!-- Type scale -->
-    <sys:Double x:Key="SizePageTitle">28</sys:Double>
-    <sys:Double x:Key="SizeKpi">32</sys:Double>
-    <sys:Double x:Key="SizePanelTitle">18</sys:Double>
-    <sys:Double x:Key="SizeTab">14</sys:Double>
-    <sys:Double x:Key="SizeBody">14</sys:Double>
+    <sys:Double x:Key="SizePageTitle">20</sys:Double>
+    <sys:Double x:Key="SizeKpi">22</sys:Double>
+    <sys:Double x:Key="SizePanelTitle">14</sys:Double>
+    <sys:Double x:Key="SizeTab">13</sys:Double>
+    <sys:Double x:Key="SizeBody">13</sys:Double>
     <sys:Double x:Key="SizeLabel">11</sys:Double>
-    <sys:Double x:Key="SizeTag">10</sys:Double>
+    <sys:Double x:Key="SizeTag">11</sys:Double>
     <sys:Double x:Key="SizeNum">13</sys:Double>
 
     <!-- Fixed brand colours (same in both themes) -->
-    <Color x:Key="SidebarColor">#151213</Color>
-    <SolidColorBrush x:Key="SidebarBrush" Color="#151213"/>
-    <SolidColorBrush x:Key="SidebarInkBrush" Color="#F3EFEE"/>
-    <SolidColorBrush x:Key="SidebarMutedBrush" Color="#8F8686"/>
-    <SolidColorBrush x:Key="SidebarHoverBrush" Color="#2A2424"/>
+    <Color x:Key="SidebarColor">#000000</Color>
+    <SolidColorBrush x:Key="SidebarBrush" Color="#000000"/>
+    <SolidColorBrush x:Key="SidebarInkBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="SidebarMutedBrush" Color="#A6A6A6"/>
+    <SolidColorBrush x:Key="SidebarHoverBrush" Color="#1A1A1A"/>
     <SolidColorBrush x:Key="BrandGoldBrush" Color="#E3AE12"/>
-    <SolidColorBrush x:Key="BrandRedBrush" Color="#8E1B22"/>
+    <SolidColorBrush x:Key="BrandRedBrush" Color="#5C0000"/>
     <SolidColorBrush x:Key="BrandYellowBrush" Color="#FFFF00"/>
+    <!-- brand red band (side bar header), the same in both themes -->
+    <SolidColorBrush x:Key="BrandBandBrush" Color="#5C0000"/>
+    <SolidColorBrush x:Key="BrandHoverBrush" Color="#700000"/>
+    <SolidColorBrush x:Key="SidebarBorderBrush" Color="#2A2A2A"/>
+    <SolidColorBrush x:Key="SidebarInputBrush" Color="#0A0A0A"/>
 </ResourceDictionary>

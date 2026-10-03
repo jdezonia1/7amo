@@ -9,10 +9,10 @@
             <StackPanel>
                 <Border Style="{StaticResource Card}">
                     <StackPanel>
-                        <TextBlock Text="YOU AND THE DATA FILE" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
-                        <TextBlock Text="YOUR NAME (SHOWN IN AUDIT LOG AND PRESENCE)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="You and the data file" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Your name (shown in audit log and presence)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,3,0,10"/>
-                        <TextBlock Text="SHARED DATA FILE (SQLITE, WAL MODE)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Shared data file (sqlite, WAL mode)" Style="{StaticResource Label}" FontSize="10"/>
                         <Grid Margin="0,3,0,4">
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <TextBox Text="{Binding DataFilePath, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="12"/>
@@ -21,26 +21,28 @@
                         <TextBlock Text="Point everyone at the same file on the shared drive (e.g. \\server\RAFFLES\raffaello.db). Each save is checked against RowVersion; if someone else changed the row you get a warning instead of overwriting." Style="{StaticResource Small}" FontSize="11" Margin="0,0,0,10"/>
                         <CheckBox Content="Seed the demo project when the data file is empty" IsChecked="{Binding SeedDemoData}" Margin="0,4,0,10"/>
                         <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource BtnGhost}" Content="REBUILD DEMO DATA" Command="{Binding ResetDemoCommand}" Margin="0,0,8,0"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="START EMPTY" Command="{Binding StartEmptyCommand}"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Rebuild demo data" Command="{Binding ResetDemoCommand}" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Start empty" Command="{Binding StartEmptyCommand}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource Card}" Margin="0,16,0,0">
                     <StackPanel>
-                        <TextBlock Text="LOOK" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
-                        <TextBlock Text="THEME" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Look" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Theme" Style="{StaticResource Label}" FontSize="10"/>
                         <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme, Mode=TwoWay}" Margin="0,4,0,10"/>
-                        <TextBlock Text="ACCENT" Style="{StaticResource Label}" FontSize="10"/>
-                        <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent, Mode=TwoWay}" Margin="0,4,0,0"/>
+                        <TextBlock Text="Accent" Style="{StaticResource Label}" FontSize="10"/>
+                        <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent, Mode=TwoWay}" Margin="0,4,0,10"/>
+                        <TextBlock Text="Dark theme depth" Style="{StaticResource Label}" FontSize="10"/>
+                        <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding DarkDepths}" SelectedItem="{Binding DarkDepth, Mode=TwoWay}" Margin="0,4,0,0" ToolTip="Soft grey / near-black (default) / true black - applies at once"/>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource Card}" Margin="0,16,0,0" DataContext="{Binding Updates}">
                     <StackPanel>
-                        <TextBlock Text="UPDATES" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Updates" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
                         <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,8"
                                    Text="Updates are patches: only the files that changed are downloaded, then a quick build and restart. Your data is not touched."/>
-                        <TextBlock Style="{StaticResource Label}" FontSize="10"><Run Text="INSTALLED  "/><Run Text="{Binding Installed, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Style="{StaticResource Label}" FontSize="10"><Run Text="Installed  "/><Run Text="{Binding Installed, Mode=OneWay}"/></TextBlock>
                         <TextBlock Text="{Binding Folder}" Style="{StaticResource Small}" FontFamily="{StaticResource FontMono}" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,8"/>
                         <TextBlock Text="{Binding Status}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap" Margin="0,0,0,6"/>
                         <ItemsControl ItemsSource="{Binding Changes}" Margin="0,0,0,8" MaxHeight="180">
@@ -49,28 +51,28 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource BtnGhost}" Content="CHECK NOW" Command="{Binding CheckCommand}" Margin="0,0,8,0"/>
-                            <Button Style="{StaticResource BtnPrimary}" Content="UPDATE NOW" Command="{Binding UpdateNowCommand}"
+                            <Button Style="{StaticResource BtnGhost}" Content="Check now" Command="{Binding CheckCommand}" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="Update now" Command="{Binding UpdateNowCommand}"
                                     Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVis}}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource Card}" Margin="0,16,0,0">
                     <StackPanel>
-                        <TextBlock Text="INVOICE HEADER" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Invoice header" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition Width="110"/></Grid.ColumnDefinitions>
-                            <StackPanel><TextBlock Text="PROJECT CODE" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding InvoiceProjectCode}" Margin="0,3,0,0"/></StackPanel>
-                            <StackPanel Grid.Column="2"><TextBlock Text="PROJECT DIRECTOR" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding InvoiceProjectDirector}" Margin="0,3,0,0"/></StackPanel>
-                            <StackPanel Grid.Column="4"><TextBlock Text="VENDOR NO" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding InvoiceVendorNo}" Margin="0,3,0,0"/></StackPanel>
-                            <StackPanel Grid.Column="6"><TextBlock Text="15 M ROUNDING (DP)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding LengthRoundingDecimals}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel><TextBlock Text="Project code" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding InvoiceProjectCode}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="Project director" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding InvoiceProjectDirector}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="4"><TextBlock Text="Vendor no" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding InvoiceVendorNo}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="6"><TextBlock Text="15 m rounding (dp)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding LengthRoundingDecimals}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
                         </Grid>
                         <TextBlock Text="SIGNATURE NAMES (separated by ;)" Style="{StaticResource Label}" FontSize="10" Margin="0,10,0,0"/>
                         <TextBox Text="{Binding InvoiceSignatureNames}" Margin="0,3,0,0"/>
                         <TextBlock Text="SHARED DOCUMENTS FOLDER (root on the shared partition; module folders below default to sub-folders)" Style="{StaticResource Label}" Margin="0,14,0,4"/>
                         <TextBox Text="{Binding DocumentsRoot}" FontFamily="{StaticResource FontMono}"/>
                         <TextBlock Text="{Binding FoldersText}" Style="{StaticResource Small}" FontFamily="{StaticResource FontMono}" Margin="0,4,0,0"/>
-                        <TextBlock Text="HEAD-OFFICE PACKAGE" Style="{StaticResource Label}" Margin="0,14,0,4"/>
+                        <TextBlock Text="Head-office package" Style="{StaticResource Label}" Margin="0,14,0,4"/>
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
                             <StackPanel><TextBlock Text="PACKAGE OUTPUT FOLDER (empty = Documents\Raffaello\Packages)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding PackageOutputFolder}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
@@ -79,18 +81,18 @@
                         <Grid Margin="0,8,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
                             <StackPanel><TextBlock Text="PACKAGE NAME ({CONTRACT} {SUB} {INV} {REV})" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding PackageNamePattern}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
-                            <StackPanel Grid.Column="2"><TextBlock Text="TRACKER PASSWORD" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding TrackerPassword}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="Tracker password" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding TrackerPassword}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
                         </Grid>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource Card}" Margin="0,16,0,0">
                     <StackPanel>
-                        <TextBlock Text="RULES" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Rules" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                            <StackPanel><TextBlock Text="WIR DUE AFTER (DAYS)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding WirDueDays}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
-                            <StackPanel Grid.Column="2"><TextBlock Text="SITE % TOLERANCE (%)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding SiteTolerance}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
-                            <StackPanel Grid.Column="4"><TextBlock Text="PIPE LENGTH (M PER PCS)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding PipeLength}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel><TextBlock Text="WIR due after (days)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding WirDueDays}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="Site % tolerance (%)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding SiteTolerance}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="4"><TextBlock Text="Pipe length (m per pcs)" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding PipeLength}" FontFamily="{StaticResource FontMono}" Margin="0,3,0,0"/></StackPanel>
                         </Grid>
                         <ItemsControl ItemsSource="{Binding Rules}" Margin="0,12,0,0">
                             <ItemsControl.ItemTemplate>
@@ -114,32 +116,32 @@
                 <!-- [phase5] begin: data source (local file / Raffaello server) -->
                 <Border Style="{StaticResource Card}" Margin="0,0,0,16" DataContext="{Binding Server}">
                     <StackPanel>
-                        <TextBlock Text="DATA SOURCE" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Data source" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
                         <TextBlock Text="{Binding Sync.Text}" Style="{StaticResource BodyStrong}" FontSize="12"/>
                         <TextBlock Text="{Binding Sync.Detail}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <RadioButton Content="Local (this PC / shared file)" IsChecked="{Binding IsLocal}" GroupName="P5Source" Margin="0,0,16,0"/>
                             <RadioButton Content="Server (URL)" IsChecked="{Binding IsServer}" GroupName="P5Source"/>
                         </StackPanel>
-                        <TextBlock Text="SERVER ADDRESS (e.g. http://RAFFAELLO-SRV:5180)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Server address (e.g. Http://raffaello-srv:5180)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding ServerUrl, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="12" Margin="0,3,0,6"/>
                         <CheckBox Content="Sign in with my Windows account (domain PC)" IsChecked="{Binding UseWindowsAuth}" Margin="0,0,0,6"/>
                         <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <StackPanel><TextBlock Text="APP ACCOUNT" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding SignInUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,3,0,0"/></StackPanel>
-                            <StackPanel Grid.Column="2"><TextBlock Text="PASSWORD" Style="{StaticResource Label}" FontSize="10"/><PasswordBox x:Name="P5Password" Margin="0,3,0,0"/></StackPanel>
-                            <Button Grid.Column="4" Style="{StaticResource BtnGhost}" Content="SIGN IN" VerticalAlignment="Bottom" Command="{Binding SignInCommand}" CommandParameter="{Binding ElementName=P5Password}"/>
+                            <StackPanel><TextBlock Text="App account" Style="{StaticResource Label}" FontSize="10"/><TextBox Text="{Binding SignInUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,3,0,0"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="Password" Style="{StaticResource Label}" FontSize="10"/><PasswordBox x:Name="P5Password" Margin="0,3,0,0"/></StackPanel>
+                            <Button Grid.Column="4" Style="{StaticResource BtnGhost}" Content="Sign in" VerticalAlignment="Bottom" Command="{Binding SignInCommand}" CommandParameter="{Binding ElementName=P5Password}"/>
                         </Grid>
                         <WrapPanel Margin="0,0,0,6">
-                            <Button Style="{StaticResource BtnGhost}" Content="TEST CONNECTION" Command="{Binding TestCommand}" Margin="0,0,8,6"/>
-                            <Button Style="{StaticResource BtnPrimary}" Content="USE THIS DATA SOURCE" Command="{Binding ApplyCommand}" Margin="0,0,8,6"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="RETRY NOW" Command="{Binding RetryCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Test connection" Command="{Binding TestCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="Use this data source" Command="{Binding ApplyCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Retry now" Command="{Binding RetryCommand}" Margin="0,0,8,6"/>
                         </WrapPanel>
                         <WrapPanel Margin="0,0,0,6">
-                            <Button Style="{StaticResource BtnGhost}" Content="SYNC CONFLICTS" Command="{Binding ConflictsCommand}" Margin="0,0,8,6"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="INVOICE APPROVALS" Command="{Binding ApprovalsCommand}" Margin="0,0,8,6"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="MIGRATION DRY RUN" Command="{Binding DryRunCommand}" Margin="0,0,8,6"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="COPY LOCAL DATA TO SERVER" Command="{Binding RunMigrationCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Sync conflicts" Command="{Binding ConflictsCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Invoice approvals" Command="{Binding ApprovalsCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Migration dry run" Command="{Binding DryRunCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Copy local data to server" Command="{Binding RunMigrationCommand}" Margin="0,0,8,6"/>
                         </WrapPanel>
                         <TextBlock Text="{Binding Status}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap"/>
                         <TextBox Text="{Binding MigrationReport, Mode=OneWay}" IsReadOnly="True" FontFamily="{StaticResource FontMono}" FontSize="11" MaxHeight="220"
@@ -153,11 +155,11 @@
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <c:IconView Data="{StaticResource IconSparkles}" Foreground="{DynamicResource AccentBrush}"/>
-                            <TextBlock Text="ASK RAFFAELLO (CLAUDE)" Style="{StaticResource PanelTitle}" Margin="8,0,0,0"/>
+                            <TextBlock Text="Ask RAFFAELLO (claude)" Style="{StaticResource PanelTitle}" Margin="8,0,0,0"/>
                         </StackPanel>
                         <TextBlock Text="{Binding KeyStatus}" Style="{StaticResource BodyStrong}" FontSize="12" Margin="0,0,0,10"/>
                         <!-- [assistant] the API key and model moved to the ASSISTANT card below (key stored with Windows DPAPI) -->
-                        <TextBlock Text="EFFORT" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Effort" Style="{StaticResource Label}" FontSize="10"/>
                         <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Efforts}" SelectedItem="{Binding Effort, Mode=TwoWay}" Margin="0,4,0,10"/>
                         <CheckBox Content="Server-side fallback if a request is declined (fallbacks: default)" IsChecked="{Binding UseFallbacks}" Margin="0,0,0,8"/>
                         <!-- [phase4] begin -->
@@ -173,12 +175,12 @@
                 <!-- [assistant] end -->
                 <Border Style="{StaticResource Card}" Margin="0,16,0,0">
                     <StackPanel>
-                        <TextBlock Text="KEYBOARD" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Keyboard" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
                         <TextBlock Style="{StaticResource Body}" FontFamily="{StaticResource FontMono}" FontSize="12" LineHeight="20"
                                    Text="CTRL+K / CTRL+F   command palette, search anything&#10;CTRL+SHIFT+A      Ask Raffaello&#10;CTRL+1 ... CTRL+9 modules&#10;CTRL+H            welcome&#10;CTRL+I            import&#10;CTRL+E            export current view&#10;CTRL+SHIFT+L      light / dark&#10;F5                reload shared data&#10;ESC               close panels"/>
                     </StackPanel>
                 </Border>
-                <Button Style="{StaticResource BtnPrimary}" Content="SAVE SETTINGS" Command="{Binding SaveCommand}" HorizontalAlignment="Right" Margin="0,16,0,0" Padding="22,9"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="Save settings" Command="{Binding SaveCommand}" HorizontalAlignment="Right" Margin="0,16,0,0" Padding="22,9"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

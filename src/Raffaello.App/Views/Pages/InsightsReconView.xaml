@@ -23,22 +23,22 @@
 
             <Grid Grid.ColumnSpan="3" Margin="0,0,0,10">
                 <StackPanel Orientation="Horizontal">
-                    <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="OVER-DELIVERED MATERIALS" Style="{StaticResource Label}"/><TextBlock Text="{Binding OverDelivered}" Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/></StackPanel></Border>
-                    <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="MOS RELEASE CANDIDATES (SAR)" Style="{StaticResource Label}"/><TextBlock Text="{Binding MosReleaseValue, StringFormat=N0}" Style="{StaticResource KpiValue}"/></StackPanel></Border>
+                    <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="Over-delivered materials" Style="{StaticResource Label}"/><TextBlock Text="{Binding OverDelivered}" Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/></StackPanel></Border>
+                    <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="MOS release candidates (SAR)" Style="{StaticResource Label}"/><TextBlock Text="{Binding MosReleaseValue, StringFormat=N0}" Style="{StaticResource KpiValue}"/></StackPanel></Border>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="{Binding StatusText}" Style="{StaticResource Small}"/>
                         <ItemsControl ItemsSource="{Binding Notes}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Style="{StaticResource Small}" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" MaxWidth="700"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Button Style="{StaticResource BtnGhost}" Content="EXPORT EXCEL" Command="{Binding ExportCommand}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Export excel" Command="{Binding ExportCommand}"/>
                 </StackPanel>
             </Grid>
 
             <Border Grid.Row="1" Style="{StaticResource Card}">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="THEORETICAL USE vs DELIVERED vs INVOICED" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Theoretical use vs delivered vs invoiced" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="Theoretical = installed points (after SITE %) x metres per point. The gap is stock on site or wastage." Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                     <lvc:CartesianChart Series="{Binding Chart}" XAxes="{Binding ChartX}" YAxes="{Binding ChartY}" LegendPosition="Top" TooltipPosition="Top" Margin="0,6,0,0"/>
@@ -48,7 +48,7 @@
             <!-- norms editor -->
             <Border Grid.Row="1" Grid.RowSpan="5" Grid.Column="2" Style="{StaticResource Card}" Padding="14" VerticalAlignment="Top">
                 <StackPanel>
-                    <TextBlock Text="CONSUMPTION NORMS" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="Consumption norms" Style="{StaticResource PanelTitle}"/>
                     <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,2,0,8"
                                Text="Material = CABLE|3X2.5 (cable cores x size) or words that must appear (CONDUIT 20MM). System / stage / room type as in the ledger; empty = all. Per point in the material unit."/>
                     <DataGrid Style="{StaticResource EditGrid}" ItemsSource="{Binding Norms}" MinHeight="200" MaxHeight="420">
@@ -64,13 +64,13 @@
                         </DataGrid.Columns>
                     </DataGrid>
                     <UniformGrid Columns="2" Margin="0,8,0,0">
-                        <Button Style="{StaticResource BtnPrimary}" Content="SAVE NORMS" Command="{Binding SaveNormsCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource BtnYellow}" Content="RECALCULATE" Command="{Binding RecalculateCommand}" Margin="4,0,0,4" ToolTip="Recalculate with the norms in the table (before saving)"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="ADD DEFAULT NORMS" Command="{Binding LoadDefaultsCommand}" Margin="0,4,4,0"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="LEARN FROM SELECTED" Command="{Binding AdoptObservedCommand}" Margin="4,4,0,0"
+                        <Button Style="{StaticResource BtnPrimary}" Content="Save norms" Command="{Binding SaveNormsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="Recalculate" Command="{Binding RecalculateCommand}" Margin="4,0,0,4" ToolTip="Recalculate with the norms in the table (before saving)"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Add default norms" Command="{Binding LoadDefaultsCommand}" Margin="0,4,4,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Learn from selected" Command="{Binding AdoptObservedCommand}" Margin="4,4,0,0"
                                 ToolTip="Scale the selected material's norms so theoretical use = delivered (do it once the work using the material is complete)"/>
                     </UniformGrid>
-                    <TextBlock Text="DELIVERED WITHOUT A NORM" Style="{StaticResource Label}" Margin="0,14,0,4"/>
+                    <TextBlock Text="Delivered without a norm" Style="{StaticResource Label}" Margin="0,14,0,4"/>
                     <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Unmatched}" MaxHeight="220">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*" ElementStyle="{StaticResource CellText}"/>
@@ -83,7 +83,7 @@
 
             <Border Grid.Row="3" Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PER MATERIAL" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Per material" Style="{StaticResource PanelTitle}" Margin="0,0,0,6"/>
                     <TextBlock DockPanel.Dock="Bottom" Text="{Binding Selected.Explanation}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,6,0,0"/>
                     <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected, Mode=TwoWay}" MinHeight="160" MaxHeight="360">
                         <DataGrid.Columns>
@@ -108,7 +108,7 @@
 
             <Border Grid.Row="5" Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="OWNER MOS - RELEASE CANDIDATES" Style="{StaticResource PanelTitle}" Margin="0,0,0,2"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Owner MOS - Release candidates" Style="{StaticResource PanelTitle}" Margin="0,0,0,2"/>
                     <TextBlock DockPanel.Dock="Top" Text="Material still valued as on site in the last MOS valuation that the installed points have (theoretically) used." Style="{StaticResource Small}" FontSize="11" Margin="0,0,0,6"/>
                     <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Mos}" MinHeight="90" MaxHeight="300">
                         <DataGrid.Columns>

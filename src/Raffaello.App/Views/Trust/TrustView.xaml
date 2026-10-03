@@ -17,14 +17,14 @@
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="14" Visibility="{Binding IsIntegrity, Converter={StaticResource BoolToVis}}">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top">
-                    <TextBlock Text="TAMPER-EVIDENT AUDIT LOG" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Tamper-evident audit log" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                     <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,8"
                                Text="Every audit row is sealed with SHA-256(previous seal + row). The check recomputes the whole chain and reports any edited, deleted or re-linked row; heads seen before are kept on this PC (anchors) so a rewritten history is caught too."/>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <Button Style="{StaticResource BtnPrimary}" Content="VERIFY INTEGRITY" Command="{Binding VerifyIntegrityCommand}"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Verify integrity" Command="{Binding VerifyIntegrityCommand}"/>
                         <CheckBox Content="independent check (download the chain - server mode)" IsChecked="{Binding Independent}" VerticalAlignment="Center" Margin="12,0,0,0"
                                   Visibility="{Binding IsServerMode, Converter={StaticResource BoolToVis}}"/>
-                        <Button Style="{StaticResource BtnLink}" Content="SAVE REPORT" Command="{Binding SaveIntegrityReportCommand}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                        <Button Style="{StaticResource BtnLink}" Content="Save report" Command="{Binding SaveIntegrityReportCommand}" Margin="12,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Text="{Binding IntegritySummary}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                 </StackPanel>
@@ -37,16 +37,16 @@
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <Border Style="{StaticResource Card}" Padding="14">
                 <StackPanel>
-                    <TextBlock Text="APPROVALS / SIGN-OFF" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Approvals / Sign-off" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                     <TextBlock Text="{Binding KeyText}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="160"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <ComboBox ItemsSource="{Binding Signables}" SelectedItem="{Binding SelectedSignable, Mode=TwoWay}" Margin="0,0,8,0"/>
                         <ComboBox Grid.Column="1" ItemsSource="{Binding Purposes}" SelectedItem="{Binding Purpose, Mode=TwoWay}" Margin="0,0,8,0"/>
                         <StackPanel Grid.Column="2" Orientation="Horizontal">
-                            <Button Style="{StaticResource BtnPrimary}" Content="SIGN" Command="{Binding SignCommand}" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="SIGN WITH PACKAGE" Command="{Binding SignPackageCommand}" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="VERIFY" Command="{Binding VerifySelectedCommand}"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="Sign" Command="{Binding SignCommand}" Margin="0,0,6,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Sign with package" Command="{Binding SignPackageCommand}" Margin="0,0,6,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Verify" Command="{Binding VerifySelectedCommand}"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -68,9 +68,9 @@
             <Border Grid.Row="2" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Button Style="{StaticResource BtnGhost}" Content="SIGNED PDF COPY" Command="{Binding SignedPdfCopyCommand}" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="VERIFY PDF" Command="{Binding VerifyPdfCommand}" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="VERIFY PACKAGE ZIP" Command="{Binding VerifyPackageZipCommand}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Signed PDF copy" Command="{Binding SignedPdfCopyCommand}" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Verify PDF" Command="{Binding VerifyPdfCommand}" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Verify package zip" Command="{Binding VerifyPackageZipCommand}"/>
                     </StackPanel>
                     <TextBlock Text="{Binding PdfCheckText}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                     <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,6,0,0"
@@ -84,15 +84,15 @@
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <Border Style="{StaticResource Card}" Padding="14">
                 <StackPanel>
-                    <TextBlock Text="E-PROMISE (ERP) EXPORT - CERTIFIED INVOICE" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TextBlock Text="E-PROMISE (ERP) export - Certified invoice" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <ComboBox ItemsSource="{Binding Invoices}" SelectedItem="{Binding EpInvoice, Mode=TwoWay}" DisplayMemberPath="Title" Margin="0,0,8,0"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                             <CheckBox Content="export even if not certified" IsChecked="{Binding EpForce}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <Button Style="{StaticResource BtnPrimary}" Content="EXCEL" Command="{Binding ExportEPromiseCommand}" CommandParameter="XLSX" Margin="0,0,6,0"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="Excel" Command="{Binding ExportEPromiseCommand}" CommandParameter="XLSX" Margin="0,0,6,0"/>
                             <Button Style="{StaticResource BtnGhost}" Content="CSV" Command="{Binding ExportEPromiseCommand}" CommandParameter="CSV" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource BtnLink}" Content="COLUMN MAPPING" Command="{Binding OpenEPromiseMappingCommand}" VerticalAlignment="Center"/>
+                            <Button Style="{StaticResource BtnLink}" Content="Column mapping" Command="{Binding OpenEPromiseMappingCommand}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
                     <TextBlock Text="{Binding EpSummary}" Style="{StaticResource BodyStrong}" Margin="0,8,0,0" TextWrapping="Wrap"/>
@@ -117,14 +117,14 @@
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <Border Style="{StaticResource Card}" Padding="14">
                 <StackPanel>
-                    <TextBlock Text="CAD EXCHANGE - ROOMS AND COUNTS FROM AUTOCAD / REVIT" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Cad exchange - Rooms and counts from autocad / Revit" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="STAGES" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Stages" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBox Text="{Binding CadStages, UpdateSourceTrigger=PropertyChanged}" Width="180" Margin="0,0,10,0"/>
                         <ComboBox ItemsSource="{Binding CadModes}" SelectedItem="{Binding CadMode, Mode=TwoWay}" Width="130" Margin="0,0,10,0"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="OPEN .JSON" Command="{Binding OpenCadFileCommand}" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource BtnPrimary}" Content="IMPORT" Command="{Binding ImportCadCommand}" IsEnabled="{Binding CadCanImport}" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource BtnLink}" Content="SAVE SCHEMA + BLOCK MAP" Command="{Binding SaveCadSchemaCommand}" VerticalAlignment="Center"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Open .JSON" Command="{Binding OpenCadFileCommand}" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Import" Command="{Binding ImportCadCommand}" IsEnabled="{Binding CadCanImport}" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource BtnLink}" Content="Save schema + block map" Command="{Binding SaveCadSchemaCommand}" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Text="{Binding CadSummary}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                 </StackPanel>
@@ -153,8 +153,8 @@
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <CheckBox Content="open only" IsChecked="{Binding OpenOnly}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <Button Style="{StaticResource BtnLink}" Content="REFRESH" Command="{Binding RefreshPortalCommand}" Margin="0,0,10,0"/>
-                        <Button Style="{StaticResource BtnLink}" Content="OPEN PORTAL PAGE" Command="{Binding OpenPortalPageCommand}"/>
+                        <Button Style="{StaticResource BtnLink}" Content="Refresh" Command="{Binding RefreshPortalCommand}" Margin="0,0,10,0"/>
+                        <Button Style="{StaticResource BtnLink}" Content="Open portal page" Command="{Binding OpenPortalPageCommand}"/>
                     </StackPanel>
                     <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" ItemsSource="{Binding PortalSubmissions}" SelectedItem="{Binding SelectedSubmission, Mode=TwoWay}">
                         <DataGrid.Columns>
@@ -166,16 +166,16 @@
                     </DataGrid>
                     <Border Grid.Row="2" Style="{StaticResource Card}" Padding="10" Margin="0,8,0,0">
                         <StackPanel>
-                            <TextBlock Text="COMPANIES / ACCOUNTS" Style="{StaticResource Label}"/>
+                            <TextBlock Text="Companies / Accounts" Style="{StaticResource Label}"/>
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
                                 <TextBox Text="{Binding NewCompany, UpdateSourceTrigger=PropertyChanged}" Width="110" ToolTip="Company (ledger name)" Margin="0,0,4,0"/>
                                 <TextBox Text="{Binding NewCompanyScope, UpdateSourceTrigger=PropertyChanged}" Width="120" ToolTip="Room scope e.g. P2-*,P3-1??" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource BtnLink}" Content="ADD COMPANY" Command="{Binding AddCompanyCommand}"/>
+                                <Button Style="{StaticResource BtnLink}" Content="Add company" Command="{Binding AddCompanyCommand}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <TextBox Text="{Binding NewAccountUser, UpdateSourceTrigger=PropertyChanged}" Width="110" ToolTip="Portal user name" Margin="0,0,4,0"/>
                                 <TextBox Text="{Binding NewAccountPassword, UpdateSourceTrigger=PropertyChanged}" Width="120" ToolTip="Initial password (10+ letters and digits)" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource BtnLink}" Content="ADD ACCOUNT" Command="{Binding AddAccountCommand}"/>
+                                <Button Style="{StaticResource BtnLink}" Content="Add account" Command="{Binding AddAccountCommand}"/>
                             </StackPanel>
                             <TextBlock Style="{StaticResource Small}" Text="{Binding PortalAccounts.Count, StringFormat={}{0} portal account(s)}"/>
                         </StackPanel>
@@ -191,9 +191,9 @@
                                 <ItemsControl.ItemTemplate><DataTemplate><TextBlock Style="{StaticResource Small}" Text="{Binding FileName}"/></DataTemplate></ItemsControl.ItemTemplate>
                             </ItemsControl>
                             <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource BtnGhost}" Content="OPEN FILES" Command="{Binding OpenSubmissionFilesCommand}" Margin="0,0,6,0"/>
-                                <Button Style="{StaticResource BtnGhost}" Content="PREVIEW STATEMENT" Command="{Binding PreviewSubmissionCommand}" Margin="0,0,6,0"/>
-                                <TextBlock Text="INVOICE NO" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <Button Style="{StaticResource BtnGhost}" Content="Open files" Command="{Binding OpenSubmissionFilesCommand}" Margin="0,0,6,0"/>
+                                <Button Style="{StaticResource BtnGhost}" Content="Preview statement" Command="{Binding PreviewSubmissionCommand}" Margin="0,0,6,0"/>
+                                <TextBlock Text="Invoice no" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <TextBox Text="{Binding PortalInvoiceNo, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
                             </StackPanel>
                             <TextBlock Text="{Binding PortalPreviewText}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap" Margin="0,6,0,0"/>
@@ -214,17 +214,17 @@
                             <Grid Margin="0,0,0,6">
                                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <TextBox Text="{Binding PortalOverReason, UpdateSourceTrigger=PropertyChanged}" ToolTip="Over reason (posts OVER lines at full qty; empty = skip them)" Margin="0,0,6,0"/>
-                                <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="POST TO LEDGER" Command="{Binding ImportSubmissionCommand}"/>
+                                <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="Post to ledger" Command="{Binding ImportSubmissionCommand}"/>
                             </Grid>
                             <Grid Margin="0,0,0,6">
                                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <TextBox Text="{Binding PortalReason, UpdateSourceTrigger=PropertyChanged}" ToolTip="Rejection reason (the subcontractor sees it)" Margin="0,0,6,0"/>
-                                <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="REJECT" Command="{Binding RejectSubmissionCommand}"/>
+                                <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="Reject" Command="{Binding RejectSubmissionCommand}"/>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <TextBox Text="{Binding PortalMessage, UpdateSourceTrigger=PropertyChanged}" ToolTip="Message to the subcontractor" Margin="0,0,6,0"/>
-                                <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="SEND MESSAGE" Command="{Binding SendPortalMessageCommand}"/>
+                                <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="Send message" Command="{Binding SendPortalMessageCommand}"/>
                             </Grid>
                             <ItemsControl ItemsSource="{Binding PortalMessages}" Margin="0,6,0,0">
                                 <ItemsControl.ItemTemplate><DataTemplate>
@@ -242,15 +242,15 @@
         <!-- ACONEX API -->
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="14" Visibility="{Binding IsAconex, Converter={StaticResource BoolToVis}}">
             <StackPanel>
-                <TextBlock Text="ORACLE ACONEX REST API" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                <TextBlock Text="Oracle ACONEX rest API" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                 <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,8"
                            Text="When MOBCO obtains API credentials (integration registered with Oracle: application key + OAuth client), set Enabled: true in aconex-api.json; the ACONEX page then uses the API instead of the browser for workflow lookups and register downloads."/>
                 <TextBlock Text="{Binding AconexApiStatus}" Style="{StaticResource Body}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                 <StackPanel Orientation="Horizontal">
-                    <Button Style="{StaticResource BtnGhost}" Content="OPEN CONFIG" Command="{Binding OpenAconexApiConfigCommand}" Margin="0,0,10,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Open config" Command="{Binding OpenAconexApiConfigCommand}" Margin="0,0,10,0"/>
                     <TextBox Text="{Binding AconexSecret, UpdateSourceTrigger=PropertyChanged}" Width="220" ToolTip="Client secret / token / password" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="STORE SECRET (DPAPI)" Command="{Binding SaveAconexSecretCommand}" Margin="0,0,10,0"/>
-                    <Button Style="{StaticResource BtnPrimary}" Content="TEST CONNECTION" Command="{Binding TestAconexApiCommand}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Store secret (dpapi)" Command="{Binding SaveAconexSecretCommand}" Margin="0,0,10,0"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Test connection" Command="{Binding TestAconexApiCommand}"/>
                 </StackPanel>
             </StackPanel>
         </Border>

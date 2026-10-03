@@ -103,11 +103,11 @@
                     <Button Style="{StaticResource BtnGhost}" Content="{res:L Set_AddRule}" Command="{Binding AddRuleCommand}" Margin="0,0,8,6"/>
                     <Button Style="{StaticResource BtnGhost}" Content="{res:L Btn_Remove}" Command="{Binding RemoveRuleCommand}" Margin="0,0,16,6"/>
                     <TextBlock Text="{res:L Set_TestChannel}" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="IN-APP" Command="{Binding TestCommand}" CommandParameter="INAPP" Margin="0,0,4,6"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="WINDOWS" Command="{Binding TestCommand}" CommandParameter="WINDOWS" Margin="0,0,4,6"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="E-MAIL" Command="{Binding TestCommand}" CommandParameter="EMAIL" Margin="0,0,4,6"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="TEAMS" Command="{Binding TestCommand}" CommandParameter="TEAMS" Margin="0,0,4,6"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="WHATSAPP" Command="{Binding TestCommand}" CommandParameter="WHATSAPP" Margin="0,0,4,6"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="In-app" Command="{Binding TestCommand}" CommandParameter="INAPP" Margin="0,0,4,6"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Windows" Command="{Binding TestCommand}" CommandParameter="WINDOWS" Margin="0,0,4,6"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="E-mail" Command="{Binding TestCommand}" CommandParameter="EMAIL" Margin="0,0,4,6"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Teams" Command="{Binding TestCommand}" CommandParameter="TEAMS" Margin="0,0,4,6"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Whatsapp" Command="{Binding TestCommand}" CommandParameter="WHATSAPP" Margin="0,0,4,6"/>
                 </WrapPanel>
                 <TextBlock Text="{Binding TestResult}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap"/>
                 <Button Style="{StaticResource BtnPrimary}" Content="{res:L Set_SaveAssistant}" Command="{Binding SaveCommand}" HorizontalAlignment="Right" Margin="0,10,0,0" Padding="18,8"/>

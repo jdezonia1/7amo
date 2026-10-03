@@ -12,36 +12,36 @@
         <Border Style="{StaticResource Card}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <TextBlock Text="WHAT TO DOWNLOAD" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="What to download" Style="{StaticResource PanelTitle}"/>
                     <TextBlock Text="Paste document numbers (one per line, or any text containing them) and / or set filters. Revisions already downloaded are skipped." Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,2,0,8"/>
                     <DockPanel>
-                        <Button DockPanel.Dock="Right" Style="{StaticResource BtnLink}" Content="FROM EXCEL..." Command="{Binding LoadNumbersFromExcelCommand}"/>
-                        <TextBlock Text="DOCUMENT NUMBERS" Style="{StaticResource Label}" FontSize="10"/>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource BtnLink}" Content="From excel..." Command="{Binding LoadNumbersFromExcelCommand}"/>
+                        <TextBlock Text="Document numbers" Style="{StaticResource Label}" FontSize="10"/>
                     </DockPanel>
                     <TextBox Text="{Binding NumbersText, UpdateSourceTrigger=PropertyChanged, Delay=300}" AcceptsReturn="True" TextWrapping="NoWrap" Height="120"
                              VerticalScrollBarVisibility="Auto" FontFamily="{StaticResource FontMono}" FontSize="11" Margin="0,2,0,2"/>
                     <TextBlock Text="{Binding NumbersInfo}" Style="{StaticResource Label}" FontSize="10" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
                     <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                        <StackPanel><TextBlock Text="DATE FROM" Style="{StaticResource Label}" FontSize="10"/><DatePicker SelectedDate="{Binding DateFrom}" SelectedDateFormat="Short"/></StackPanel>
-                        <StackPanel Grid.Column="2"><TextBlock Text="DATE TO" Style="{StaticResource Label}" FontSize="10"/><DatePicker SelectedDate="{Binding DateTo}" SelectedDateFormat="Short"/></StackPanel>
+                        <StackPanel><TextBlock Text="Date from" Style="{StaticResource Label}" FontSize="10"/><DatePicker SelectedDate="{Binding DateFrom}" SelectedDateFormat="Short"/></StackPanel>
+                        <StackPanel Grid.Column="2"><TextBlock Text="Date to" Style="{StaticResource Label}" FontSize="10"/><DatePicker SelectedDate="{Binding DateTo}" SelectedDateFormat="Short"/></StackPanel>
                     </Grid>
-                    <TextBlock Text="DOCUMENT TYPE" Style="{StaticResource Label}" FontSize="10"/>
+                    <TextBlock Text="Document type" Style="{StaticResource Label}" FontSize="10"/>
                     <ComboBox ItemsSource="{Binding DocTypes}" Text="{Binding DocType, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Margin="0,2,0,6"/>
-                    <TextBlock Text="DISCIPLINE (AS SHOWN IN ACONEX)" Style="{StaticResource Label}" FontSize="10"/>
+                    <TextBlock Text="Discipline (as shown in ACONEX)" Style="{StaticResource Label}" FontSize="10"/>
                     <TextBox Text="{Binding Discipline, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
-                    <TextBlock Text="GROUP / CATEGORY" Style="{StaticResource Label}" FontSize="10"/>
+                    <TextBlock Text="Group / Category" Style="{StaticResource Label}" FontSize="10"/>
                     <TextBox Text="{Binding Group, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10"/>
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/></Grid.ColumnDefinitions>
                         <Button Style="{StaticResource BtnPrimary}" Command="{Binding PlanCommand}">
-                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource OnAccentBrush}"/><TextBlock Text="SEARCH" Margin="6,0,0,0"/></StackPanel>
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource OnAccentBrush}"/><TextBlock Text="Search" Margin="6,0,0,0"/></StackPanel>
                         </Button>
                         <Button Grid.Column="2" Style="{StaticResource BtnYellow}" Command="{Binding RunCommand}" ToolTip="Downloads (or resumes) the selected queue">
-                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconImport}" Width="14" Height="14"/><TextBlock Text="DOWNLOAD" Margin="6,0,0,0"/></StackPanel>
+                            <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconImport}" Width="14" Height="14"/><TextBlock Text="Download" Margin="6,0,0,0"/></StackPanel>
                         </Button>
                     </Grid>
-                    <Button Style="{StaticResource BtnGhost}" Content="STOP (RESUME LATER)" Command="{Binding StopCommand}" Margin="0,6,0,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Stop (resume later)" Command="{Binding StopCommand}" Margin="0,6,0,0"/>
                     <ProgressBar Style="{StaticResource SlimProgress}" Value="{Binding ProgressValue}" Maximum="{Binding ProgressMax}" Margin="0,10,0,2"/>
                     <TextBlock Text="{Binding ProgressText}" Style="{StaticResource Label}" FontSize="10"/>
                     <TextBlock Text="{Binding Folders}" Style="{StaticResource Small}" FontSize="10" TextWrapping="Wrap" Margin="0,8,0,0"/>
@@ -53,7 +53,7 @@
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="1.2*"/></Grid.RowDefinitions>
             <Grid Margin="0,0,0,6">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                <TextBlock Text="QUEUE" Style="{StaticResource PanelTitle}" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                <TextBlock Text="Queue" Style="{StaticResource PanelTitle}" VerticalAlignment="Center" Margin="2,0,10,0"/>
                 <ComboBox Grid.Column="1" ItemsSource="{Binding Jobs}" SelectedItem="{Binding SelectedJob, Mode=TwoWay}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
@@ -78,11 +78,11 @@
             </DataGrid>
             <Grid Grid.Row="3" Margin="0,0,0,6">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions>
-                <TextBlock Text="DOWNLOAD REGISTER" Style="{StaticResource PanelTitle}" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                <TextBlock Text="Download register" Style="{StaticResource PanelTitle}" VerticalAlignment="Center" Margin="2,0,10,0"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Style="{StaticResource BtnGhost}" Content="OPEN FILE" Command="{Binding OpenFileCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="OPEN FOLDER" Command="{Binding OpenFolderCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource BtnYellow}" Content="EXPORT" Command="{Binding ExportRegisterCommand}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Open file" Command="{Binding OpenFileCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Open folder" Command="{Binding OpenFolderCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="Export" Command="{Binding ExportRegisterCommand}"/>
                 </StackPanel>
                 <TextBox Grid.Column="2" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=250}" ToolTip="Search number, title or file"/>
             </Grid>

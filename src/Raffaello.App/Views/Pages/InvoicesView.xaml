@@ -13,7 +13,7 @@
         <!-- stored invoices -->
         <Border Style="{StaticResource Card}" Padding="12">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="SAVED INVOICES" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                <TextBlock DockPanel.Dock="Top" Text="Saved invoices" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
                 <ComboBox DockPanel.Dock="Top" ItemsSource="{Binding KindOptions}" SelectedItem="{Binding KindFilter, Mode=TwoWay}" Margin="0,0,0,8" ToolTip="Subcontractor / supplier / owner MOS invoices"/>
                 <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Stored}" SelectedItem="{Binding SelectedStored, Mode=TwoWay}">
                     <ListBox.ItemTemplate>
@@ -43,21 +43,21 @@
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Text="CONTRACT" Style="{StaticResource Label}"/>
+                    <TextBlock Text="Contract" Style="{StaticResource Label}"/>
                     <ComboBox ItemsSource="{Binding ContractNos}" SelectedItem="{Binding ContractNo, Mode=TwoWay}" Width="190"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                    <TextBlock Text="SUBCONTRACTOR" Style="{StaticResource Label}"/>
+                    <TextBlock Text="Subcontractor" Style="{StaticResource Label}"/>
                     <ComboBox ItemsSource="{Binding Subcontractors}" SelectedItem="{Binding Sub, Mode=TwoWay}" Width="180"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Margin="10,0,0,0">
-                    <TextBlock Text="INVOICE NO" Style="{StaticResource Label}"/>
+                    <TextBlock Text="Invoice no" Style="{StaticResource Label}"/>
                     <TextBox Text="{Binding InvoiceNo, UpdateSourceTrigger=PropertyChanged}" Width="70"/>
                 </StackPanel>
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
-                    <Button Style="{StaticResource BtnPrimary}" Content="BUILD FROM LEDGER" Command="{Binding BuildCommand}" Margin="10,0,0,0"
+                    <Button Style="{StaticResource BtnPrimary}" Content="Build from ledger" Command="{Binding BuildCommand}" Margin="10,0,0,0"
                             Visibility="{Binding CanBuildFromLedger, Converter={StaticResource BoolToVis}}"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="PAST INVOICE FILES" Command="{Binding ImportPastInvoicesCommand}" Margin="6,0,0,0"
+                    <Button Style="{StaticResource BtnGhost}" Content="Past invoice files" Command="{Binding ImportPastInvoicesCommand}" Margin="6,0,0,0"
                             ToolTip="Import the subcontractor's earlier invoice files (template layout): splits a cumulative ledger block into INV 1..N and stores them as approved invoices"/>
                 </StackPanel>
             </Grid>
@@ -71,7 +71,7 @@
             </StackPanel>
             <Grid Grid.Row="2" Margin="0,0,0,8">
                 <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding Tab, Mode=TwoWay}" HorizontalAlignment="Left"/>
-                <CheckBox Content="ONLY ROWS WITH QUANTITIES" IsChecked="{Binding OnlyMoved}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                <CheckBox Content="Only rows with quantities" IsChecked="{Binding OnlyMoved}" HorizontalAlignment="Right" VerticalAlignment="Center"
                           Visibility="{Binding IsLines, Converter={StaticResource BoolToVis}}"/>
             </Grid>
 
@@ -118,7 +118,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Text="CONTRACT ITEM" Style="{StaticResource Label}"/>
+                            <TextBlock Text="Contract item" Style="{StaticResource Label}"/>
                             <ComboBox ItemsSource="{Binding ItemChoices}" SelectedItem="{Binding LearnItem, Mode=TwoWay}">
                                 <ComboBox.ItemTemplate><DataTemplate><TextBlock TextTrimming="CharacterEllipsis" MaxWidth="420"><Run Text="{Binding ItemNo, Mode=OneWay}" FontWeight="Bold"/><Run Text="  "/><Run Text="{Binding Description, Mode=OneWay}"/></TextBlock></DataTemplate></ComboBox.ItemTemplate>
                             </ComboBox>
@@ -129,7 +129,7 @@
                                 <ComboBox.ItemTemplate><DataTemplate><TextBlock TextTrimming="CharacterEllipsis" MaxWidth="420"><Run Text="{Binding BoqCode, Mode=OneWay}" FontWeight="Bold"/><Run Text="  "/><Run Text="{Binding BoqDescription, Mode=OneWay}"/></TextBlock></DataTemplate></ComboBox.ItemTemplate>
                             </ComboBox>
                         </StackPanel>
-                        <Button Grid.Column="3" Style="{StaticResource BtnPrimary}" Content="CONFIRM + LEARN" Command="{Binding LearnCommand}" VerticalAlignment="Bottom" Margin="10,0,0,0"
+                        <Button Grid.Column="3" Style="{StaticResource BtnPrimary}" Content="Confirm + learn" Command="{Binding LearnCommand}" VerticalAlignment="Bottom" Margin="10,0,0,0"
                                 ToolTip="Stores the choice as a rule (same stage/system/band and item/system/area) and rebuilds"/>
                     </Grid>
                 </Border>
@@ -142,7 +142,7 @@
                         <ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Style="{StaticResource Body}" TextWrapping="Wrap"/></DataTemplate></ListBox.ItemTemplate>
                     </ListBox>
                     <StackPanel Grid.Row="1" Margin="0,10,0,4">
-                        <TextBlock Text="CONTRACT CHECKS (FROM THE SIGNED CONTRACT)" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Contract checks (from the signed contract)" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="{Binding ContractChecksText}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
                     </StackPanel>
                     <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding ContractWarnings}" SelectedItem="{Binding SelectedContractWarning, Mode=TwoWay}" IsReadOnly="True">
@@ -157,7 +157,7 @@
                     <Grid Grid.Row="3" Margin="0,8,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <TextBox Text="{Binding BypassReason, UpdateSourceTrigger=PropertyChanged}" ToolTip="Why the warning is accepted (who agreed, reference). Recorded with your name and the time; printed in the package."/>
-                        <Button Grid.Column="1" Style="{StaticResource BtnYellow}" Content="BYPASS WITH REASON" Command="{Binding BypassContractWarningCommand}" Margin="8,0,0,0"/>
+                        <Button Grid.Column="1" Style="{StaticResource BtnYellow}" Content="Bypass with reason" Command="{Binding BypassContractWarningCommand}" Margin="8,0,0,0"/>
                     </Grid>
                     <TextBlock Grid.Row="2" Text="{Binding SelectedContractWarning.ClauseText}" Visibility="Collapsed"/>
                 </Grid>
@@ -181,38 +181,38 @@
             <StackPanel>
                 <Border Style="{StaticResource Card}" Padding="14">
                     <StackPanel>
-                        <TextBlock Text="TOTALS (SAR)" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Totals (SAR)" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
-                            <TextBlock Text="SUBCONTRACT VALUE" Style="{StaticResource Label}"/><TextBlock Grid.Column="1" Text="{Binding Totals.SubcontractValue, StringFormat=N2}" Style="{StaticResource Num}"/>
-                            <TextBlock Grid.Row="1" Text="PREVIOUS GROSS" Style="{StaticResource Label}"/><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Totals.PrevGross, StringFormat=N2}" Style="{StaticResource Num}"/>
-                            <TextBlock Grid.Row="2" Text="THIS PERIOD GROSS" Style="{StaticResource Label}"/><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Totals.CurrGross, StringFormat=N2}" Style="{StaticResource NumTotal}"/>
-                            <TextBlock Grid.Row="3" Text="CUMULATIVE GROSS" Style="{StaticResource Label}"/><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Totals.CumGross, StringFormat=N2}" Style="{StaticResource Num}"/>
-                            <TextBlock Grid.Row="4" Text="RETENTION THIS PERIOD" Style="{StaticResource Label}"/><TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Totals.CurrRetention, StringFormat=N2}" Style="{StaticResource Num}"/>
-                            <TextBlock Grid.Row="5" Text="NET THIS PERIOD" Style="{StaticResource Label}"/><TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Totals.NetCurr, StringFormat=N2}" Style="{StaticResource Num}"/>
+                            <TextBlock Text="Subcontract value" Style="{StaticResource Label}"/><TextBlock Grid.Column="1" Text="{Binding Totals.SubcontractValue, StringFormat=N2}" Style="{StaticResource Num}"/>
+                            <TextBlock Grid.Row="1" Text="Previous gross" Style="{StaticResource Label}"/><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Totals.PrevGross, StringFormat=N2}" Style="{StaticResource Num}"/>
+                            <TextBlock Grid.Row="2" Text="This period gross" Style="{StaticResource Label}"/><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Totals.CurrGross, StringFormat=N2}" Style="{StaticResource NumTotal}"/>
+                            <TextBlock Grid.Row="3" Text="Cumulative gross" Style="{StaticResource Label}"/><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Totals.CumGross, StringFormat=N2}" Style="{StaticResource Num}"/>
+                            <TextBlock Grid.Row="4" Text="Retention this period" Style="{StaticResource Label}"/><TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Totals.CurrRetention, StringFormat=N2}" Style="{StaticResource Num}"/>
+                            <TextBlock Grid.Row="5" Text="Net this period" Style="{StaticResource Label}"/><TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Totals.NetCurr, StringFormat=N2}" Style="{StaticResource Num}"/>
                             <TextBlock Grid.Row="6" Text="VAT 15 %" Style="{StaticResource Label}"/><TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding Totals.VatCurr, StringFormat=N2}" Style="{StaticResource Num}"/>
-                            <TextBlock Grid.Row="7" Text="NET INCL. VAT" Style="{StaticResource Label}"/><TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding Totals.NetInclVatCurr, StringFormat=N2}" Style="{StaticResource NumTotal}"/>
+                            <TextBlock Grid.Row="7" Text="Net incl. VAT" Style="{StaticResource Label}"/><TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding Totals.NetInclVatCurr, StringFormat=N2}" Style="{StaticResource NumTotal}"/>
                         </Grid>
-                        <TextBlock Text="RETENTION %" Style="{StaticResource Label}" Margin="0,12,0,0"/>
+                        <TextBlock Text="Retention %" Style="{StaticResource Label}" Margin="0,12,0,0"/>
                         <TextBox Text="{Binding RetentionPct, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10"/>
                         <UniformGrid Columns="2">
-                            <Button Style="{StaticResource BtnPrimary}" Content="SAVE DRAFT" Command="{Binding SaveCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="NEW REVISION" Command="{Binding NewRevisionCommand}" Margin="4,0,0,0"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="Save draft" Command="{Binding SaveCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="New revision" Command="{Binding NewRevisionCommand}" Margin="4,0,0,0"/>
                         </UniformGrid>
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource Card}" Padding="14" Margin="0,12,0,0">
                     <StackPanel>
-                        <TextBlock Text="WORKFLOW" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
-                        <TextBlock Text="ACONEX WORKFLOW NO" Style="{StaticResource Label}"/>
+                        <TextBlock Text="Workflow" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <TextBlock Text="ACONEX workflow no" Style="{StaticResource Label}"/>
                         <TextBox Text="{Binding AconexNo, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="SUBMIT" Command="{Binding SubmitCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
-                        <TextBlock Text="REJECTION REASON" Style="{StaticResource Label}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Submit" Command="{Binding SubmitCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
+                        <TextBlock Text="Rejection reason" Style="{StaticResource Label}"/>
                         <TextBox Text="{Binding RejectReason, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="REJECT" Command="{Binding RejectCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
-                        <Button Style="{StaticResource BtnYellow}" Content="APPROVE + LOCK" Command="{Binding ApproveCommand}" HorizontalAlignment="Stretch"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Reject" Command="{Binding RejectCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="Approve + lock" Command="{Binding ApproveCommand}" HorizontalAlignment="Stretch"/>
                         <TextBlock Text="LOCKED - approved invoices cannot be edited" Style="{StaticResource Small}" Foreground="{DynamicResource AccentBrush}" Margin="0,8,0,0"
                                    Visibility="{Binding IsLocked, Converter={StaticResource BoolToVis}}"/>
                     </StackPanel>
@@ -220,10 +220,10 @@
 
                 <Border Style="{StaticResource Card}" Padding="14" Margin="0,12,0,0">
                     <StackPanel>
-                        <TextBlock Text="EXPORT" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Export" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
                         <UniformGrid Columns="2">
-                            <Button Style="{StaticResource BtnGhost}" Content="EXCEL (INV LAYOUT)" Command="{Binding ExportExcelCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="PDF (FILTERED)" Command="{Binding ExportPdfCommand}" Margin="4,0,0,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Excel (inv layout)" Command="{Binding ExportExcelCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="PDF (filtered)" Command="{Binding ExportPdfCommand}" Margin="4,0,0,0"/>
                         </UniformGrid>
                         <TextBlock Text="Excel keeps every template row with SUM formulas, retention and a QTY BACKUP sheet. The PDF prints only rows with quantities." Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                     </StackPanel>
@@ -231,15 +231,15 @@
 
                 <Border Style="{StaticResource Card}" Padding="14" Margin="0,12,0,0">
                     <StackPanel>
-                        <TextBlock Text="HEAD OFFICE" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="ATTACH SIGNED INVOICE" Command="{Binding AttachSignedCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,6"/>
+                        <TextBlock Text="Head office" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Attach signed invoice" Command="{Binding AttachSignedCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,6"/>
                         <UniformGrid Columns="2">
-                            <Button Style="{StaticResource BtnGhost}" Content="DRAFT PACKAGE" Command="{Binding BuildDraftPackageCommand}" Margin="0,0,4,0"
+                            <Button Style="{StaticResource BtnGhost}" Content="Draft package" Command="{Binding BuildDraftPackageCommand}" Margin="0,0,4,0"
                                     ToolTip="ZIP without the signed invoice (marked DRAFT)"/>
-                            <Button Style="{StaticResource BtnPrimary}" Content="FINAL PACKAGE" Command="{Binding BuildFinalPackageCommand}" Margin="4,0,0,0"
+                            <Button Style="{StaticResource BtnPrimary}" Content="Final package" Command="{Binding BuildFinalPackageCommand}" Margin="4,0,0,0"
                                     ToolTip="Needs the signed invoice attached"/>
                         </UniformGrid>
-                        <Button Style="{StaticResource BtnGhost}" Content="EXPORT HEAD-OFFICE TRACKER" Command="{Binding ExportTrackerCommand}" HorizontalAlignment="Stretch" Margin="0,6,0,0"
+                        <Button Style="{StaticResource BtnGhost}" Content="Export head-office tracker" Command="{Binding ExportTrackerCommand}" HorizontalAlignment="Stretch" Margin="0,6,0,0"
                                 ToolTip="Protected values-only workbook: dashboard, plans with clickable rooms, room details, ledger, control"/>
                         <TextBlock Text="{Binding PackageText}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                     </StackPanel>

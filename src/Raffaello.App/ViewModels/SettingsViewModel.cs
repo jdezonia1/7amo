@@ -38,6 +38,9 @@ public sealed partial class SettingsViewModel : PageViewModel
     protected override bool UsesFilter => false;
 
     public string[] Themes { get; } = { "Light", "Dark" };
+    public IEnumerable<string> DarkDepths => ThemeService.DarkDepths.Keys;
+    [ObservableProperty] private string _darkDepth = "Near-black";
+    partial void OnDarkDepthChanged(string value) { if (IsActive && !_loading && value != null) { Ctx.Theme.DarkDepth = value; Ctx.Theme.Apply(Theme, Accent); } }
     public IEnumerable<string> Accents => ThemeService.Accents.Keys;
     public string[] Efforts { get; } = { "low", "medium", "high", "xhigh", "max" };
     public IEnumerable<RuleInfo> Rules => Project.Engine.Rules.Select(r => new RuleInfo(r.Code, r.Title, r.Description));
@@ -83,6 +86,7 @@ public sealed partial class SettingsViewModel : PageViewModel
         _loading = true;
         Theme = s.Theme;
         Accent = s.Accent;
+        DarkDepth = ThemeService.DarkDepths.ContainsKey(s.DarkDepth) ? s.DarkDepth : "Near-black";
         _loading = false;
         SeedDemoData = s.SeedDemoData;
         WirDueDays = s.WirDueDays.ToString(CultureInfo.InvariantCulture);
@@ -123,6 +127,7 @@ public sealed partial class SettingsViewModel : PageViewModel
         s.DataFilePath = DataFilePath.Trim();
         s.Theme = Theme;
         s.Accent = Accent;
+        s.DarkDepth = DarkDepth;
         s.SeedDemoData = SeedDemoData;
         if (int.TryParse(WirDueDays, out var d)) s.WirDueDays = Math.Clamp(d, 1, 120);
         if (double.TryParse(SiteTolerance, NumberStyles.Float, CultureInfo.InvariantCulture, out var t)) s.SiteTolerance = Math.Clamp(t / 100.0, 0, 1);

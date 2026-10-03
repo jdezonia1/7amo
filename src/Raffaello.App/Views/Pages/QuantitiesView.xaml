@@ -16,8 +16,8 @@
         <Border Style="{StaticResource Card}" Padding="12">
             <DockPanel>
                 <Grid DockPanel.Dock="Top" Margin="2,0,0,8">
-                    <TextBlock Text="ROOMS" Style="{StaticResource PanelTitle}"/>
-                    <Button Style="{StaticResource BtnLink}" Content="ALL" HorizontalAlignment="Right" Command="{Binding ClearRoomCommand}"/>
+                    <TextBlock Text="Rooms" Style="{StaticResource PanelTitle}"/>
+                    <Button Style="{StaticResource BtnLink}" Content="All" HorizontalAlignment="Right" Command="{Binding ClearRoomCommand}"/>
                 </Grid>
                 <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Rooms}" SelectedItem="{Binding SelectedRoom, Mode=TwoWay}" VirtualizingPanel.IsVirtualizing="True">
                     <ListBox.ItemTemplate>
@@ -67,9 +67,9 @@
                                 </Grid>
                                 <TextBlock Style="{StaticResource Num}" TextAlignment="Left" FontSize="12" Margin="0,2,0,0">
                                     <Run Text="QS"/> <Run Text="{Binding Qs, StringFormat=N0, Mode=OneWay}" FontWeight="Bold"/>
-                                    <Run Text="  GIVEN"/> <Run Text="{Binding Given, StringFormat=N0, Mode=OneWay}" FontWeight="Bold"/>
-                                    <Run Text="  REM"/> <Run Text="{Binding Remaining, StringFormat=N0, Mode=OneWay}" FontWeight="Bold"/>
-                                    <Run Text="  DONE"/> <Run Text="{Binding Done, StringFormat=N0, Mode=OneWay}" FontWeight="Bold"/>
+                                    <Run Text="  Given"/> <Run Text="{Binding Given, StringFormat=N0, Mode=OneWay}" FontWeight="Bold"/>
+                                    <Run Text="  Rem"/> <Run Text="{Binding Remaining, StringFormat=N0, Mode=OneWay}" FontWeight="Bold"/>
+                                    <Run Text="  Done"/> <Run Text="{Binding Done, StringFormat=N0, Mode=OneWay}" FontWeight="Bold"/>
                                 </TextBlock>
                             </StackPanel>
                         </Border>
@@ -113,13 +113,13 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="1.5*"/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
                 <Border Style="{StaticResource Card}" Padding="12">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="PROGRESS PER ROOM  |  GIVEN vs DONE (MEAN OF STAGES)" Style="{StaticResource Label}"/>
+                        <TextBlock DockPanel.Dock="Top" Text="Progress per room  |  Given vs done (mean of stages)" Style="{StaticResource Label}"/>
                         <lvc:CartesianChart Series="{Binding RoomBars}" XAxes="{Binding RoomBarsX}" YAxes="{Binding RoomBarsY}" LegendPosition="Hidden" TooltipPosition="Top"/>
                     </DockPanel>
                 </Border>
                 <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="BY STAGE  |  DONE / GIVEN / REMAINING" Style="{StaticResource Label}"/>
+                        <TextBlock DockPanel.Dock="Top" Text="By stage  |  Done / Given / Remaining" Style="{StaticResource Label}"/>
                         <lvc:CartesianChart Series="{Binding StageStack}" XAxes="{Binding StageStackX}" YAxes="{Binding StageStackY}" LegendPosition="Hidden" TooltipPosition="Top"/>
                     </DockPanel>
                 </Border>

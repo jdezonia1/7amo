@@ -9,30 +9,30 @@
             <StackPanel>
                 <Border Style="{StaticResource Card}" Margin="0,0,0,14">
                     <StackPanel>
-                        <TextBlock Text="SITE AND BROWSER" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Site and browser" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="{Binding Validation}" Style="{StaticResource Small}" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0,2,0,8"/>
-                        <TextBlock Text="CONFIG FILE (SELECTORS, COLUMN NAMES, URLS - EDIT WITHOUT RECOMPILING)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Config file (selectors, column names, urls - Edit without recompiling)" Style="{StaticResource Label}" FontSize="10"/>
                         <Grid Margin="0,2,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <TextBox Text="{Binding ConfigPath, Mode=OneWay}" IsReadOnly="True" FontFamily="{StaticResource FontMono}" FontSize="11"/>
-                            <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="OPEN" Command="{Binding OpenConfigCommand}" Margin="6,0,0,0"/>
-                            <Button Grid.Column="2" Style="{StaticResource BtnGhost}" Content="RELOAD" Command="{Binding ReloadCommand}" Margin="6,0,0,0"/>
+                            <Button Grid.Column="1" Style="{StaticResource BtnGhost}" Content="Open" Command="{Binding OpenConfigCommand}" Margin="6,0,0,0"/>
+                            <Button Grid.Column="2" Style="{StaticResource BtnGhost}" Content="Reload" Command="{Binding ReloadCommand}" Margin="6,0,0,0"/>
                         </Grid>
-                        <TextBlock Text="ACONEX ADDRESS" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="ACONEX address" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding BaseUrl, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" Margin="0,2,0,6"/>
-                        <TextBlock Text="PROJECT ID (FROM THE ACONEX URL, IF THE SEARCH PAGES NEED IT)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Project ID (from the ACONEX URL, if the search pages need IT)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding ProjectId, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" Margin="0,2,0,6"/>
                         <TextBlock Text="BROWSER CHANNEL (msedge = the Edge installed on Windows; chrome; empty = Playwright Chromium)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding BrowserChannel, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" Margin="0,2,0,6"/>
-                        <TextBlock Text="BROWSER EXE (OPTIONAL, OVERRIDES THE CHANNEL)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Browser exe (optional, overrides the channel)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding BrowserExecutablePath, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" Margin="0,2,0,6"/>
                         <CheckBox Content="Run hidden (headless) - only after the first login worked" IsChecked="{Binding Headless}" Margin="0,4,0,6"/>
-                        <TextBlock Text="BROWSER PROFILE (KEEPS THE LOGIN)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Browser profile (keeps the login)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBlock Text="{Binding ProfileDir}" Style="{StaticResource Small}" FontFamily="{StaticResource FontMono}" Margin="0,2,0,10"/>
                         <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource BtnPrimary}" Content="SAVE" Command="{Binding SaveCommand}" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource BtnYellow}" Content="OPEN ACONEX / LOG IN" Command="{Binding TestLoginCommand}" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="CLOSE BROWSER" Command="{Binding CloseBrowserCommand}"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="Save" Command="{Binding SaveCommand}" Margin="0,0,6,0"/>
+                            <Button Style="{StaticResource BtnYellow}" Content="Open ACONEX / Log in" Command="{Binding TestLoginCommand}" Margin="0,0,6,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Close browser" Command="{Binding CloseBrowserCommand}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -40,7 +40,7 @@
             <StackPanel Grid.Column="2">
                 <Border Style="{StaticResource Card}" Margin="0,0,0,14">
                     <StackPanel>
-                        <TextBlock Text="FOLDERS (SHARED PARTITION)" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
+                        <TextBlock Text="Folders (shared partition)" Style="{StaticResource PanelTitle}" Margin="0,0,0,8"/>
                         <TextBlock Text="WIR" Style="{StaticResource Label}" FontSize="10"/>
                         <Grid Margin="0,2,0,6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <TextBox Text="{Binding WirFolder, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11"/>
@@ -49,30 +49,30 @@
                         <Grid Margin="0,2,0,6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <TextBox Text="{Binding MirFolder, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11"/>
                             <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Command="{Binding BrowseMirCommand}"><c:IconView Data="{StaticResource IconFolder}"/></Button></Grid>
-                        <TextBlock Text="OTHER DOCUMENTS" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Other documents" Style="{StaticResource Label}" FontSize="10"/>
                         <Grid Margin="0,2,0,6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <TextBox Text="{Binding OtherFolder, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11"/>
                             <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Command="{Binding BrowseOtherCommand}"><c:IconView Data="{StaticResource IconFolder}"/></Button></Grid>
-                        <TextBlock Text="WORKFLOW SCREENSHOTS" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Workflow screenshots" Style="{StaticResource Label}" FontSize="10"/>
                         <Grid Margin="0,2,0,6"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <TextBox Text="{Binding ScreenshotFolder, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11"/>
                             <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Command="{Binding BrowseShotsCommand}"><c:IconView Data="{StaticResource IconFolder}"/></Button></Grid>
                         <TextBlock Text="SUB-FOLDER ({yyyy-MM}, {type}, {discipline} - EMPTY = FLAT)" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding SubFolderTemplate, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11" Margin="0,2,0,10"/>
-                        <Button Style="{StaticResource BtnPrimary}" Content="SAVE" Command="{Binding SaveCommand}" HorizontalAlignment="Left"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Save" Command="{Binding SaveCommand}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource Card}">
                     <StackPanel>
-                        <TextBlock Text="STORED LOGIN (OPTIONAL)" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Stored login (optional)" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="{Binding CredStatus}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,2,0,8"/>
-                        <TextBlock Text="ACONEX USER NAME" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="ACONEX user name" Style="{StaticResource Label}" FontSize="10"/>
                         <TextBox Text="{Binding CredUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
-                        <TextBlock Text="PASSWORD (ENCRYPTED WITH WINDOWS DPAPI, NEVER SHOWN AGAIN)" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="Password (encrypted with windows dpapi, never shown again)" Style="{StaticResource Label}" FontSize="10"/>
                         <PasswordBox x:Name="Pwd" Margin="0,2,0,8"/>
                         <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource BtnGhost}" Content="STORE PASSWORD" Click="OnStorePassword" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="REMOVE" Command="{Binding ClearCredentialCommand}"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Store password" Click="OnStorePassword" Margin="0,0,6,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Remove" Command="{Binding ClearCredentialCommand}"/>
                         </StackPanel>
                         <TextBlock Text="SSO and 2FA are always done by you in the browser window. A stored password only fills the classic Aconex login form." Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                     </StackPanel>

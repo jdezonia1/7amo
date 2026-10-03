@@ -18,14 +18,14 @@
 
         <!-- KPI strip -->
         <StackPanel Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,10">
-            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="HIGH" Style="{StaticResource Label}"/><TextBlock Text="{Binding HighCount}" Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/></StackPanel></Border>
-            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="MEDIUM" Style="{StaticResource Label}"/><TextBlock Text="{Binding MediumCount}" Style="{StaticResource KpiValue}"/></StackPanel></Border>
-            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="LOW" Style="{StaticResource Label}"/><TextBlock Text="{Binding LowCount}" Style="{StaticResource KpiValue}"/></StackPanel></Border>
-            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="INFO" Style="{StaticResource Label}"/><TextBlock Text="{Binding InfoCount}" Style="{StaticResource KpiValue}"/></StackPanel></Border>
-            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="DISMISSED" Style="{StaticResource Label}"/><TextBlock Text="{Binding DismissedCount}" Style="{StaticResource KpiValue}" Foreground="{DynamicResource MutedBrush}"/></StackPanel></Border>
+            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="High" Style="{StaticResource Label}"/><TextBlock Text="{Binding HighCount}" Style="{StaticResource KpiValue}" Foreground="{DynamicResource AccentBrush}"/></StackPanel></Border>
+            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="Medium" Style="{StaticResource Label}"/><TextBlock Text="{Binding MediumCount}" Style="{StaticResource KpiValue}"/></StackPanel></Border>
+            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="Low" Style="{StaticResource Label}"/><TextBlock Text="{Binding LowCount}" Style="{StaticResource KpiValue}"/></StackPanel></Border>
+            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="Info" Style="{StaticResource Label}"/><TextBlock Text="{Binding InfoCount}" Style="{StaticResource KpiValue}"/></StackPanel></Border>
+            <Border Style="{StaticResource KpiBox}"><StackPanel><TextBlock Text="Dismissed" Style="{StaticResource Label}"/><TextBlock Text="{Binding DismissedCount}" Style="{StaticResource KpiValue}" Foreground="{DynamicResource MutedBrush}"/></StackPanel></Border>
             <StackPanel VerticalAlignment="Center" Margin="6,0,0,0">
-                <Button Style="{StaticResource BtnYellow}" Content="RE-CHECK (HASH NEW DOCUMENTS)" Command="{Binding RecheckCommand}" Margin="0,0,0,6" ToolTip="Hashes new attachments / photos (SHA-256 + perceptual hash) and runs every check again"/>
-                <Button Style="{StaticResource BtnGhost}" Content="EXPORT EXCEL" Command="{Binding ExportCommand}"/>
+                <Button Style="{StaticResource BtnYellow}" Content="Re-check (hash new documents)" Command="{Binding RecheckCommand}" Margin="0,0,0,6" ToolTip="Hashes new attachments / photos (SHA-256 + perceptual hash) and runs every check again"/>
+                <Button Style="{StaticResource BtnGhost}" Content="Export excel" Command="{Binding ExportCommand}"/>
             </StackPanel>
         </StackPanel>
 
@@ -35,7 +35,7 @@
             <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Severities}" SelectedItem="{Binding Severity, Mode=TwoWay}"/>
             <ComboBox Grid.Column="1" ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind, Mode=TwoWay}" Margin="12,0,0,0" ToolTip="Kind of check"/>
             <ComboBox Grid.Column="2" ItemsSource="{Binding Subcontractors}" SelectedItem="{Binding Sub, Mode=TwoWay}" Margin="8,0,0,0" ToolTip="Subcontractor"/>
-            <CheckBox Grid.Column="3" Content="SHOW DISMISSED" IsChecked="{Binding ShowDismissed}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            <CheckBox Grid.Column="3" Content="Show dismissed" IsChecked="{Binding ShowDismissed}" VerticalAlignment="Center" Margin="12,0,0,0"/>
             <TextBox Grid.Column="4" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=250}" Margin="12,0,0,0" ToolTip="Search room, title, explanation"/>
             <TextBlock Grid.Column="5" Text="{Binding StatusText}" Style="{StaticResource Small}" VerticalAlignment="Center" Margin="12,0,0,0"/>
         </Grid>
@@ -64,13 +64,13 @@
                             <TextBlock Text="{Binding Selected.Kind}" Style="{StaticResource Label}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="{Binding Selected.Title}" Style="{StaticResource PanelTitle}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                        <TextBlock Text="WHY" Style="{StaticResource Label}"/>
+                        <TextBlock Text="Why" Style="{StaticResource Label}"/>
                         <TextBlock Text="{Binding Selected.Explanation}" Style="{StaticResource Body}" TextWrapping="Wrap" Margin="0,2,0,10"/>
-                        <TextBlock Text="SUGGESTED ACTION" Style="{StaticResource Label}"/>
+                        <TextBlock Text="Suggested action" Style="{StaticResource Label}"/>
                         <Border Style="{StaticResource Well}" Margin="0,2,0,10">
                             <TextBlock Text="{Binding Selected.SuggestedAction}" Style="{StaticResource Body}" TextWrapping="Wrap"/>
                         </Border>
-                        <TextBlock Text="EVIDENCE (CLICK TO OPEN)" Style="{StaticResource Label}"/>
+                        <TextBlock Text="Evidence (click to open)" Style="{StaticResource Label}"/>
                         <ItemsControl ItemsSource="{Binding Selected.Evidence}" Margin="0,2,0,10" MaxHeight="260">
                             <ItemsControl.Template>
                                 <ControlTemplate TargetType="ItemsControl"><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsPresenter/></ScrollViewer></ControlTemplate>
@@ -84,14 +84,14 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Text="DISMISS WITH A REASON (RECORDED)" Style="{StaticResource Label}"/>
+                        <TextBlock Text="Dismiss with a reason (recorded)" Style="{StaticResource Label}"/>
                         <TextBox Text="{Binding DismissReason, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="48"/>
                         <TextBlock Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,8" Visibility="{Binding Selected.IsDismissed, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
                             <Run Text="Dismissed by "/><Run Text="{Binding Selected.Dismissal.DismissedBy, Mode=OneWay}"/><Run Text=" on "/><Run Text="{Binding Selected.Dismissal.DismissedAt, Mode=OneWay, StringFormat=dd MMM yyyy HH:mm}"/>
                         </TextBlock>
                         <UniformGrid Columns="2">
-                            <Button Style="{StaticResource BtnPrimary}" Content="DISMISS" Command="{Binding DismissCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="RESTORE" Command="{Binding RestoreCommand}" Margin="4,0,0,0"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="Dismiss" Command="{Binding DismissCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Restore" Command="{Binding RestoreCommand}" Margin="4,0,0,0"/>
                         </UniformGrid>
                     </StackPanel>
                 </Border>
@@ -99,8 +99,8 @@
                 <Border Style="{StaticResource Card}" Padding="14" Margin="0,12,0,0">
                     <StackPanel>
                         <Grid>
-                            <TextBlock Text="THRESHOLDS" Style="{StaticResource PanelTitle}"/>
-                            <ToggleButton Style="{StaticResource ToggleChip}" Content="EDIT" IsChecked="{Binding ShowThresholds}" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Thresholds" Style="{StaticResource PanelTitle}"/>
+                            <ToggleButton Style="{StaticResource ToggleChip}" Content="Edit" IsChecked="{Binding ShowThresholds}" HorizontalAlignment="Right"/>
                         </Grid>
                         <StackPanel Visibility="{Binding ShowThresholds, Converter={StaticResource BoolToVis}}" Margin="0,8,0,0">
                             <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Thresholds}" IsReadOnly="False" MaxHeight="340">
@@ -111,8 +111,8 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                             <UniformGrid Columns="2" Margin="0,8,0,0">
-                                <Button Style="{StaticResource BtnPrimary}" Content="SAVE" Command="{Binding SaveThresholdsCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource BtnGhost}" Content="DEFAULTS" Command="{Binding ResetThresholdsCommand}" Margin="4,0,0,0"/>
+                                <Button Style="{StaticResource BtnPrimary}" Content="Save" Command="{Binding SaveThresholdsCommand}" Margin="0,0,4,0"/>
+                                <Button Style="{StaticResource BtnGhost}" Content="Defaults" Command="{Binding ResetThresholdsCommand}" Margin="4,0,0,0"/>
                             </UniformGrid>
                         </StackPanel>
                     </StackPanel>

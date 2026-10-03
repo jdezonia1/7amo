@@ -230,7 +230,7 @@ public sealed partial class LedgerViewModel : PageViewModel
             rows.TryGetValue(sh.Room, out var rr);
             var selected = sh.Room.Equals(room.Code, StringComparison.OrdinalIgnoreCase);
             var status = rr?.Status ?? "OPEN";
-            var colour = (Color)ColorConverter.ConvertFromString(status switch { "OVER" => "#8E1B22", "DUE" => "#E3AE12", "OK" => "#2E7D4F", _ => "#A6A6A6" });
+            var colour = (Color)ColorConverter.ConvertFromString(status switch { "OVER" => "#E6194B", "DUE" => "#911EB4", "OK" => "#3CB44B", _ => "#A9A9A9" });
             foreach (var poly in sh.Polygons.Split('|', StringSplitOptions.RemoveEmptyEntries))
             {
                 var pts = new PointCollection();

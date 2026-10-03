@@ -15,20 +15,20 @@
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="170"/><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Text="WORKFLOW NO" Style="{StaticResource Label}"/>
+                    <TextBlock Text="Workflow no" Style="{StaticResource Label}"/>
                     <TextBox x:Name="WfBox" Text="{Binding WorkflowNo, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" KeyDown="OnWfKeyDown"/>
                 </StackPanel>
                 <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Command="{Binding LookUpCommand}" VerticalAlignment="Bottom" Margin="8,0,0,0">
-                    <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource OnAccentBrush}"/><TextBlock Text="LOOK UP" Margin="6,0,0,0"/></StackPanel>
+                    <StackPanel Orientation="Horizontal"><c:IconView Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource OnAccentBrush}"/><TextBlock Text="Look up" Margin="6,0,0,0"/></StackPanel>
                 </Button>
                 <StackPanel Grid.Column="2" Margin="14,0,0,0">
-                    <TextBlock Text="INVOICE REVISION (SCREENSHOTS ARE ATTACHED TO IT)" Style="{StaticResource Label}"/>
+                    <TextBlock Text="Invoice revision (screenshots are attached to IT)" Style="{StaticResource Label}"/>
                     <ComboBox ItemsSource="{Binding Invoices}" SelectedItem="{Binding SelectedInvoice, Mode=TwoWay}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="8,0,0,0">
-                    <Button Style="{StaticResource BtnGhost}" Content="READ SCREENSHOT" Command="{Binding ReadScreenshotCommand}" ToolTip="A printed / scanned Aconex workflow screenshot read offline into steps" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="LINK" Command="{Binding LinkToInvoiceCommand}" ToolTip="Keep this workflow number on the selected invoice revision" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource BtnYellow}" Content="EXPORT" Command="{Binding ExportCommand}"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Read screenshot" Command="{Binding ReadScreenshotCommand}" ToolTip="A printed / scanned Aconex workflow screenshot read offline into steps" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Link" Command="{Binding LinkToInvoiceCommand}" ToolTip="Keep this workflow number on the selected invoice revision" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="Export" Command="{Binding ExportCommand}"/>
                 </StackPanel>
             </Grid>
             <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,10">
@@ -38,11 +38,11 @@
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="{Binding Heading}" Style="{StaticResource PanelTitle}"/>
                         <WrapPanel Margin="0,6,0,0">
-                            <StackPanel Margin="0,0,24,0"><TextBlock Text="CURRENT STEP" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding CurrentStep}" Style="{StaticResource BodyStrong}"/></StackPanel>
-                            <StackPanel Margin="0,0,24,0"><TextBlock Text="WITH" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding WithWhom}" Style="{StaticResource BodyStrong}"/></StackPanel>
-                            <StackPanel Margin="0,0,24,0"><TextBlock Text="DUE" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding Due}" Style="{StaticResource BodyStrong}" Foreground="{DynamicResource AccentBrush}"/></StackPanel>
-                            <StackPanel Margin="0,0,24,0"><TextBlock Text="OUTCOME" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding Outcome}" Style="{StaticResource BodyStrong}"/></StackPanel>
-                            <StackPanel><TextBlock Text="CHECKED" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding CheckedAt}" Style="{StaticResource Body}"/></StackPanel>
+                            <StackPanel Margin="0,0,24,0"><TextBlock Text="Current step" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding CurrentStep}" Style="{StaticResource BodyStrong}"/></StackPanel>
+                            <StackPanel Margin="0,0,24,0"><TextBlock Text="With" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding WithWhom}" Style="{StaticResource BodyStrong}"/></StackPanel>
+                            <StackPanel Margin="0,0,24,0"><TextBlock Text="Due" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding Due}" Style="{StaticResource BodyStrong}" Foreground="{DynamicResource AccentBrush}"/></StackPanel>
+                            <StackPanel Margin="0,0,24,0"><TextBlock Text="Outcome" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding Outcome}" Style="{StaticResource BodyStrong}"/></StackPanel>
+                            <StackPanel><TextBlock Text="Checked" Style="{StaticResource Label}" FontSize="10"/><TextBlock Text="{Binding CheckedAt}" Style="{StaticResource Body}"/></StackPanel>
                         </WrapPanel>
                         <TextBlock Text="{Binding Error}" Style="{StaticResource Small}" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
                                    Visibility="{Binding Error, Converter={StaticResource BoolToVis}}"/>
@@ -71,18 +71,18 @@
             <Border Style="{StaticResource Card}" Padding="10">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Top" Margin="2,0,0,6">
-                        <Button DockPanel.Dock="Right" Style="{StaticResource BtnLink}" Content="OPEN" Command="{Binding OpenScreenshotCommand}"/>
-                        <TextBlock Text="SCREENSHOT" Style="{StaticResource PanelTitle}"/>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource BtnLink}" Content="Open" Command="{Binding OpenScreenshotCommand}"/>
+                        <TextBlock Text="Screenshot" Style="{StaticResource PanelTitle}"/>
                     </DockPanel>
                     <Image Source="{Binding Screenshot, Converter={x:Static cv:PathToImageConverter.Instance}}" Stretch="Uniform" StretchDirection="DownOnly" VerticalAlignment="Top"/>
                 </DockPanel>
             </Border>
             <Border Grid.Row="2" Style="{StaticResource Card}" Padding="10">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="CHECKS / CHANGES / ATTACHMENTS" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Checks / Changes / Attachments" Style="{StaticResource PanelTitle}" Margin="2,0,0,6"/>
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <TextBlock Text="EARLIER CHECKS (CLICK TO VIEW)" Style="{StaticResource Label}" FontSize="10"/>
+                            <TextBlock Text="Earlier checks (click to view)" Style="{StaticResource Label}" FontSize="10"/>
                             <ListBox ItemsSource="{Binding Checks}" SelectedItem="{Binding SelectedCheck, Mode=TwoWay}" MaxHeight="120" BorderThickness="0" Background="Transparent">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
@@ -90,7 +90,7 @@
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
-                            <TextBlock Text="STEP CHANGES" Style="{StaticResource Label}" FontSize="10" Margin="0,8,0,0"/>
+                            <TextBlock Text="Step changes" Style="{StaticResource Label}" FontSize="10" Margin="0,8,0,0"/>
                             <ItemsControl ItemsSource="{Binding History}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -98,7 +98,7 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="ATTACHED TO THE INVOICE REVISION" Style="{StaticResource Label}" FontSize="10" Margin="0,8,0,0"/>
+                            <TextBlock Text="Attached to the invoice revision" Style="{StaticResource Label}" FontSize="10" Margin="0,8,0,0"/>
                             <ItemsControl ItemsSource="{Binding Attachments}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>

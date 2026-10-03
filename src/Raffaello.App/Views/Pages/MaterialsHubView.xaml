@@ -11,9 +11,9 @@
             <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding Tab, Mode=TwoWay}" HorizontalAlignment="Left"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <TextBlock Text="{Binding Busy}" Style="{StaticResource Label}" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <Button Style="{StaticResource BtnYellow}" Content="IMPORT PO" Command="{Binding ImportPoCommand}"/>
-                <Button Style="{StaticResource BtnYellow}" Content="IMPORT DN" Command="{Binding ImportDnCommand}" Margin="6,0,0,0"/>
-                <Button Style="{StaticResource BtnYellow}" Content="IMPORT MIR" Command="{Binding ImportMirCommand}" Margin="6,0,0,0"/>
+                <Button Style="{StaticResource BtnYellow}" Content="Import PO" Command="{Binding ImportPoCommand}"/>
+                <Button Style="{StaticResource BtnYellow}" Content="Import DN" Command="{Binding ImportDnCommand}" Margin="6,0,0,0"/>
+                <Button Style="{StaticResource BtnYellow}" Content="Import MIR" Command="{Binding ImportMirCommand}" Margin="6,0,0,0"/>
             </StackPanel>
         </Grid>
 
@@ -22,7 +22,7 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="260"/><ColumnDefinition Width="12"/><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="320"/></Grid.ColumnDefinitions>
             <Border Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PURCHASE ORDERS" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Purchase orders" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
                     <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Pos}" SelectedItem="{Binding SelectedPo, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
@@ -46,7 +46,7 @@
                         <TextBlock Text="{Binding PoTerms}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
                         <Grid Margin="0,4,0,0">
                             <TextBlock Text="{Binding PoCoding}" Style="{StaticResource Label}" VerticalAlignment="Center"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="RE-RUN AUTO-CODE" Command="{Binding RecodeCommand}" HorizontalAlignment="Right"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Re-run auto-code" Command="{Binding RecodeCommand}" HorizontalAlignment="Right"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -72,9 +72,9 @@
             </Grid>
             <Border Grid.Column="4" Style="{StaticResource Card}" Padding="12">
                 <StackPanel>
-                    <TextBlock Text="CODING" Style="{StaticResource PanelTitle}"/>
+                    <TextBlock Text="Coding" Style="{StaticResource PanelTitle}"/>
                     <TextBlock Text="{Binding SelectedPoLine.L.Description}" Style="{StaticResource BodyStrong}" TextWrapping="Wrap" Margin="0,4,0,8"/>
-                    <TextBlock Text="SUGGESTIONS (TOP 3)" Style="{StaticResource Label}"/>
+                    <TextBlock Text="Suggestions (top 3)" Style="{StaticResource Label}"/>
                     <ListBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion, Mode=TwoWay}" Style="{StaticResource CardList}" MaxHeight="260">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
@@ -85,15 +85,15 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <Button Style="{StaticResource BtnPrimary}" Content="CONFIRM SUGGESTION" Command="{Binding ConfirmSuggestionCommand}" Margin="0,8,0,14"/>
-                    <TextBlock Text="OR TYPE THE CODES" Style="{StaticResource Label}"/>
-                    <TextBlock Text="BOQ NO." Style="{StaticResource Small}"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Confirm suggestion" Command="{Binding ConfirmSuggestionCommand}" Margin="0,8,0,14"/>
+                    <TextBlock Text="Or type the codes" Style="{StaticResource Label}"/>
+                    <TextBlock Text="BOQ no." Style="{StaticResource Small}"/>
                     <TextBox Style="{StaticResource Input}" Text="{Binding ManualBoq, UpdateSourceTrigger=PropertyChanged}"/>
-                    <TextBlock Text="COST CODE" Style="{StaticResource Small}" Margin="0,4,0,0"/>
+                    <TextBlock Text="Cost code" Style="{StaticResource Small}" Margin="0,4,0,0"/>
                     <TextBox Style="{StaticResource Input}" Text="{Binding ManualCost, UpdateSourceTrigger=PropertyChanged}"/>
-                    <TextBlock Text="BUDGET RESOURCE CODE" Style="{StaticResource Small}" Margin="0,4,0,0"/>
+                    <TextBlock Text="Budget resource code" Style="{StaticResource Small}" Margin="0,4,0,0"/>
                     <TextBox Style="{StaticResource Input}" Text="{Binding ManualResource, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="SAVE TYPED CODES" Command="{Binding ConfirmTypedCommand}" Margin="0,8,0,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Save typed codes" Command="{Binding ConfirmTypedCommand}" Margin="0,8,0,0"/>
                     <TextBlock Text="Every confirmation is learned: the same supplier code, description or cable attributes are coded automatically next time." Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,10,0,0" FontSize="10"/>
                 </StackPanel>
             </Border>
@@ -104,7 +104,7 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="260"/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
             <Border Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="DELIVERY NOTES" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Delivery notes" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
                     <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding Dns}" SelectedItem="{Binding SelectedDn, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
@@ -150,7 +150,7 @@
                                 <ComboBox.ItemTemplate><DataTemplate><TextBlock><Run Text="{Binding LineNo, Mode=OneWay}" FontWeight="Bold"/><Run Text="  "/><Run Text="{Binding Description, Mode=OneWay}"/><Run Text="  "/><Run Text="{Binding Unit, Mode=OneWay}"/></TextBlock></DataTemplate></ComboBox.ItemTemplate>
                             </ComboBox>
                         </StackPanel>
-                        <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="PIN" Command="{Binding PinLineCommand}" VerticalAlignment="Bottom" Margin="10,0,0,0"/>
+                        <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="Pin" Command="{Binding PinLineCommand}" VerticalAlignment="Bottom" Margin="10,0,0,0"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -178,7 +178,7 @@
                 </Border>
                 <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0">
                     <StackPanel>
-                        <TextBlock Text="CLOUD READING OF PHOTO / SCAN PAGES" Style="{StaticResource Label}"/>
+                        <TextBlock Text="Cloud reading of photo / Scan pages" Style="{StaticResource Label}"/>
                         <TextBlock Text="{Binding VisionStatus}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
                         <CheckBox Content="DN photos" IsChecked="{Binding MirReadDnPhotos}" Margin="0,4,0,0"/>
                         <CheckBox Content="Test certificates (drum no + length)" IsChecked="{Binding MirReadCerts}"/>
@@ -190,12 +190,12 @@
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                 <Border Style="{StaticResource Card}" Padding="12,8">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource BodyStrong}" FontSize="12"><Run Text="{Binding SelectedMir.MirNo, Mode=OneWay}"/><Run Text="  Rev "/><Run Text="{Binding SelectedMir.Revision, Mode=OneWay}"/><Run Text="  |  MAR "/><Run Text="{Binding SelectedMir.MarRef, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Style="{StaticResource BodyStrong}" FontSize="12"><Run Text="{Binding SelectedMir.MirNo, Mode=OneWay}"/><Run Text="  Rev "/><Run Text="{Binding SelectedMir.Revision, Mode=OneWay}"/><Run Text="  |  Mar "/><Run Text="{Binding SelectedMir.MarRef, Mode=OneWay}"/></TextBlock>
                         <TextBlock Text="{Binding SelectedMir.Description}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding SelectedMir.PageKinds}" Style="{StaticResource Small}" FontSize="10" TextWrapping="Wrap"/>
                         <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                             <ComboBox ItemsSource="{Binding MirStatuses}" SelectedItem="{Binding MirStatus, Mode=TwoWay}" Width="220"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="SET STATUS" Command="{Binding SetMirStatusCommand}" Margin="6,0,0,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Set status" Command="{Binding SetMirStatusCommand}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -203,19 +203,19 @@
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Style="{StaticResource Label}"><Run Text="DNs IN THIS MIR: "/><Run Text="{Binding MirDns.Count, Mode=OneWay}"/></TextBlock>
+                            <TextBlock Style="{StaticResource Label}"><Run Text="DNs in this MIR: "/><Run Text="{Binding MirDns.Count, Mode=OneWay}"/></TextBlock>
                             <ItemsControl ItemsSource="{Binding MirDns}">
                                 <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate><DataTemplate><Border Style="{StaticResource Well}" Margin="0,0,6,4"><TextBlock Style="{StaticResource Small}"><Run Text="{Binding DnNo, Mode=OneWay}" FontWeight="Bold"/><Run Text="  "/><Run Text="{Binding PoNo, Mode=OneWay}"/></TextBlock></Border></DataTemplate></ItemsControl.ItemTemplate>
                             </ItemsControl>
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <TextBlock Text="ADD DN" Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Add DN" Style="{StaticResource Label}" VerticalAlignment="Center"/>
                                 <TextBox Style="{StaticResource Input}" Text="{Binding NewMirDn, UpdateSourceTrigger=PropertyChanged}" Width="120" Margin="6,0,0,0"/>
                                 <TextBlock Text="PO" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 <TextBox Style="{StaticResource Input}" Text="{Binding NewMirPo, UpdateSourceTrigger=PropertyChanged}" Width="180" Margin="6,0,0,0"/>
                             </StackPanel>
                         </StackPanel>
-                        <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="ADD DN TO MIR" Command="{Binding AddMirDnCommand}" VerticalAlignment="Bottom"/>
+                        <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Content="Add DN to MIR" Command="{Binding AddMirDnCommand}" VerticalAlignment="Bottom"/>
                     </Grid>
                 </Border>
                 <DataGrid Grid.Row="2" Style="{StaticResource CardGrid}" ItemsSource="{Binding MirEvidence}">
@@ -241,23 +241,23 @@
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="170"/><ColumnDefinition Width="12"/><ColumnDefinition Width="170"/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
                 <Border Style="{StaticResource Card}">
-                    <StackPanel><TextBlock Text="MATCHED LINES" Style="{StaticResource Label}"/><TextBlock Text="{Binding MatchedCount}" Style="{StaticResource KpiValue}"/></StackPanel>
+                    <StackPanel><TextBlock Text="Matched lines" Style="{StaticResource Label}"/><TextBlock Text="{Binding MatchedCount}" Style="{StaticResource KpiValue}"/></StackPanel>
                 </Border>
                 <ContentControl Grid.Column="2" Style="{StaticResource HeroCard}">
-                    <StackPanel><TextBlock Text="NEED A LOOK" Style="{StaticResource Label}" Foreground="{DynamicResource YellowBrush}"/><TextBlock Text="{Binding ProblemCount}" Style="{StaticResource KpiValue}" Foreground="{DynamicResource HeroInkBrush}"/></StackPanel>
+                    <StackPanel><TextBlock Text="Need a look" Style="{StaticResource Label}" Foreground="{DynamicResource YellowBrush}"/><TextBlock Text="{Binding ProblemCount}" Style="{StaticResource KpiValue}" Foreground="{DynamicResource HeroInkBrush}"/></StackPanel>
                 </ContentControl>
                 <Border Grid.Column="4" Style="{StaticResource Card}">
                     <Grid>
                         <StackPanel>
                             <TextBlock Text="{Binding MatchSummary}" Style="{StaticResource BodyStrong}" FontSize="12" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                <TextBlock Text="SHOW" Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Show" Style="{StaticResource Label}" VerticalAlignment="Center"/>
                                 <ComboBox ItemsSource="{Binding MatchFilters}" SelectedItem="{Binding MatchFilter, Mode=TwoWay}" Width="160" Margin="6,0,0,0"/>
                             </StackPanel>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                            <Button Style="{StaticResource BtnPrimary}" Content="RUN MATCH" Command="{Binding RunMatchCommand}"/>
-                            <Button Style="{StaticResource BtnYellow}" Content="MIR TRACKER (EXCEL)" Command="{Binding ExportTrackerCommand}" Margin="6,0,0,0"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="Run match" Command="{Binding RunMatchCommand}"/>
+                            <Button Style="{StaticResource BtnYellow}" Content="MIR tracker (excel)" Command="{Binding ExportTrackerCommand}" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -291,7 +291,7 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition Width="12"/><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
             <Border Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="SUPPLIER INVOICES" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="Supplier invoices" Style="{StaticResource PanelTitle}" Margin="2,0,0,8"/>
                     <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding StoredInvoices}" SelectedItem="{Binding SelectedStoredInvoice, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
@@ -319,13 +319,13 @@
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                        <TextBlock Text="INVOICE NO" Style="{StaticResource Label}"/>
+                        <TextBlock Text="Invoice no" Style="{StaticResource Label}"/>
                         <TextBox Text="{Binding InvoiceNo, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                        <Button Style="{StaticResource BtnPrimary}" Content="BUILD FROM DN LINES" Command="{Binding BuildInvoiceCommand}"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="SAVE DRAFT" Command="{Binding SaveInvoiceCommand}" Margin="6,0,0,0"/>
-                        <Button Style="{StaticResource BtnYellow}" Content="EXPORT PACKAGE" Command="{Binding ExportInvoiceCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Build from DN lines" Command="{Binding BuildInvoiceCommand}"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Save draft" Command="{Binding SaveInvoiceCommand}" Margin="6,0,0,0"/>
+                        <Button Style="{StaticResource BtnYellow}" Content="Export package" Command="{Binding ExportInvoiceCommand}" Margin="6,0,0,0"/>
                     </StackPanel>
                 </Grid>
                 <DataGrid Grid.Row="1" Style="{StaticResource CardGrid}" IsReadOnly="False" ItemsSource="{Binding Invoiceable}">
@@ -364,26 +364,26 @@
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                 <Border Style="{StaticResource Card}" Padding="12">
                     <StackPanel>
-                        <TextBlock Text="TOTALS" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Totals" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Style="{StaticResource Small}"><Run Text="Gross this period  SAR "/><Run Text="{Binding InvoiceTotals.CurrGross, StringFormat=N2, Mode=OneWay}" FontWeight="Bold"/></TextBlock>
                         <TextBlock Style="{StaticResource Small}"><Run Text="Retention  SAR "/><Run Text="{Binding InvoiceTotals.CurrRetention, StringFormat=N2, Mode=OneWay}"/></TextBlock>
                         <TextBlock Style="{StaticResource Small}"><Run Text="VAT 15%  SAR "/><Run Text="{Binding InvoiceTotals.VatCurr, StringFormat=N2, Mode=OneWay}"/></TextBlock>
                         <TextBlock Style="{StaticResource BodyStrong}"><Run Text="Incl. VAT  SAR "/><Run Text="{Binding InvoiceTotals.NetInclVatCurr, StringFormat=N2, Mode=OneWay}"/></TextBlock>
-                        <TextBlock Text="ACONEX WORKFLOW NO" Style="{StaticResource Label}" Margin="0,12,0,0"/>
+                        <TextBlock Text="ACONEX workflow no" Style="{StaticResource Label}" Margin="0,12,0,0"/>
                         <TextBox Style="{StaticResource Input}" Text="{Binding AconexNo, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Button Style="{StaticResource BtnGhost}" Content="SUBMIT" Command="{Binding SubmitInvoiceCommand}" Margin="0,6,0,0"/>
-                        <TextBlock Text="REJECTION REASON" Style="{StaticResource Label}" Margin="0,10,0,0"/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Submit" Command="{Binding SubmitInvoiceCommand}" Margin="0,6,0,0"/>
+                        <TextBlock Text="Rejection reason" Style="{StaticResource Label}" Margin="0,10,0,0"/>
                         <TextBox Style="{StaticResource Input}" Text="{Binding RejectReason, UpdateSourceTrigger=PropertyChanged}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                            <Button Style="{StaticResource BtnGhost}" Content="REJECT" Command="{Binding RejectInvoiceCommand}"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="NEW REVISION" Command="{Binding NewRevisionCommand}" Margin="6,0,0,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Reject" Command="{Binding RejectInvoiceCommand}"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="New revision" Command="{Binding NewRevisionCommand}" Margin="6,0,0,0"/>
                         </StackPanel>
-                        <Button Style="{StaticResource BtnPrimary}" Content="APPROVE AND LOCK" Command="{Binding ApproveInvoiceCommand}" Margin="0,10,0,0"/>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Approve and lock" Command="{Binding ApproveInvoiceCommand}" Margin="0,10,0,0"/>
                     </StackPanel>
                 </Border>
                 <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12" Margin="0,10,0,0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="WARNINGS" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock DockPanel.Dock="Top" Text="Warnings" Style="{StaticResource PanelTitle}"/>
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding InvoiceWarnings}">
                                 <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,0,0,4"/></DataTemplate></ItemsControl.ItemTemplate>
@@ -400,11 +400,11 @@
             <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,10">
                 <StackPanel Orientation="Horizontal">
                     <StackPanel>
-                        <TextBlock Text="SUPPLIER" Style="{StaticResource Label}"/>
+                        <TextBlock Text="Supplier" Style="{StaticResource Label}"/>
                         <ComboBox ItemsSource="{Binding Suppliers}" Text="{Binding LookupSupplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Width="260"/>
                     </StackPanel>
                     <StackPanel Margin="12,0,0,0">
-                        <TextBlock Text="DN NO / PO NO / BATCH / ORDER NO" Style="{StaticResource Label}"/>
+                        <TextBlock Text="DN no / PO no / Batch / Order no" Style="{StaticResource Label}"/>
                         <TextBox Style="{StaticResource Input}" Text="{Binding LookupQuery, UpdateSourceTrigger=PropertyChanged}" Width="320"/>
                     </StackPanel>
                     <TextBlock Text="Type part of a number - punctuation does not matter (RAF-P.O-E-045 = RAFPOE045)." Style="{StaticResource Small}" VerticalAlignment="Bottom" Margin="12,0,0,6"/>
@@ -442,38 +442,38 @@
             <StackPanel MaxWidth="760" HorizontalAlignment="Left">
                 <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,10">
                     <StackPanel>
-                        <TextBlock Text="DOCUMENT READING" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Document reading" Style="{StaticResource PanelTitle}"/>
                         <TextBlock Text="{Binding ReaderStatus}" Style="{StaticResource Small}" TextWrapping="Wrap" Margin="0,4,0,8"/>
                         <CheckBox Content="Cloud reading: send scan / photo pages to Claude when the text layer and local OCR are not enough (uses the API key and model from Settings)" IsChecked="{Binding CloudReading}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                            <TextBlock Text="EFFORT" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <TextBlock Text="Effort" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
                             <ComboBox ItemsSource="{Binding Efforts}" SelectedItem="{Binding VisionEffort, Mode=TwoWay}" Width="120"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,10">
                     <StackPanel>
-                        <TextBlock Text="MATCH AND UNITS" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Match and units" Style="{StaticResource PanelTitle}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                            <TextBlock Text="OVER PO TOLERANCE" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <TextBlock Text="Over PO tolerance" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
                             <ComboBox ItemsSource="{Binding ToleranceModes}" SelectedItem="{Binding ToleranceMode, Mode=TwoWay}" Width="120"/>
-                            <TextBlock Text="CUSTOM %" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,6,0"/>
+                            <TextBlock Text="Custom %" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,6,0"/>
                             <TextBox Style="{StaticResource Input}" Text="{Binding CustomTolerance, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
                         </StackPanel>
                         <TextBlock Text="CLAUSE = the PO conditions (e.g. ±5 % per item) win over the header block; HEADER = the header tolerance only." Style="{StaticResource Small}" Margin="160,2,0,0" TextWrapping="Wrap"/>
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                            <TextBlock Text="PIPE LENGTH (M / PCS)" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <TextBlock Text="Pipe length (m / Pcs)" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
                             <TextBox Style="{StaticResource Input}" Text="{Binding PipeLength, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,10">
                     <StackPanel>
-                        <TextBlock Text="AUTO-CODING AND OWNER MOS" Style="{StaticResource PanelTitle}"/>
+                        <TextBlock Text="Auto-coding and owner MOS" Style="{StaticResource PanelTitle}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                            <TextBlock Text="AUTO-FILL AT SCORE %" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <TextBlock Text="Auto-fill at score %" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
                             <TextBox Style="{StaticResource Input}" Text="{Binding AutoHigh, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
-                            <TextBlock Text="FLAG FOR REVIEW AT %" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,6,0"/>
+                            <TextBlock Text="Flag for review at %" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,6,0"/>
                             <TextBox Style="{StaticResource Input}" Text="{Binding AutoMedium, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
@@ -482,14 +482,14 @@
                             <CheckBox Content="Only DNs with a MIR count as materials on site" IsChecked="{Binding MosRequiresMir}" Margin="12,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                            <TextBlock Text="MOS TEMPLATE (OPTIONAL)" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
+                            <TextBlock Text="MOS template (optional)" Style="{StaticResource Label}" VerticalAlignment="Center" Width="160"/>
                             <TextBox Style="{StaticResource Input}" Text="{Binding MosTemplate, UpdateSourceTrigger=PropertyChanged}" Width="420"/>
-                            <Button Style="{StaticResource BtnGhost}" Content="BROWSE" Command="{Binding BrowseTemplateCommand}" Margin="6,0,0,0"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="Browse" Command="{Binding BrowseTemplateCommand}" Margin="6,0,0,0"/>
                         </StackPanel>
                         <CheckBox Content="BOQ screen: ask Claude for rows no keyword rule covers" IsChecked="{Binding BoqAi}" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
-                <Button Style="{StaticResource BtnPrimary}" Content="SAVE MATERIALS SETTINGS" Command="{Binding SaveSettingsCommand}" HorizontalAlignment="Left"/>
+                <Button Style="{StaticResource BtnPrimary}" Content="Save materials settings" Command="{Binding SaveSettingsCommand}" HorizontalAlignment="Left"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

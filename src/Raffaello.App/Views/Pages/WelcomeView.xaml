@@ -35,7 +35,7 @@
                 </StackPanel>
                 <ContentControl Grid.Column="1" Style="{StaticResource HeroCard}" MinWidth="300" VerticalAlignment="Center">
                     <StackPanel>
-                        <TextBlock Text="CERTIFIED TO DATE" FontFamily="{StaticResource FontSansSemi}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource YellowBrush}"/>
+                        <TextBlock Text="Certified to date" FontFamily="{StaticResource FontSansSemi}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource YellowBrush}"/>
                         <TextBlock Text="{Binding CertifiedLine}" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" FontSize="22" Foreground="{DynamicResource HeroInkBrush}" Margin="0,4,0,0"/>
                         <TextBlock Text="{Binding ProgressLine}" FontFamily="{StaticResource FontMono}" FontSize="12" Foreground="{DynamicResource HeroInkBrush}" Opacity="0.75" Margin="0,4,0,0"/>
                     </StackPanel>
@@ -81,8 +81,8 @@
                     <Grid MinHeight="96">
                         <c:IconView Data="{StaticResource IconImport}" Width="28" Height="28" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                         <StackPanel VerticalAlignment="Bottom">
-                            <TextBlock Text="IMPORT" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" FontSize="24"/>
-                            <TextBlock Text="QSEXPORT  |  WIR  |  DN  |  INVOICE  |  PO  |  GIVEN" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
+                            <TextBlock Text="Import" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" FontSize="24"/>
+                            <TextBlock Text="Qsexport  |  WIR  |  DN  |  Invoice  |  PO  |  Given" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
                         </StackPanel>
                     </Grid>
                 </Button>
@@ -90,7 +90,7 @@
                     <Grid MinHeight="96">
                         <c:IconView Data="{StaticResource IconSparkles}" Width="28" Height="28" Foreground="{DynamicResource YellowBrush}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                         <StackPanel VerticalAlignment="Bottom">
-                            <TextBlock Text="ASK RAFFAELLO" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" FontSize="24"/>
+                            <TextBlock Text="Ask RAFFAELLO" FontFamily="{StaticResource FontDisplay}" FontWeight="Bold" FontSize="24"/>
                             <TextBlock Text="Explain a flag, draft an email, summarise the day" FontSize="12" Opacity="0.75"/>
                         </StackPanel>
                     </Grid>
@@ -103,8 +103,8 @@
                 <Border Style="{StaticResource Card}">
                     <StackPanel>
                         <Grid Margin="0,0,0,10">
-                            <TextBlock Text="NEEDS YOU TODAY" Style="{StaticResource PanelTitle}"/>
-                            <Button Style="{StaticResource BtnLink}" Content="OPEN DASHBOARD" HorizontalAlignment="Right" Command="{Binding OpenDashboardCommand}"/>
+                            <TextBlock Text="Needs you today" Style="{StaticResource PanelTitle}"/>
+                            <Button Style="{StaticResource BtnLink}" Content="Open dashboard" HorizontalAlignment="Right" Command="{Binding OpenDashboardCommand}"/>
                         </Grid>
                         <ListBox Style="{StaticResource CardList}" ItemsSource="{Binding TopQueue}" x:Name="Queue" SelectionChanged="Queue_SelectionChanged">
                             <ListBox.ItemTemplate>
@@ -126,7 +126,7 @@
                 <StackPanel Grid.Column="2">
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
-                            <TextBlock Text="RECENT FILES &amp; IMPORTS" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
+                            <TextBlock Text="Recent files &amp; imports" Style="{StaticResource PanelTitle}" Margin="0,0,0,10"/>
                             <ItemsControl ItemsSource="{Binding Recent}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -151,16 +151,16 @@
                             <Grid Margin="0,0,0,8">
                                 <StackPanel Orientation="Horizontal">
                                     <c:IconView Data="{StaticResource IconDatabase}" Foreground="{DynamicResource AccentBrush}"/>
-                                    <TextBlock Text="SHARED DATA FILE" Style="{StaticResource PanelTitle}" Margin="8,0,0,0"/>
+                                    <TextBlock Text="Shared data file" Style="{StaticResource PanelTitle}" Margin="8,0,0,0"/>
                                 </StackPanel>
-                                <ContentControl Style="{StaticResource Tag}" Content="ONLINE" HorizontalAlignment="Right"/>
+                                <ContentControl Style="{StaticResource Tag}" Content="Online" HorizontalAlignment="Right"/>
                             </Grid>
                             <TextBlock Text="{Binding DataPath}" FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{DynamicResource Ink2Brush}" TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding DataSize}" Style="{StaticResource Small}" Margin="0,6,0,0"/>
                             <TextBlock Text="{Binding DataModified}" Style="{StaticResource Small}"/>
                             <TextBlock Text="{Binding DataRows}" Style="{StaticResource Small}"/>
                             <Separator/>
-                            <TextBlock Text="WHO ELSE IS EDITING" Style="{StaticResource Label}"/>
+                            <TextBlock Text="Who else is editing" Style="{StaticResource Label}"/>
                             <TextBlock Text="{Binding Presence.OthersOnline}" Style="{StaticResource BodyStrong}" FontSize="12" Margin="0,2,0,0"/>
                             <TextBlock Text="{Binding Presence.LastSync, StringFormat=last heartbeat {0:HH:mm:ss} (every 60 s)}" Style="{StaticResource Small}" FontSize="11"/>
                         </StackPanel>

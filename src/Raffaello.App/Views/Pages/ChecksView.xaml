@@ -41,7 +41,7 @@
             </DataGrid>
             <Border Grid.Row="3" Style="{StaticResource Card}" Padding="12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="15 M RULE PER SUBCONTRACTOR  |  CLAIMED vs INVOICED (REJECTED EXTRA IS NOT PAID)" Style="{StaticResource Label}" Margin="0,0,0,6"/>
+                    <TextBlock DockPanel.Dock="Top" Text="15 m rule per subcontractor  |  Claimed vs invoiced (rejected extra is not paid)" Style="{StaticResource Label}" Margin="0,0,0,6"/>
                     <DataGrid Style="{StaticResource CardGrid}" ItemsSource="{Binding Extras}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="SUB" Binding="{Binding Sub}" Width="160" ElementStyle="{StaticResource CellKey}"/>
@@ -57,39 +57,39 @@
 
         <Border Grid.Column="2" Style="{StaticResource Card}" Padding="14" VerticalAlignment="Top">
             <StackPanel>
-                <TextBlock Style="{StaticResource PanelTitle}" Margin="0,0,0,4"><Run Text="DECISION  "/><Run Text="{Binding Selected.Room, Mode=OneWay}"/></TextBlock>
+                <TextBlock Style="{StaticResource PanelTitle}" Margin="0,0,0,4"><Run Text="Decision  "/><Run Text="{Binding Selected.Room, Mode=OneWay}"/></TextBlock>
                 <TextBlock Style="{StaticResource Small}" Margin="0,0,0,10" TextWrapping="Wrap">
-                    <Run Text="{Binding Selected.Sub, Mode=OneWay}"/><Run Text="  INV "/><Run Text="{Binding Selected.InvoiceNo, Mode=OneWay}"/><Run Text="  |  "/><Run Text="{Binding Selected.Stage, Mode=OneWay}"/><Run Text="  "/><Run Text="{Binding Selected.Item, Mode=OneWay}"/>
+                    <Run Text="{Binding Selected.Sub, Mode=OneWay}"/><Run Text="  Inv "/><Run Text="{Binding Selected.InvoiceNo, Mode=OneWay}"/><Run Text="  |  "/><Run Text="{Binding Selected.Stage, Mode=OneWay}"/><Run Text="  "/><Run Text="{Binding Selected.Item, Mode=OneWay}"/>
                 </TextBlock>
 
                 <StackPanel Visibility="{Binding IsHeight, Converter={StaticResource BoolToVis}}">
-                    <TextBlock Text="ACCEPTED QTY ABOVE 4.5 M (for PARTLY)" Style="{StaticResource Label}"/>
+                    <TextBlock Text="Accepted QTY above 4.5 m (for partly)" Style="{StaticResource Label}"/>
                     <TextBox Text="{Binding AcceptedQty, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
                 </StackPanel>
                 <StackPanel Visibility="{Binding IsLength, Converter={StaticResource BoolToVis}}">
                     <TextBlock Text="GROUPS  (n x length, e.g. 10x20;5x35)" Style="{StaticResource Label}"/>
                     <TextBox Text="{Binding Groups, UpdateSourceTrigger=PropertyChanged, Delay=200}" Margin="0,2,0,8"/>
-                    <TextBlock Text="OR TOTAL ROUTE LENGTH (M)" Style="{StaticResource Label}"/>
+                    <TextBlock Text="Or total route length (m)" Style="{StaticResource Label}"/>
                     <TextBox Text="{Binding RouteTotal, UpdateSourceTrigger=PropertyChanged, Delay=200}" Margin="0,2,0,8"/>
                     <TextBlock Text="REVISED QTY OVERRIDE (optional)" Style="{StaticResource Label}"/>
                     <TextBox Text="{Binding RevisedOverride, UpdateSourceTrigger=PropertyChanged, Delay=200}" Margin="0,2,0,8"/>
                 </StackPanel>
-                <TextBlock Text="NOTE" Style="{StaticResource Label}"/>
+                <TextBlock Text="Note" Style="{StaticResource Label}"/>
                 <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
                 <Border Style="{StaticResource Well}" Margin="0,0,0,10">
                     <TextBlock Text="{Binding Preview}" Style="{StaticResource Small}" TextWrapping="Wrap"/>
                 </Border>
                 <UniformGrid Columns="3" Visibility="{Binding IsHeight, Converter={StaticResource BoolToVis}}">
-                    <Button Style="{StaticResource BtnPrimary}" Content="ACCEPT" Command="{Binding AcceptHeightCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource BtnYellow}" Content="PARTLY" Command="{Binding PartlyHeightCommand}" Margin="2,0"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="REJECT" Command="{Binding RejectHeightCommand}" Margin="4,0,0,0"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Accept" Command="{Binding AcceptHeightCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="Partly" Command="{Binding PartlyHeightCommand}" Margin="2,0"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Reject" Command="{Binding RejectHeightCommand}" Margin="4,0,0,0"/>
                 </UniformGrid>
                 <UniformGrid Columns="3" Visibility="{Binding IsLength, Converter={StaticResource BoolToVis}}">
-                    <Button Style="{StaticResource BtnPrimary}" Content="ACCEPT CLAIM" Command="{Binding AcceptLengthCommand}" Margin="0,0,4,0" ToolTip="Invoice the full claimed 15 m quantity"/>
-                    <Button Style="{StaticResource BtnYellow}" Content="REVISE" Command="{Binding ReviseLengthCommand}" Margin="2,0" ToolTip="Invoice the revised (or override) quantity"/>
-                    <Button Style="{StaticResource BtnGhost}" Content="REJECT" Command="{Binding RejectLengthCommand}" Margin="4,0,0,0" ToolTip="Invoice the plan quantity only"/>
+                    <Button Style="{StaticResource BtnPrimary}" Content="Accept claim" Command="{Binding AcceptLengthCommand}" Margin="0,0,4,0" ToolTip="Invoice the full claimed 15 m quantity"/>
+                    <Button Style="{StaticResource BtnYellow}" Content="Revise" Command="{Binding ReviseLengthCommand}" Margin="2,0" ToolTip="Invoice the revised (or override) quantity"/>
+                    <Button Style="{StaticResource BtnGhost}" Content="Reject" Command="{Binding RejectLengthCommand}" Margin="4,0,0,0" ToolTip="Invoice the plan quantity only"/>
                 </UniformGrid>
-                <Button Style="{StaticResource BtnLink}" Content="OPEN ROOM IN LEDGER" Command="{Binding OpenRoomCommand}" HorizontalAlignment="Left" Margin="0,12,0,0"/>
+                <Button Style="{StaticResource BtnLink}" Content="Open room in ledger" Command="{Binding OpenRoomCommand}" HorizontalAlignment="Left" Margin="0,12,0,0"/>
             </StackPanel>
         </Border>
     </Grid>
