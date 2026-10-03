@@ -37,6 +37,7 @@ public static class Program
     public static int Main(string[] args)
     {
         if (args.Length == 0 || args[0] is "-h" or "--help") { Help(); return 0; }
+        if (args[0] == "mcp") return Raffaello.Core.Assistant.Mcp.McpHost.RunStdio(args.Skip(1).ToArray());   // [claude-login] read-only MCP server (stdio)
         // [phase3] begin
         if (Phase3Commands.Handles(args[0])) return Phase3Commands.Run(args);
         // [phase3] end

@@ -13,6 +13,33 @@
                 </StackPanel>
                 <TextBlock Text="{res:L Set_Language}" Style="{StaticResource Label}" FontSize="10"/>
                 <ComboBox ItemsSource="{Binding Languages}" SelectedValuePath="Value" DisplayMemberPath="Label" SelectedValue="{Binding Language, Mode=TwoWay}" Margin="0,3,0,10" Width="220" HorizontalAlignment="Left"/>
+                <!-- [claude-login] engine: AUTO / API KEY / CLAUDE LOGIN (Claude Code) / OFFLINE -->
+                <TextBlock Text="PROVIDER" Style="{StaticResource Label}" FontSize="10"/>
+                <ComboBox ItemsSource="{Binding Providers}" SelectedValuePath="Value" DisplayMemberPath="Label" SelectedValue="{Binding Provider, Mode=TwoWay}" Margin="0,3,0,4" MaxWidth="520" HorizontalAlignment="Left"/>
+                <TextBlock Text="{Binding RouteText}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="CLAUDE LOGIN (CLAUDE CODE) - NO API KEY NEEDED" Style="{StaticResource Label}" FontSize="10"/>
+                        <TextBlock Text="{Binding ClaudeStatusText}" Style="{StaticResource BodyStrong}" FontSize="12" TextWrapping="Wrap" Margin="0,3,0,6"/>
+                        <WrapPanel Margin="0,0,0,4">
+                            <Button Style="{StaticResource BtnGhost}" Content="CHECK CLAUDE CODE" Command="{Binding CheckClaudeCommand}" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="USE WITH CLAUDE DESKTOP" Command="{Binding ShowDesktopConfigCommand}" Margin="0,0,8,6"/>
+                        </WrapPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition Width="140"/><ColumnDefinition Width="10"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="CLAUDE.EXE (EMPTY = FIND IT)" Style="{StaticResource Label}" FontSize="9" TextTrimming="CharacterEllipsis"/><TextBox Text="{Binding ClaudeCodePath, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11" Margin="0,2,0,6"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="MODEL (EMPTY = DEFAULT)" Style="{StaticResource Label}" FontSize="9" TextTrimming="CharacterEllipsis"/><TextBox Text="{Binding ClaudeCodeModel, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11" Margin="0,2,0,6"/></StackPanel>
+                            <StackPanel Grid.Column="4"><TextBlock Text="TIME LIMIT S" Style="{StaticResource Label}" FontSize="9" TextTrimming="CharacterEllipsis"/><TextBox Text="{Binding ClaudeTimeout, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="11" Margin="0,2,0,6"/></StackPanel>
+                        </Grid>
+                        <StackPanel Visibility="{Binding ShowDesktop, Converter={StaticResource BoolToVis}}" Margin="0,6,0,0">
+                            <TextBlock Text="CLAUDE DESKTOP: ADD THIS TO claude_desktop_config.json (THE APP DOES NOT EDIT IT)" Style="{StaticResource Label}" FontSize="9" TextWrapping="Wrap"/>
+                            <TextBox Text="{Binding DesktopSnippet, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                     FontFamily="{StaticResource FontMono}" FontSize="11" MaxHeight="200" Margin="0,3,0,6"/>
+                            <Button Style="{StaticResource BtnGhost}" Content="COPY" Command="{Binding CopyDesktopConfigCommand}" HorizontalAlignment="Left" Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding DesktopInstructions}" Style="{StaticResource Small}" FontSize="11" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
                 <TextBlock Text="{Binding KeyStatus}" Style="{StaticResource BodyStrong}" FontSize="12" Margin="0,0,0,8" TextWrapping="Wrap"/>
                 <TextBlock Text="{res:L Set_ApiKey}" Style="{StaticResource Label}" FontSize="10"/>
                 <TextBox Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FontMono}" FontSize="12" Margin="0,3,0,10"/>

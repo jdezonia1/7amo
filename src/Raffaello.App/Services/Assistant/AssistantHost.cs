@@ -4,6 +4,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Raffaello.Core;
 using Raffaello.Core.Ai;
 using Raffaello.Core.Assistant;
+using Raffaello.Core.Assistant.ClaudeCode;
 using Raffaello.Core.Materials;
 using Windows.Graphics.Imaging;
 using Windows.Media.Ocr;
@@ -52,9 +53,56 @@ public sealed class AssistantHost
             ContractDocs = () => _documents,
         };
         Session = new AssistantSession(Data) { ApiKey = () => Key };
+        // [claude-login] engine per question (AUTO / API KEY / CLAUDE LOGIN / OFFLINE) and the Claude Code runner
+        Session.Router = () => Route();
+        Session.ClaudeCode = () => _claude.Ready ? new ClaudeCodeRunner(_claude.Path, McpCommand, McpArgs()) : null;
         ApplyModel();
         Current = this;
+        _ = Task.Run(() => CheckClaudeCode());
     }
+
+    // ------------------------------------------------------------------ [claude-login]
+
+    private volatile ClaudeCodeStatus _claude = ClaudeCodeStatus.Unknown;
+    private readonly object _probeLock = new();
+
+    /// <summary>Last known state of Claude Code on this PC (checked at start and with CHECK in Settings).</summary>
+    public ClaudeCodeStatus ClaudeStatus => _claude;
+
+    /// <summary>Finds Claude Code and checks the login (a few seconds; call off the UI thread).</summary>
+    public ClaudeCodeStatus CheckClaudeCode()
+    {
+        lock (_probeLock)
+        {
+            try { _claude = ClaudeCodeLocator.Probe(Settings.ClaudeCodePath); }
+            catch (Exception ex) { _claude = new ClaudeCodeStatus(false, "", "", null, "", "Claude Code check failed: " + ex.Message); }
+            return _claude;
+        }
+    }
+
+    /// <summary>The engine the next question will use. Never blocks the UI thread (uses the last check there).</summary>
+    public RouteDecision Route()
+    {
+        var provider = AssistantProviders.Normalize(Settings.Provider);
+        var needsClaude = provider == AssistantProviders.ClaudeLogin || (provider == AssistantProviders.Auto && !IsKeySet);
+        var onUi = System.Windows.Application.Current?.Dispatcher.CheckAccess() == true;
+        if (needsClaude && !onUi && (_claude == ClaudeCodeStatus.Unknown || DateTime.Now - _claude.CheckedAt > TimeSpan.FromMinutes(10) || !_claude.Ready))
+            CheckClaudeCode();
+        var d = RouteDecision.Decide(provider, IsKeySet, _claude);
+        if (d.Route == AssistantRoute.ClaudeCode && ServerMode)
+            return new RouteDecision(AssistantRoute.Offline, "CLAUDE LOGIN reads the local data file; it is not available in SERVER mode yet. Use an API key or OFFLINE.", true);
+        return d;
+    }
+
+    private bool IsKeySet => !string.IsNullOrWhiteSpace(Key);
+
+    /// <summary>The MCP server program: this Raffaello.exe started with --mcp (same install, same data file).</summary>
+    public static string McpCommand => Environment.ProcessPath is { Length: > 0 } p ? p : Path.Combine(AppContext.BaseDirectory, "Raffaello.exe");
+
+    public List<string> McpArgs() => new() { "--mcp", "--db", _project.Settings.DataFilePath, "--user", Data.User };
+
+    /// <summary>The snippet to paste into Claude Desktop's config (shown in Settings, never written by the app).</summary>
+    public string DesktopSnippet() => ClaudeDesktopConfig.Snippet(McpCommand, new List<string> { "--mcp", "--db", _project.Settings.DataFilePath });
 
     public AssistantSettings Settings { get; }
     public ISecretVault Vault { get; }
@@ -65,7 +113,7 @@ public sealed class AssistantHost
 
     public string? Key => ApiKeys.Resolve(Vault, _project.Settings).Key;
     public ApiKeys.Source KeySource => ApiKeys.Resolve(Vault, _project.Settings).From;
-    public bool IsOnline => !string.IsNullOrWhiteSpace(Key);
+    public bool IsOnline => Route().Route != AssistantRoute.Offline;
     public bool ServerMode => _project.Store is Raffaello.Core.Remote.RemoteProjectStore;
 
     public void ApplyModel()

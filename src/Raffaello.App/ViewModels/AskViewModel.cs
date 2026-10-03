@@ -116,8 +116,15 @@ public sealed partial class AskViewModel : ObservableObject
     public void RefreshStatus()
     {
         _host.ApplyModel();
-        IsOnline = _host.IsOnline;
-        ModeText = IsOnline ? $"{Loc.T("Ask_Online")}  |  {_host.Session.Model}  |  effort {_host.Session.Effort}" : Loc.T("Ask_Offline");
+        var route = _host.Route();
+        IsOnline = route.Route != AssistantRoute.Offline;
+        ModeText = route.Route switch
+        {
+            // [claude-login] answers through Claude Code with the user's own Claude login
+            AssistantRoute.ClaudeCode => $"CLAUDE LOGIN (Claude Code)  |  {(_host.Settings.ClaudeCodeModel.Trim().Length > 0 ? _host.Settings.ClaudeCodeModel.Trim() : "plan default model")}  |  read-only",
+            AssistantRoute.Api => $"{Loc.T("Ask_Online")}  |  {_host.Session.Model}  |  effort {_host.Session.Effort}",
+            _ => Loc.T("Ask_Offline") + (route.Warn ? "  |  " + route.Reason : ""),
+        };
         PrivacyText = _host.Session.PrivacySummary(Attachments.Select(a => a.Read).ToList());
     }
 

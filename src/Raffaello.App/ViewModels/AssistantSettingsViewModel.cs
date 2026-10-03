@@ -77,6 +77,25 @@ public sealed partial class AssistantSettingsViewModel : ObservableObject
     [ObservableProperty] private string _secretsStatus = "";
     [ObservableProperty] private string _testResult = "";
     [ObservableProperty] private NotifyRuleRow? _selectedRule;
+
+    // [claude-login] provider + Claude Code + Claude Desktop
+    public Choice[] Providers { get; } =
+    {
+        new(AssistantProviders.Auto, "AUTO - API key if saved, else your Claude login, else offline"),
+        new(AssistantProviders.ApiKey, "API KEY - Anthropic API key (CONFIRM cards for writes)"),
+        new(AssistantProviders.ClaudeLogin, "CLAUDE LOGIN - your Claude subscription through Claude Code (read-only)"),
+        new(AssistantProviders.Offline, "OFFLINE - local answers only, nothing leaves this PC"),
+    };
+    [ObservableProperty] private string _provider = AssistantProviders.Auto;
+    [ObservableProperty] private string _routeText = "";
+    [ObservableProperty] private string _claudeStatusText = "";
+    [ObservableProperty] private string _claudeCodePath = "";
+    [ObservableProperty] private string _claudeCodeModel = "";
+    [ObservableProperty] private string _claudeTimeout = "240";
+    [ObservableProperty] private bool _isCheckingClaude;
+    [ObservableProperty] private bool _showDesktop;
+    [ObservableProperty] private string _desktopSnippet = "";
+    public string DesktopInstructions => ClaudeDesktopConfig.Instructions;
     public ObservableCollection<NotifyRuleRow> Rules { get; } = new();
 
     public void Load()
@@ -92,6 +111,9 @@ public sealed partial class AssistantSettingsViewModel : ObservableObject
         SmtpHost = s.SmtpHost; SmtpPort = s.SmtpPort.ToString(System.Globalization.CultureInfo.InvariantCulture); SmtpSsl = s.SmtpSsl; SmtpUser = s.SmtpUser; SmtpFrom = s.SmtpFrom; EmailTo = s.EmailTo;
         WhatsAppTo = s.WhatsAppTo; WhatsAppTemplate = s.WhatsAppTemplate; WhatsAppHeaderName = s.WhatsAppHeaderName;
         ApiKey = SmtpPassword = TeamsUrl = WhatsAppUrl = WhatsAppHeaderValue = "";
+        Provider = AssistantProviders.Normalize(s.Provider);
+        ClaudeCodePath = s.ClaudeCodePath; ClaudeCodeModel = s.ClaudeCodeModel;
+        ClaudeTimeout = s.ClaudeCodeTimeoutSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
         Rules.Clear();
         try
         {
@@ -113,6 +135,14 @@ public sealed partial class AssistantSettingsViewModel : ObservableObject
             _ => Loc.T("Set_KeyNone"),
         };
         string Has(string name) => string.IsNullOrEmpty(_host.Vault.Get(name)) ? "-" : "saved";
+        ClaudeStatusText = _host.ClaudeStatus.Message;
+        var route = _host.Route();
+        RouteText = "Next question will use: " + route.Route switch
+        {
+            AssistantRoute.Api => "API KEY",
+            AssistantRoute.ClaudeCode => "CLAUDE LOGIN (Claude Code)",
+            _ => "OFFLINE",
+        } + (route.Reason.Length > 0 ? "  -  " + route.Reason : "");
         SecretsStatus = $"SMTP password: {Has(SecretNames.SmtpPassword)}  |  Teams URL: {Has(SecretNames.TeamsWebhook)}  |  WhatsApp URL: {Has(SecretNames.WhatsAppWebhook)}"
                         + (_host.Vault.IsPersistent ? "" : "  |  (no DPAPI here: secrets kept for this session only)");
     }
@@ -138,6 +168,11 @@ public sealed partial class AssistantSettingsViewModel : ObservableObject
         s.ShowBriefFirst = ShowBriefFirst; s.BriefTime = BriefTime.Trim(); s.BriefClaudeSummary = BriefClaudeSummary;
         s.SmtpHost = SmtpHost.Trim(); if (int.TryParse(SmtpPort, out var port)) s.SmtpPort = port; s.SmtpSsl = SmtpSsl; s.SmtpUser = SmtpUser.Trim(); s.SmtpFrom = SmtpFrom.Trim(); s.EmailTo = EmailTo.Trim();
         s.WhatsAppTo = WhatsAppTo.Trim(); s.WhatsAppTemplate = WhatsAppTemplate.Trim(); s.WhatsAppHeaderName = WhatsAppHeaderName.Trim();
+        s.Provider = AssistantProviders.Normalize(Provider);
+        var pathChanged = !string.Equals(s.ClaudeCodePath, ClaudeCodePath.Trim(), StringComparison.OrdinalIgnoreCase);
+        s.ClaudeCodePath = ClaudeCodePath.Trim(); s.ClaudeCodeModel = ClaudeCodeModel.Trim();
+        if (int.TryParse(ClaudeTimeout, out var cto)) s.ClaudeCodeTimeoutSeconds = Math.Clamp(cto, 30, 1800);
+        if (pathChanged) _ = CheckClaude();
         try
         {
             s.Save();
@@ -189,6 +224,44 @@ public sealed partial class AssistantSettingsViewModel : ObservableObject
             }
             foreach (var r in existing.Values.Where(r => !keep.Contains(r.Id))) b.Delete(r);
         }, $"Notification rules of {owner} saved ({Rules.Count})");
+    }
+
+    /// <summary>[claude-login] Finds Claude Code and checks the login (runs "claude --version" and "claude auth status").</summary>
+    [RelayCommand]
+    private async Task CheckClaude()
+    {
+        if (IsCheckingClaude) return;
+        IsCheckingClaude = true;
+        ClaudeStatusText = "Checking Claude Code...";
+        try
+        {
+            _host.Settings.ClaudeCodePath = ClaudeCodePath.Trim();
+            var st = await Task.Run(() => _host.CheckClaudeCode());
+            ClaudeStatusText = st.Message + (st.Found ? "\n" + st.Path : "");
+            RefreshStatus();
+            ClaudeStatusText = st.Message + (st.Found ? "\n" + st.Path : "");
+        }
+        finally { IsCheckingClaude = false; }
+    }
+
+    /// <summary>[claude-login] Shows the Claude Desktop snippet (option B). The app never edits Claude Desktop's config itself.</summary>
+    [RelayCommand]
+    private void ShowDesktopConfig()
+    {
+        DesktopSnippet = _host.DesktopSnippet();
+        ShowDesktop = !ShowDesktop;
+    }
+
+    [RelayCommand]
+    private void CopyDesktopConfig()
+    {
+        if (DesktopSnippet.Length == 0) DesktopSnippet = _host.DesktopSnippet();
+        try
+        {
+            System.Windows.Clipboard.SetText(DesktopSnippet);
+            _toasts.Show("CLAUDE DESKTOP", "Snippet copied. Paste it into claude_desktop_config.json (see the steps below it).", ToastKind.Good, 6);
+        }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or System.Runtime.InteropServices.ExternalException) { _toasts.Show("CLAUDE DESKTOP", ex.Message, ToastKind.Warn); }
     }
 
     [RelayCommand] private void AddRule() => Rules.Add(new NotifyRuleRow { EventKind = NotifyEvents.Brief, Channel = NotifyChannels.Email, MinSeverity = "OK" });
