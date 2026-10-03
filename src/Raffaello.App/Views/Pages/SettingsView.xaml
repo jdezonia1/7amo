@@ -170,6 +170,9 @@
                         <TextBlock Text="The API key is stored encrypted for your Windows account only (DPAPI). The screen context and the results of the read tools are sent with each question." Style="{StaticResource Small}" FontSize="11"/>
                     </StackPanel>
                 </Border>
+                <!-- [aconex-logins] begin: two saved Aconex logins -->
+                <views:AconexAccountsCard DataContext="{Binding AconexAccounts}" Margin="0,16,0,0"/>
+                <!-- [aconex-logins] end -->
                 <!-- [assistant] begin: language, assistant, morning brief, notifications -->
                 <views:AssistantSettingsCard DataContext="{Binding Assistant}" Margin="0,16,0,0"/>
                 <!-- [assistant] end -->

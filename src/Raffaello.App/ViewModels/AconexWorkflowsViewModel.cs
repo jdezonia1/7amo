@@ -38,7 +38,13 @@ public sealed partial class AconexHubViewModel : PageViewModel
         Board = new AconexBoardViewModel(this);
         Downloads = new AconexDownloadsViewModel(this);
         Setup = new AconexSetupViewModel(this);
+        Accounts = new AconexAccountsViewModel(automation, ctx.Toasts);
         automation.Log += line => Application.Current?.Dispatcher.BeginInvoke(() => AddLog(line));
+        automation.LoginAttention += text => Application.Current?.Dispatcher.BeginInvoke(() =>
+        {
+            LoginAttention = text;
+            if (text.Length > 0) Ctx.Toasts.Show("FINISH THE ACONEX LOGIN", text, ToastKind.Warn, 15);
+        });
         _daily.Tick += async (_, _) => await DailyTickAsync();
         _daily.Start();
     }
@@ -56,6 +62,20 @@ public sealed partial class AconexHubViewModel : PageViewModel
     public AconexBoardViewModel Board { get; }
     public AconexDownloadsViewModel Downloads { get; }
     public AconexSetupViewModel Setup { get; }
+    /// <summary>The two saved Aconex logins (also on the Settings page).</summary>
+    public AconexAccountsViewModel Accounts { get; }
+
+    // ---- which Aconex account runs (automatic per task, or chosen by the user)
+    public const string AccountAuto = "AUTO (BY TASK)";
+    public string[] AccountChoices { get; } = { AccountAuto, AconexProfiles.DisplayName(AconexProfile.MirWir), AconexProfiles.DisplayName(AconexProfile.Workflows) };
+    [ObservableProperty] private string _accountChoice = AccountAuto;
+    partial void OnAccountChoiceChanged(string value) =>
+        Automation.ProfileOverride = AconexProfiles.All.Cast<AconexProfile?>().FirstOrDefault(p => AconexProfiles.DisplayName(p!.Value) == value);
+
+    // ---- login hand-over banner (MFA / SSO / CAPTCHA / expired password)
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasLoginAttention))] private string _loginAttention = "";
+    public bool HasLoginAttention => LoginAttention.Length > 0;
+    [RelayCommand] private void ContinueLogin() => Automation.ContinueLogin();
     public string[] Tabs { get; } = { TabBoard, TabWorkflows, TabDownloads, TabScripts, TabSetup };
     public ObservableCollection<string> Log { get; } = new();
 
@@ -108,14 +128,15 @@ public sealed partial class AconexHubViewModel : PageViewModel
     }
 
     /// <summary>Runs browser work with a busy flag, errors as toasts. Returns default on failure.</summary>
-    internal async Task<T?> RunBrowserAsync<T>(string busy, Func<Core.AconexWeb.IAconexClient, Task<T>> work, bool visible = false, CancellationToken ct = default)
+    internal async Task<T?> RunBrowserAsync<T>(AconexTask task, string busy, Func<Core.AconexWeb.IAconexClient, Task<T>> work, bool visible = false, CancellationToken ct = default)
     {
         if (Automation.IsBusy) { Ctx.Toasts.Show("ACONEX IS BUSY", "Another lookup or download is running.", ToastKind.Warn); return default; }
         IsBusy = true;
         BusyText = busy;
         AddLog(busy);
-        try { return await Automation.RunAsync(work, visible, ct); }
+        try { return await Automation.RunAsync(task, work, visible, ct); }
         catch (OperationCanceledException) { AddLog("Stopped."); Ctx.Toasts.Show("STOPPED", busy); return default; }
+        catch (AconexLoginFailedException ex) { AddLog(ex.Message); Ctx.Toasts.Show("ACONEX LOGIN REFUSED", ex.Message, ToastKind.Error, 15); return default; }
         catch (AconexLoginRequiredException ex) { AddLog(ex.Message); Ctx.Toasts.Show("ACONEX LOGIN NEEDED", ex.Message, ToastKind.Warn, 10); return default; }
         catch (Exception ex)
         {
@@ -251,7 +272,7 @@ public sealed partial class AconexLookupViewModel : ObservableObject
         if (wf.Length == 0) { _hub.C.Toasts.Show("TYPE A WORKFLOW NUMBER", kind: ToastKind.Warn); return; }
         var inv = SelectedInvoice?.WorkflowNo is { Length: > 0 } iw && WorkflowParser.NormalizeWf(iw) == WorkflowParser.NormalizeWf(wf) ? SelectedInvoice : null;
         var cfg = _hub.Automation.Config;
-        var r = await _hub.RunBrowserAsync($"Looking up {wf}...", c => new WorkflowTracker(c, _hub.Automation.Store, cfg).LookupAsync(wf, inv?.Id));
+        var r = await _hub.RunBrowserAsync(AconexTask.WorkflowLookup, $"Looking up {wf}...", c => new WorkflowTracker(c, _hub.Automation.Store, cfg).LookupAsync(wf, inv?.Id));
         if (r is null) return;
         WorkflowNo = wf;
         ShowLatest();
@@ -392,7 +413,7 @@ public sealed partial class AconexBoardViewModel : ObservableObject
         var invoices = _hub.Project.Snapshot.SubInvoices.ToList();
         var cfg = _hub.Automation.Config;
         var progress = new Progress<(int Done, int Total, string Wf)>(p => Progress = p.Wf.Length > 0 ? $"{p.Done + 1} / {p.Total}  {p.Wf}" : $"{p.Done} / {p.Total} done");
-        var results = await _hub.RunBrowserAsync("Refreshing all invoice workflows...", c => new WorkflowTracker(c, _hub.Automation.Store, cfg).RefreshAllAsync(invoices, progress, _cts.Token), ct: _cts.Token);
+        var results = await _hub.RunBrowserAsync(AconexTask.WorkflowBoard, "Refreshing all invoice workflows...", c => new WorkflowTracker(c, _hub.Automation.Store, cfg).RefreshAllAsync(invoices, progress, _cts.Token), ct: _cts.Token);
         Progress = "";
         Refresh();
         if (results is null) return;
@@ -540,7 +561,7 @@ public sealed partial class AconexDownloadsViewModel : ObservableObject
         var q = Query();
         if (q.IsEmpty) { _hub.C.Toasts.Show("NOTHING TO SEARCH", "Paste numbers or set a date range / group / discipline / type.", ToastKind.Warn); return; }
         var cfg = _hub.Automation.Config;
-        var job = await _hub.RunBrowserAsync($"Searching the register ({q.Describe()})...", async c =>
+        var job = await _hub.RunBrowserAsync(AconexTask.WirMirRegisterSync, $"Searching the register ({q.Describe()})...", async c =>
         {
             var svc = new DocumentDownloadService(c, _hub.Automation.Store, cfg);
             svc.Log += _hub.AddLogFromAnyThread;
@@ -567,7 +588,7 @@ public sealed partial class AconexDownloadsViewModel : ObservableObject
             ProgressText = p.Doc.Length > 0 ? $"{p.Done} / {p.Total}  {p.Doc}" : $"{p.Done} / {p.Total}";
             LoadQueue();
         });
-        var done = await _hub.RunBrowserAsync($"Downloading job #{job.Id}...", async c =>
+        var done = await _hub.RunBrowserAsync(AconexTask.WirMirDownload, $"Downloading job #{job.Id}...", async c =>
         {
             var svc = new DocumentDownloadService(c, _hub.Automation.Store, cfg);
             svc.Log += _hub.AddLogFromAnyThread;
@@ -615,8 +636,8 @@ public sealed partial class AconexSetupViewModel : ObservableObject
     [ObservableProperty] private string _otherFolder = "";
     [ObservableProperty] private string _screenshotFolder = "";
     [ObservableProperty] private string _subFolderTemplate = "";
-    [ObservableProperty] private string _credUser = "";
-    [ObservableProperty] private string _credStatus = "";
+    /// <summary>The two saved Aconex logins (same card as SETTINGS).</summary>
+    public AconexAccountsViewModel Accounts => _hub.Accounts;
 
     public void Refresh()
     {
@@ -628,9 +649,7 @@ public sealed partial class AconexSetupViewModel : ObservableObject
         WirFolder = c.Folders.WirFolder; MirFolder = c.Folders.MirFolder; OtherFolder = c.Folders.OtherFolder; ScreenshotFolder = c.Folders.ScreenshotFolder; SubFolderTemplate = c.Folders.SubFolderTemplate;
         var problems = c.Validate();
         Validation = a.ConfigError.Length > 0 ? "CONFIG ERROR: " + a.ConfigError : problems.Count == 0 ? "CONFIG OK - selectors and columns still need checking on the real site (README)." : string.Join("  |  ", problems);
-        CredStatus = !a.Vault.IsSupported ? "Password storage needs Windows (DPAPI). Log in by hand in the browser window."
-            : a.Vault.HasCredential ? "A password is stored (encrypted with DPAPI for your Windows user)." : "No password stored - you log in by hand once; the browser profile keeps the session.";
-        if (a.Vault.Load() is { } cred) CredUser = cred.User;
+        Accounts.Refresh();
     }
 
     [RelayCommand]
@@ -666,26 +685,11 @@ public sealed partial class AconexSetupViewModel : ObservableObject
     [RelayCommand] private void BrowseOther() { if (_hub.C.Dialogs.PickFolder("Other documents folder") is { } f) OtherFolder = f; }
     [RelayCommand] private void BrowseShots() { if (_hub.C.Dialogs.PickFolder("Workflow screenshots folder") is { } f) ScreenshotFolder = f; }
 
-    /// <summary>Called by the view with the PasswordBox content (never bound, never logged).</summary>
-    public void SaveCredential(string password)
-    {
-        if (string.IsNullOrWhiteSpace(CredUser) || string.IsNullOrEmpty(password)) { _hub.C.Toasts.Show("USER AND PASSWORD", "Both are needed.", ToastKind.Warn); return; }
-        try
-        {
-            _hub.Automation.Vault.Save(CredUser.Trim(), password);
-            _hub.C.Toasts.Show("PASSWORD STORED", "Encrypted with Windows DPAPI for your user only.", ToastKind.Good);
-        }
-        catch (PlatformNotSupportedException ex) { _hub.C.Toasts.Show("NOT SUPPORTED", ex.Message, ToastKind.Warn); }
-        Refresh();
-    }
-
-    [RelayCommand] private void ClearCredential() { _hub.Automation.Vault.Clear(); Refresh(); _hub.C.Toasts.Show("STORED PASSWORD REMOVED", kind: ToastKind.Good); }
-
     [RelayCommand]
     private async Task TestLogin()
     {
-        var ok = await _hub.RunBrowserAsync("Opening Aconex - log in in the browser window if asked...", async c => { await c.EnsureLoggedInAsync(); return true; }, visible: true);
-        if (ok) _hub.C.Toasts.Show("LOGGED IN", "The session is kept in " + ProfileDir, ToastKind.Good, 8);
+        var ok = await _hub.RunBrowserAsync(AconexTask.WorkflowLookup, "Opening Aconex - the saved login is typed, or log in in the browser window...", async c => { await c.EnsureLoggedInAsync(); return true; }, visible: true);
+        if (ok) _hub.C.Toasts.Show("LOGGED IN", "The session is kept in the browser profile of this account.", ToastKind.Good, 8);
     }
 
     [RelayCommand] private async Task CloseBrowser() { await _hub.Automation.CloseBrowserAsync(); _hub.C.Toasts.Show("BROWSER CLOSED"); }

@@ -12,12 +12,24 @@
         <Grid Margin="0,0,0,10">
             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding Tab, Mode=TwoWay}"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                <TextBlock Text="Aconex account" Style="{StaticResource Label}" FontSize="10" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ComboBox ItemsSource="{Binding AccountChoices}" SelectedItem="{Binding AccountChoice, Mode=TwoWay}" Width="220"
+                          ToolTip="Auto: WIR / MIR tasks use the MIR / WIR account, workflows and invoice upload use the WORKFLOWS account. Choose one to override it for the next runs."/>
+            </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
                 <ProgressBar Style="{StaticResource SlimProgress}" IsIndeterminate="True" Width="120" Margin="0,0,8,0"/>
                 <TextBlock Text="{Binding BusyText}" Style="{StaticResource Label}" Foreground="{DynamicResource AccentBrush}"/>
             </StackPanel>
         </Grid>
 
+        <Border Grid.Row="1" Panel.ZIndex="5" VerticalAlignment="Top" Background="{DynamicResource WarningBrush}" CornerRadius="4" Padding="12,8" Margin="0,0,0,0"
+                Visibility="{Binding HasLoginAttention, Converter={StaticResource BoolToVis}}">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Style="{StaticResource BtnPrimary}" Content="Continue" Command="{Binding ContinueLoginCommand}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding LoginAttention}" Foreground="{DynamicResource WarningInkBrush}" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
         <pages:AconexWorkflowsBoardView Grid.Row="1" DataContext="{Binding Board}" Visibility="{Binding DataContext.IsBoard, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
         <pages:AconexWorkflowsLookupView Grid.Row="1" DataContext="{Binding Lookup}" Visibility="{Binding DataContext.IsWorkflows, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
         <pages:AconexWorkflowsDownloadsView Grid.Row="1" DataContext="{Binding Downloads}" Visibility="{Binding DataContext.IsDownloads, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
