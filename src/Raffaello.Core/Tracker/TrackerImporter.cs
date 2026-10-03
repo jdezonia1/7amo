@@ -194,6 +194,7 @@ public static class TrackerImporter
         var codes = new HashSet<string>(res.Rooms.Select(r => r.Code), StringComparer.OrdinalIgnoreCase);
         foreach (var s in parsed.Shapes)
         {
+            s.Room = PlanDrawingParser.ResolveRoom(s.ShapeName, codes);
             if (!codes.Contains(s.Room)) res.Issues.Add(new(0, IssueLevel.Warning, $"Plan shape {s.ShapeName}: room {s.Room} not in ROOMS."));
             res.Shapes.Add(s);
         }

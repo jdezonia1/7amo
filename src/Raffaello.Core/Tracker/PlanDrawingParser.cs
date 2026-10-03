@@ -104,6 +104,23 @@ public static class PlanDrawingParser
         return (sp > 0 ? s[..sp] : s).Trim();
     }
 
+    /// <summary>
+    /// Matches a shape to a room code from ROOMS. Hotel room codes contain spaces ("H3-SALT RM 14",
+    /// "H1-L2-HOUSEKEEPING L2-003 (NO QS ROW)") and rooms drawn in parts carry "~2" / " (E)" / " (W)" suffixes,
+    /// so the first-space rule alone matched only 276 of 923 Hotel shapes. Tries, in order: the full name,
+    /// without "~n", without a trailing side marker (E/W/N/S), then the old first-space rule (Branded "P2-106 2").
+    /// Unmatched shapes keep the full name.
+    /// </summary>
+    public static string ResolveRoom(string shapeName, ICollection<string> roomCodes)
+    {
+        var full = (shapeName.StartsWith("RM_", StringComparison.OrdinalIgnoreCase) ? shapeName[3..] : shapeName).Trim();
+        var noPart = System.Text.RegularExpressions.Regex.Replace(full, @"~\d+$", "").Trim();
+        var noSide = System.Text.RegularExpressions.Regex.Replace(noPart, @"\s*\((E|W|N|S)\)$", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+        foreach (var c in new[] { full, noPart, noSide, RoomFromShapeName(noSide) })
+            if (c.Length > 0 && roomCodes.Contains(c)) return c;
+        return noSide;
+    }
+
     private static Rect AnchorRect(XElement anchor)
     {
         // prefer the absolute xfrm of the shape / picture (Excel writes sheet EMU there for every anchor type)
