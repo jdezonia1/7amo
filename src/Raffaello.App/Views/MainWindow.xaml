@@ -259,7 +259,7 @@
                 </Grid>
             </Border>
 
-            <ContentControl Grid.Row="2" Content="{Binding Current}" Focusable="False"/>
+            <ContentControl Grid.Row="2" c:PageHost.Page="{Binding Current}" Focusable="False"/>
         </Grid>
 
         <!-- ============================================================ ASK PANEL -->

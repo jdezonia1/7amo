@@ -521,7 +521,7 @@
                 <ControlTemplate TargetType="DataGridRow">
                     <Border x:Name="Bd" CornerRadius="{StaticResource RadiusRow}" Background="{TemplateBinding Background}" BorderThickness="1" BorderBrush="Transparent">
                         <DockPanel>
-                            <Border DockPanel.Dock="Left" Width="4" CornerRadius="10,0,0,10" Background="{Binding Status, Converter={StaticResource StatusStripe}}"/>
+                            <Border DockPanel.Dock="Left" Width="4" CornerRadius="10,0,0,10" c:RowStatusStripe.Enabled="True"/>
                             <DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                         </DockPanel>
                     </Border>
